@@ -1,0 +1,110 @@
+body {
+  font-size: larger;
+  background-color: #f8f8f8;
+}
+
+h1 {
+  font-size: 2.25em;
+}
+
+hr {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.jumbotron {
+  align-items: center;
+  background-color: #f8f8f8;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  padding: 0px;
+  /* padding: 20px; */
+}
+
+.jumbotron h1 {
+  font-weight: 300;
+}
+
+.content {
+  background-color: #fff;
+  padding: 20px;
+}
+
+.header {
+  text-align: center;
+  color: #333;
+  font-weight: 400;
+}
+
+.header-right {
+  text-align: right;
+}
+
+.content-header h2 {
+  /* font-size: 1.9em; */
+  font-weight: 300;
+  margin-bottom: 30px;
+}
+
+.content-header .accent {
+  color: #555;
+  font-weight: 400;
+}
+
+.content-showcase-image {
+  width: 100%;
+  /* border: 1px solid #ccc; */
+  box-shadow: 0px 0px 30px #e8e8e8;
+  border-radius: 4px;
+  margin: 10px;
+  padding: 0px;
+}
+
+.emphasize {
+  color: #333;
+  font-size: normal;
+  font-weight: 600;
+}
+
+.thumbnail-image {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0px 0px 10px #eee;
+  width: 100%;
+  padding: 5px;
+  margin: 15px;
+}
+
+.footer {
+  color: #999;
+}
+
+.video-player {
+  object-fit:cover;
+  width: 50vw;
+}
+@media only screen and (max-width: 700px) {
+  body {
+    font-size: 1.1em;
+  }
+  h1 {
+    font-size: 2em;
+  }
+  h2 {
+    font-size: 1.35em;
+  }
+  .lead {
+    font-size: 1em;
+  }
+}
+
+/* Mailchimp */
+.subscription-items {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
