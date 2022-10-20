@@ -31,7 +31,11 @@ hr {
 
 .content {
   background-color: #fff;
-  padding: 20px;
+  padding: 50px;
+}
+
+.content .body {
+  color: #777;
 }
 
 .header {
@@ -45,13 +49,13 @@ hr {
 }
 
 .content-header h2 {
-  /* font-size: 1.9em; */
-  font-weight: 300;
-  margin-bottom: 30px;
+  color: #888;
+  font-weight: 200;
+  margin-bottom: 50px;
 }
 
 .content-header .accent {
-  color: #555;
+  color: #888;
   font-weight: 400;
 }
 
@@ -65,7 +69,7 @@ hr {
 }
 
 .emphasize {
-  color: #333;
+  color: rgb(96, 0, 116);
   font-size: normal;
   font-weight: 600;
 }
