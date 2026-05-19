@@ -1,0 +1,562 @@
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --blue: #1A5FB4; --blue-dark: #0d3d7a;
+    --gray-50: #F8F9FA; --gray-100: #F1F3F5; --gray-200: #E9ECEF;
+    --gray-300: #DEE2E6; --gray-400: #CED4DA; --gray-500: #ADB5BD;
+    --gray-600: #6C757D; --gray-700: #495057; --gray-800: #343A40; --gray-900: #212529;
+    --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  }
+  body { font-family: var(--font-body); background: #fff; color: var(--gray-900); }
+  .app { max-width: 820px; padding: 28px 24px 40px; font-family: var(--font-body); }
+  .app-header { margin-bottom: 24px; border-bottom: 1.5px solid var(--gray-200); padding-bottom: 18px; }
+  .app-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; }
+  .app-title { font-size: 26px; font-weight: 600; letter-spacing: -.4px; color: var(--gray-900); margin-bottom: 6px; }
+  .app-desc { font-size: 14px; font-weight: 300; color: var(--gray-600); line-height: 1.7; }
+  .sec-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 8px; margin-top: 20px; }
+  .panel { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 12px 16px; margin-bottom: 12px; }
+  .range-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .range-group { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--gray-700); }
+  .range-group input[type=number] { width: 72px; font-size: 13px; font-family: var(--font-mono); padding: 5px 8px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); background: #fff; color: var(--gray-900); transition: border-color .15s; }
+  .range-group input[type=number]:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,95,180,.12); }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .cg { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--gray-700); }
+  .cg select { font-size: 13px; font-family: var(--font-body); padding: 6px 10px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); background: #fff; color: var(--gray-900); width: 160px; cursor: pointer; }
+  .cg input[type=number] { width: 60px; font-size: 13px; font-family: var(--font-mono); padding: 5px 8px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); background: #fff; color: var(--gray-900); }
+  .btn { font-size: 13px; font-family: var(--font-body); font-weight: 500; padding: 6px 14px; border-radius: var(--radius-sm); border: 1px solid var(--gray-300); background: #fff; color: var(--gray-700); cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .btn:hover { background: var(--gray-100); border-color: var(--gray-400); }
+  .btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .btn-primary:hover { background: var(--blue-dark); border-color: var(--blue-dark); }
+  .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
+  .toggle-label { font-size: 13px; font-weight: 500; color: var(--gray-700); }
+  .toggle { position: relative; display: inline-block; width: 38px; height: 22px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: var(--gray-300); border-radius: 22px; cursor: pointer; transition: background .2s; }
+  .slider::before { content: ''; position: absolute; height: 16px; width: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .2s; }
+  input:checked + .slider { background: var(--blue); }
+  input:checked + .slider::before { transform: translateX(16px); }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
+  .li { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--gray-600); }
+  .li-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .li-dash { width: 18px; height: 0; border-top: 2.5px solid #C0392B; flex-shrink: 0; }
+  .li-mean { width: 18px; height: 0; border-top: 1.5px dashed var(--gray-400); flex-shrink: 0; }
+  .li-sq { width: 12px; height: 12px; background: rgba(224,120,32,.18); border: 1.5px solid rgba(224,120,32,.65); flex-shrink: 0; }
+  .canvas-outer { border: 1px solid var(--gray-200); border-radius: var(--radius-lg); overflow: hidden; background: #fff; box-shadow: var(--shadow-sm); margin-bottom: 6px; }
+  .canvas-wrap { position: relative; width: 100%; height: 360px; cursor: crosshair; }
+  .canvas-hint { font-size: 11px; color: var(--gray-400); text-align: right; margin-bottom: 0; font-style: italic; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap: 8px; margin-bottom: 10px; }
+  .sc { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 10px 14px; }
+  .sc-label { font-size: 10.5px; font-weight: 500; color: var(--gray-500); letter-spacing: .02em; margin-bottom: 3px; }
+  .sc-val { font-size: 20px; font-weight: 600; color: var(--gray-900); font-family: var(--font-mono); letter-spacing: -.5px; }
+  .sc-sub { font-size: 10px; color: var(--gray-400); margin-top: 2px; font-style: italic; }
+  .stats-divider { grid-column: 1 / -1; height: 1px; background: var(--gray-200); }
+  .insight { border-radius: var(--radius-md); border: 1px solid #c7ddf7; border-left: 4px solid var(--blue); background: #f0f7ff; padding: 12px 16px; margin-top: 6px; }
+  .insight p { font-size: 13.5px; font-weight: 300; color: var(--gray-700); line-height: 1.7; }
+  .insight strong { font-weight: 600; color: var(--gray-900); }
+  .insight code { font-family: var(--font-mono); font-size: 13px; background: rgba(26,95,180,.08); padding: 1px 5px; border-radius: 3px; }
+</style>
+
+<div class="app">
+  <div class="app-header">
+    <p class="app-eyebrow">Interactive Explorer</p>
+    <h1 class="app-title">Scatter plots &amp; linear regression</h1>
+    <p class="app-desc">Explore how ad spend relates to items sold. Set your axis ranges, generate a dataset, or click the chart to add your own points. Click an existing point to remove it.</p>
+  </div>
+
+  <p class="sec-label">Axis ranges</p>
+  <div class="panel range-row">
+    <div class="range-group"><label>X min</label><input type="number" id="xMin" value="-250" step="10"></div>
+    <div class="range-group"><label>X max</label><input type="number" id="xMax" value="250" step="10"></div>
+    <div class="range-group"><label>Y min</label><input type="number" id="yMin" value="-250" step="10"></div>
+    <div class="range-group"><label>Y max</label><input type="number" id="yMax" value="250" step="10"></div>
+  </div>
+
+  <p class="sec-label">Options</p>
+  <div class="panel controls">
+    <div class="cg">
+      <label>Preset</label>
+      <select id="presetSel">
+        <option value="random">Random</option>
+        <option value="strong">Strong correlation</option>
+        <option value="weak">Weak correlation</option>
+        <option value="none">No correlation</option>
+        <option value="outlier">With outlier</option>
+      </select>
+    </div>
+    <div class="cg"><label>Points</label><input type="number" id="nPts" value="20" min="5" max="60" step="1"></div>
+    <button class="btn btn-primary" id="genBtn">Generate &#8635;</button>
+    <button class="btn" id="undoBtn">Undo last</button>
+    <button class="btn" id="clearBtn">Clear</button>
+  </div>
+
+  <div class="toggle-row" style="margin-top:4px; margin-bottom:12px;">
+    <label class="toggle"><input type="checkbox" id="residToggle"><span class="slider"></span></label>
+    <span class="toggle-label">Show residuals (squared errors)</span>
+  </div>
+
+  <div class="legend">
+    <span class="li"><span class="li-dot" style="background:#1A5FB4;"></span>Data point</span>
+    <span class="li"><span class="li-dot" style="background:#2D7D1F;"></span>New point (15 s)</span>
+    <span class="li"><span class="li-dot" style="background:rgba(192,57,43,.75);"></span>Hover to delete</span>
+    <span class="li"><span class="li-dash"></span>Regression line</span>
+    <span class="li"><span class="li-mean"></span>Mean lines</span>
+    <span class="li"><span class="li-sq"></span>Residual square</span>
+  </div>
+
+  <div class="canvas-outer">
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+  <p class="canvas-hint">Hover a point to inspect &nbsp;&#183;&nbsp; click empty area to add &nbsp;&#183;&nbsp; click a point to delete</p>
+
+  <p class="sec-label">Statistics</p>
+  <div class="stats-grid">
+    <div class="sc"><p class="sc-label">Points (n)</p><p class="sc-val" id="sN">&#8212;</p></div>
+    <div class="sc"><p class="sc-label">Mean X (x&#772;)</p><p class="sc-val" id="sMx">&#8212;</p><p class="sc-sub">avg X</p></div>
+    <div class="sc"><p class="sc-label">Mean Y (&#563;)</p><p class="sc-val" id="sMy">&#8212;</p><p class="sc-sub">avg Y</p></div>
+    <div class="sc"><p class="sc-label">Std dev X</p><p class="sc-val" id="sSDx">&#8212;</p><p class="sc-sub">spread of X</p></div>
+    <div class="sc"><p class="sc-label">Std dev Y</p><p class="sc-val" id="sSDy">&#8212;</p><p class="sc-sub">spread of Y</p></div>
+    <div class="sc"><p class="sc-label">Min / Max X</p><p class="sc-val" id="sRngX" style="font-size:14px;letter-spacing:0;">&#8212;</p></div>
+    <div class="sc"><p class="sc-label">Min / Max Y</p><p class="sc-val" id="sRngY" style="font-size:14px;letter-spacing:0;">&#8212;</p></div>
+    <div class="stats-divider"></div>
+    <div class="sc"><p class="sc-label">Slope (m)</p><p class="sc-val" id="sSlope">&#8212;</p><p class="sc-sub">items per unit</p></div>
+    <div class="sc"><p class="sc-label">Intercept (b)</p><p class="sc-val" id="sIntercept">&#8212;</p></div>
+    <div class="sc"><p class="sc-label">R&#178; fit quality</p><p class="sc-val" id="sR2">&#8212;</p></div>
+    <div class="sc"><p class="sc-label">Sum sq. errors</p><p class="sc-val" id="sSSE" style="font-size:15px;letter-spacing:0;">&#8212;</p><p class="sc-sub">&#931;(residuals&#178;)</p></div>
+  </div>
+
+  <div class="insight" id="insightBox">
+    <p>Generate a dataset or click the chart to add points and discover patterns.</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+var gc         = 'rgba(0,0,0,0.055)';
+var tc         = '#9099a5';
+var AXIS_COLOR = 'rgba(60,60,60,0.35)';
+var COL_NORMAL   = '#1A5FB4';
+var COL_NORMAL_B = '#0d3d7a';
+var COL_NEW      = '#2D7D1F';
+var COL_NEW_B    = '#1a4f10';
+var COL_HOVER    = 'rgba(192,57,43,0.78)';
+var COL_HOVER_B  = '#7B2D26';
+var RESID_FILL   = 'rgba(224,120,32,0.15)';
+var RESID_STROKE = 'rgba(224,120,32,0.70)';
+var NEW_DURATION = 15000;
+var HIT_RADIUS   = 13;
+
+var pts = [], ci = null, hoveredIdx = -1, showResiduals = false;
+
+// ── Plugin: origin axes ───────────────────────────────────────────────────────
+var originAxesPlugin = {
+  id: 'originAxes',
+  afterDraw: function(chart) {
+    var ctx = chart.ctx, ca = chart.chartArea, scales = chart.scales;
+    var x0 = scales.x.getPixelForValue(0);
+    var y0 = scales.y.getPixelForValue(0);
+    ctx.save();
+    ctx.strokeStyle = AXIS_COLOR;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([]);
+    if (x0 >= ca.left && x0 <= ca.right) {
+      ctx.beginPath(); ctx.moveTo(x0, ca.top); ctx.lineTo(x0, ca.bottom); ctx.stroke();
+    }
+    if (y0 >= ca.top && y0 <= ca.bottom) {
+      ctx.beginPath(); ctx.moveTo(ca.left, y0); ctx.lineTo(ca.right, y0); ctx.stroke();
+    }
+    if (x0 >= ca.left && x0 <= ca.right && y0 >= ca.top && y0 <= ca.bottom) {
+      ctx.fillStyle = 'rgba(80,80,80,0.5)';
+      ctx.font = '500 10px "DM Sans", sans-serif';
+      ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+      ctx.fillText('0', x0 - 4, y0 + 4);
+    }
+    ctx.restore();
+  }
+};
+
+// ── Plugin: residual squares ──────────────────────────────────────────────────
+var residualsPlugin = {
+  id: 'residuals',
+  afterDraw: function(chart) {
+    if (!showResiduals) return;
+    var r = computeReg(); if (!r) return;
+    var ctx = chart.ctx, scales = chart.scales;
+    ctx.save();
+    for (var i = 0; i < pts.length; i++) {
+      var p = pts[i];
+      var yPred = r.m * p.x + r.b;
+      var residual = p.y - yPred;
+      if (Math.abs(residual) < 0.5) continue;
+      var px  = scales.x.getPixelForValue(p.x);
+      var py  = scales.y.getPixelForValue(p.y);
+      var pyr = scales.y.getPixelForValue(yPred);
+      var side = Math.abs(py - pyr);
+      if (side < 1) continue;
+      var dir = residual >= 0 ? -1 : 1;
+      ctx.fillStyle = RESID_FILL;
+      ctx.strokeStyle = RESID_STROKE;
+      ctx.lineWidth = 1; ctx.setLineDash([3,2]);
+      ctx.beginPath();
+      ctx.rect(Math.min(px, px + dir*side), Math.min(py, pyr), side, side);
+      ctx.fill(); ctx.stroke();
+      ctx.setLineDash([3,3]);
+      ctx.strokeStyle = 'rgba(200,100,0,0.55)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, pyr); ctx.stroke();
+    }
+    ctx.restore();
+  }
+};
+
+// ── Plugin: hover crosshair projections ───────────────────────────────────────
+var crosshairPlugin = {
+  id: 'crosshair',
+  afterDraw: function(chart) {
+    if (hoveredIdx < 0 || hoveredIdx >= pts.length) return;
+    var p = pts[hoveredIdx];
+    var ctx = chart.ctx, ca = chart.chartArea, scales = chart.scales;
+    var px = scales.x.getPixelForValue(p.x);
+    var py = scales.y.getPixelForValue(p.y);
+
+    // clamp projection lines to chart area
+    var yAxisX = ca.left;
+    var xAxisY = ca.bottom;
+
+    ctx.save();
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(80, 80, 80, 0.4)';
+
+    // vertical drop to x-axis
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    ctx.lineTo(px, xAxisY);
+    ctx.stroke();
+
+    // horizontal projection to y-axis
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    ctx.lineTo(yAxisX, py);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+    // small tick on x-axis
+    ctx.strokeStyle = 'rgba(60,60,60,0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px, xAxisY - 4); ctx.lineTo(px, xAxisY + 4); ctx.stroke();
+
+    // small tick on y-axis
+    ctx.beginPath(); ctx.moveTo(yAxisX - 4, py); ctx.lineTo(yAxisX + 4, py); ctx.stroke();
+
+    // label style helpers
+    var pad = 4, r = 3;
+    ctx.font = '500 11px "DM Mono", monospace';
+    ctx.textBaseline = 'middle';
+
+    // ── X label (below x-axis) ──
+    var xLabel = String(p.x);
+    var xLabelW = ctx.measureText(xLabel).width + pad * 2;
+    var xLabelH = 16;
+    var xLabelX = px - xLabelW / 2;
+    var xLabelY = xAxisY + 6;
+
+    ctx.fillStyle = 'rgba(26,95,180,0.92)';
+    ctx.beginPath();
+    ctx.roundRect(xLabelX, xLabelY, xLabelW, xLabelH, r);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.fillText(xLabel, px, xLabelY + xLabelH / 2);
+
+    // ── Y label (left of y-axis) ──
+    var yLabel = String(p.y);
+    var yLabelW = ctx.measureText(yLabel).width + pad * 2;
+    var yLabelH = 16;
+    var yLabelX = yAxisX - yLabelW - 6;
+    var yLabelY = py - yLabelH / 2;
+
+    // keep label within chart vertically
+    yLabelY = Math.max(ca.top, Math.min(ca.bottom - yLabelH, yLabelY));
+
+    ctx.fillStyle = 'rgba(26,95,180,0.92)';
+    ctx.beginPath();
+    ctx.roundRect(yLabelX, yLabelY, yLabelW, yLabelH, r);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.fillText(yLabel, yLabelX + yLabelW / 2, yLabelY + yLabelH / 2);
+
+    ctx.restore();
+  }
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getRange() {
+  var xMinEl = parseFloat(document.getElementById('xMin').value);
+  var xMaxEl = parseFloat(document.getElementById('xMax').value);
+  var yMinEl = parseFloat(document.getElementById('yMin').value);
+  var yMaxEl = parseFloat(document.getElementById('yMax').value);
+  var xMin = isNaN(xMinEl) ? -250 : xMinEl;
+  var xMax = isNaN(xMaxEl) ?  250 : xMaxEl;
+  var yMin = isNaN(yMinEl) ? -250 : yMinEl;
+  var yMax = isNaN(yMaxEl) ?  250 : yMaxEl;
+  return { xMin: Math.min(xMin,xMax), xMax: Math.max(xMin,xMax), yMin: Math.min(yMin,yMax), yMax: Math.max(yMin,yMax) };
+}
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function sdv(arr, mean) {
+  if (arr.length < 2) return 0;
+  return Math.sqrt(arr.reduce(function(s,v){ return s + (v-mean)*(v-mean); }, 0) / (arr.length-1));
+}
+
+function computeReg() {
+  var n = pts.length; if (n < 2) return null;
+  var mx = pts.reduce(function(s,p){ return s+p.x; }, 0) / n;
+  var my = pts.reduce(function(s,p){ return s+p.y; }, 0) / n;
+  var num = 0, den = 0;
+  for (var i = 0; i < pts.length; i++) {
+    num += (pts[i].x - mx) * (pts[i].y - my);
+    den += (pts[i].x - mx) * (pts[i].x - mx);
+  }
+  if (den === 0) return null;
+  var m = num/den, b = my - m*mx;
+  var ss_res = pts.reduce(function(s,p){ var e = p.y-(m*p.x+b); return s+e*e; }, 0);
+  var ss_tot = pts.reduce(function(s,p){ return s+(p.y-my)*(p.y-my); }, 0);
+  var r2 = ss_tot === 0 ? 1 : 1 - ss_res/ss_tot;
+  return {
+    m: m, b: b, mx: mx, my: my, r2: r2, sse: ss_res,
+    sdx: sdv(pts.map(function(p){ return p.x; }), mx),
+    sdy: sdv(pts.map(function(p){ return p.y; }), my)
+  };
+}
+
+function pointFill(i) {
+  var p = pts[i];
+  if (i === hoveredIdx) return COL_HOVER;
+  if (p.isNew && (Date.now() - p.addedAt) < NEW_DURATION) return COL_NEW;
+  return COL_NORMAL;
+}
+function pointBorder(i) {
+  var p = pts[i];
+  if (i === hoveredIdx) return COL_HOVER_B;
+  if (p.isNew && (Date.now() - p.addedAt) < NEW_DURATION) return COL_NEW_B;
+  return COL_NORMAL_B;
+}
+
+function applyColors() {
+  if (!ci) return;
+  ci.data.datasets[0].backgroundColor = pts.map(function(_,i){ return pointFill(i); });
+  ci.data.datasets[0].borderColor      = pts.map(function(_,i){ return pointBorder(i); });
+  ci.data.datasets[0].pointRadius      = pts.map(function(_,i){ return i === hoveredIdx ? 9 : 7; });
+  ci.update('none');
+}
+
+function syncRegLine() {
+  if (!ci) return;
+  var range = getRange();
+  var xMin = range.xMin, xMax = range.xMax, yMin = range.yMin, yMax = range.yMax;
+  var r = computeReg();
+  if (r) {
+    if (ci.data.datasets.length < 4) {
+      ci.data.datasets.push(
+        {label:'Regression',type:'line',data:[],borderColor:'#C0392B',borderWidth:2.5,pointRadius:0,fill:false,tension:0},
+        {label:'Mean X',type:'line',data:[],borderColor:'#ADB5BD',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false},
+        {label:'Mean Y',type:'line',data:[],borderColor:'#ADB5BD',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false}
+      );
+    }
+    ci.data.datasets[1].data = [{x:xMin,y:r.m*xMin+r.b},{x:xMax,y:r.m*xMax+r.b}];
+    ci.data.datasets[2].data = [{x:r.mx,y:yMin},{x:r.mx,y:yMax}];
+    ci.data.datasets[3].data = [{x:xMin,y:r.my},{x:xMax,y:r.my}];
+  } else {
+    while (ci.data.datasets.length > 1) ci.data.datasets.pop();
+  }
+  ci.update('none');
+}
+
+function updateStats() {
+  var el = function(id){ return document.getElementById(id); };
+  var n = pts.length; el('sN').textContent = n;
+  var r = computeReg();
+  if (!r || n < 2) {
+    ['sMx','sMy','sSDx','sSDy','sRngX','sRngY','sSlope','sIntercept','sR2','sSSE'].forEach(function(id){ el(id).textContent = '\u2014'; });
+    el('insightBox').innerHTML = '<p>Add at least 2 points to see regression and statistics.</p>';
+    return;
+  }
+  var xs = pts.map(function(p){ return p.x; });
+  var ys = pts.map(function(p){ return p.y; });
+  el('sMx').textContent = r.mx.toFixed(1);
+  el('sMy').textContent = r.my.toFixed(1);
+  el('sSDx').textContent = r.sdx.toFixed(1);
+  el('sSDy').textContent = r.sdy.toFixed(1);
+  el('sRngX').textContent = Math.min.apply(null,xs) + ' / ' + Math.max.apply(null,xs);
+  el('sRngY').textContent = Math.min.apply(null,ys) + ' / ' + Math.max.apply(null,ys);
+  el('sSlope').textContent = r.m.toFixed(2);
+  el('sIntercept').textContent = r.b.toFixed(1);
+  var r2p = (r.r2 * 100).toFixed(1);
+  el('sR2').textContent = r2p + '%';
+  el('sSSE').textContent = r.sse.toFixed(1);
+  var q = r.r2>0.85 ? 'very strong' : r.r2>0.6 ? 'moderate' : r.r2>0.3 ? 'weak' : 'very weak';
+  var dir = r.m > 0 ? 'positive' : 'negative';
+  el('insightBox').innerHTML = '<p>Equation: <code>y = ' + r.m.toFixed(2) + 'x + ' + r.b.toFixed(1) + '</code>. Each extra unit of X adds roughly <strong>' + Math.abs(r.m).toFixed(2) + ' units of Y</strong>. R\u00B2 = <strong>' + r2p + '%</strong> \u2014 a <strong>' + q + ' ' + dir + '</strong> relationship. Sum of squared errors = <strong>' + r.sse.toFixed(1) + '</strong>.</p>';
+}
+
+function fullRebuild() {
+  var canvas = document.getElementById('chart');
+  if (ci) { ci.destroy(); ci = null; }
+  var range = getRange();
+  var xMin = range.xMin, xMax = range.xMax, yMin = range.yMin, yMax = range.yMax;
+  var r = computeReg();
+  var ds = [{
+    label:'Points', type:'scatter',
+    data: pts.map(function(p){ return {x:p.x, y:p.y}; }),
+    backgroundColor: pts.map(function(_,i){ return pointFill(i); }),
+    borderColor:     pts.map(function(_,i){ return pointBorder(i); }),
+    pointRadius:     pts.map(function(_,i){ return i === hoveredIdx ? 9 : 7; }),
+    pointHoverRadius: 9, borderWidth: 1.5
+  }];
+  if (r) {
+    ds.push(
+      {label:'Regression',type:'line',data:[{x:xMin,y:r.m*xMin+r.b},{x:xMax,y:r.m*xMax+r.b}],borderColor:'#C0392B',borderWidth:2.5,pointRadius:0,fill:false,tension:0},
+      {label:'Mean X',type:'line',data:[{x:r.mx,y:yMin},{x:r.mx,y:yMax}],borderColor:'#ADB5BD',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false},
+      {label:'Mean Y',type:'line',data:[{x:xMin,y:r.my},{x:xMax,y:r.my}],borderColor:'#ADB5BD',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false}
+    );
+  }
+  ci = new Chart(canvas, {
+    type:'scatter', data:{datasets:ds},
+    plugins: [residualsPlugin, originAxesPlugin, crosshairPlugin],
+    options: {
+      responsive:true, maintainAspectRatio:false, animation:false,
+      plugins:{ legend:{display:false}, tooltip:{enabled:false} },
+      scales:{
+        x:{min:xMin,max:xMax,
+          title:{display:true,text:'Ad spend ($)',color:tc,font:{family:"'DM Sans', sans-serif",size:11,weight:'500'}},
+          grid:{color:gc},ticks:{color:tc,font:{family:"'DM Sans', sans-serif",size:11}}},
+        y:{min:yMin,max:yMax,
+          title:{display:true,text:'Items sold',color:tc,font:{family:"'DM Sans', sans-serif",size:11,weight:'500'}},
+          grid:{color:gc},ticks:{color:tc,font:{family:"'DM Sans', sans-serif",size:11}}}
+      }
+    }
+  });
+  updateStats();
+}
+
+function findHitIndex(px, py) {
+  if (!ci) return -1;
+  var best = -1, bestDist = HIT_RADIUS * HIT_RADIUS;
+  for (var i = 0; i < pts.length; i++) {
+    var cx = ci.scales.x.getPixelForValue(pts[i].x);
+    var cy = ci.scales.y.getPixelForValue(pts[i].y);
+    var d2 = (px-cx)*(px-cx) + (py-cy)*(py-cy);
+    if (d2 < bestDist) { bestDist = d2; best = i; }
+  }
+  return best;
+}
+
+function rn() {
+  var u = 0, v = 0;
+  while (!u) u = Math.random();
+  while (!v) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function generate() {
+  var preset = document.getElementById('presetSel').value;
+  var n = Math.max(5, Math.min(60, parseInt(document.getElementById('nPts').value) || 20));
+  var range = getRange();
+  var xMin = range.xMin, xMax = range.xMax, yMin = range.yMin, yMax = range.yMax;
+  var xSpan = xMax - xMin, ySpan = yMax - yMin, noise = Math.min(xSpan, ySpan) * 0.08;
+  pts = [];
+  for (var i = 0; i < n; i++) {
+    var x = Math.round(xMin + Math.random() * xSpan);
+    var t = (x - xMin) / xSpan;
+    var y;
+    if      (preset === 'strong')  y = Math.round(yMin + t*ySpan*0.85 + rn()*noise);
+    else if (preset === 'weak')    y = Math.round(yMin + t*ySpan*0.4  + rn()*ySpan*0.25);
+    else if (preset === 'none')    y = Math.round(yMin + Math.random()*ySpan);
+    else if (preset === 'outlier') y = (i === n-1) ? Math.round(yMax - ySpan*0.05) : Math.round(yMin + t*ySpan*0.85 + rn()*noise);
+    else                           y = Math.round(yMin + t*ySpan*0.65 + rn()*ySpan*0.12);
+    pts.push({x:x, y:clamp(y,yMin,yMax), isNew:false, addedAt:0});
+  }
+  hoveredIdx = -1;
+  fullRebuild();
+}
+
+document.getElementById('genBtn').addEventListener('click', generate);
+document.getElementById('clearBtn').addEventListener('click', function(){ pts = []; hoveredIdx = -1; fullRebuild(); });
+document.getElementById('undoBtn').addEventListener('click', function(){ if (pts.length){ pts.pop(); hoveredIdx = -1; fullRebuild(); } });
+['xMin','xMax','yMin','yMax'].forEach(function(id){
+  document.getElementById(id).addEventListener('change', function(){ pts = []; hoveredIdx = -1; fullRebuild(); });
+});
+document.getElementById('residToggle').addEventListener('change', function(){
+  showResiduals = this.checked;
+  if (ci) ci.update('none');
+});
+
+var wrap = document.getElementById('canvasWrap');
+
+wrap.addEventListener('mousemove', function(e) {
+  if (!ci) return;
+  var rect = wrap.getBoundingClientRect();
+  var px = e.clientX - rect.left, py = e.clientY - rect.top;
+  var hit = findHitIndex(px, py);
+  if (hit !== hoveredIdx) {
+    hoveredIdx = hit;
+    wrap.style.cursor = hit >= 0 ? 'pointer' : 'crosshair';
+    // full update so crosshairPlugin redraws
+    ci.update('none');
+    // also sync point colors
+    if (ci.data.datasets[0]) {
+      ci.data.datasets[0].backgroundColor = pts.map(function(_,i){ return pointFill(i); });
+      ci.data.datasets[0].borderColor      = pts.map(function(_,i){ return pointBorder(i); });
+      ci.data.datasets[0].pointRadius      = pts.map(function(_,i){ return i === hoveredIdx ? 9 : 7; });
+      ci.update('none');
+    }
+  }
+});
+
+wrap.addEventListener('mouseleave', function() {
+  if (hoveredIdx !== -1) {
+    hoveredIdx = -1;
+    wrap.style.cursor = 'crosshair';
+    if (ci) ci.update('none');
+  }
+});
+
+wrap.addEventListener('click', function(e) {
+  if (!ci) return;
+  var range = getRange();
+  var xMin = range.xMin, xMax = range.xMax, yMin = range.yMin, yMax = range.yMax;
+  var rect = wrap.getBoundingClientRect();
+  var px = e.clientX - rect.left, py = e.clientY - rect.top;
+  var ca = ci.chartArea;
+  if (px < ca.left || px > ca.right || py < ca.top || py > ca.bottom) return;
+  var hit = findHitIndex(px, py);
+  if (hit >= 0) {
+    pts.splice(hit, 1); hoveredIdx = -1;
+    ci.data.datasets[0].data = pts.map(function(p){ return {x:p.x, y:p.y}; });
+    applyColors(); syncRegLine(); updateStats();
+    return;
+  }
+  var xVal = Math.round(ci.scales.x.getValueForPixel(px));
+  var yVal = Math.round(ci.scales.y.getValueForPixel(py));
+  var p = {x:clamp(xVal,xMin,xMax), y:clamp(yVal,yMin,yMax), isNew:true, addedAt:Date.now()};
+  pts.push(p);
+  ci.data.datasets[0].data.push({x:p.x, y:p.y});
+  applyColors(); syncRegLine(); updateStats();
+  setTimeout(function(){ applyColors(); }, NEW_DURATION);
+});
+
+generate();
+</script>

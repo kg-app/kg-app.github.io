@@ -1,0 +1,294 @@
+<style>
+  .csp-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; }
+  .csp-stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.85rem 1rem; }
+  .csp-legend-dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; vertical-align: -1px; margin-right: 5px; }
+</style>
+
+<div style="padding: 1rem 0;">
+  <h2 class="sr-only">Interactive practice tool for surface area and volume of composite shapes</h2>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.25rem; align-items: center;">
+    <label style="font-size: 13px; color: var(--color-text-secondary);">Mode</label>
+    <select id="mode" style="flex: 0 0 auto;">
+      <option value="mixed">Mixed</option>
+      <option value="area">Area (2D)</option>
+      <option value="volume">Volume (3D)</option>
+    </select>
+    <label style="font-size: 13px; color: var(--color-text-secondary); margin-left: 8px;">Level</label>
+    <select id="level" style="flex: 0 0 auto;">
+      <option value="1">Find total</option>
+      <option value="2">Find missing side</option>
+    </select>
+    <button id="newq" style="margin-left: auto;"><i class="ti ti-refresh" aria-hidden="true" style="font-size:15px;vertical-align:-2px;margin-right:4px;"></i>New question</button>
+  </div>
+
+  <div class="csp-card">
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 10px;">
+      <span id="qtype" style="font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: var(--border-radius-md); background: var(--color-background-info); color: var(--color-text-info);">Volume</span>
+      <span id="score" style="font-size: 13px; color: var(--color-text-secondary);">Solved 0 · Streak 0</span>
+    </div>
+    <p id="prompt" style="font-size: 16px; line-height: 1.6; margin: 0 0 6px;"></p>
+
+    <div id="figure" style="display: flex; justify-content: center; align-items: center; margin: 4px 0 8px; min-height: 200px;"></div>
+    <div id="legend" style="text-align: center; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 14px; min-height: 16px;"></div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+      <label for="answer" style="font-size: 14px; color: var(--color-text-secondary);">Your answer</label>
+      <input type="number" id="answer" step="any" placeholder="e.g. 240" style="width: 130px;" />
+      <span id="unit" style="font-size: 14px; color: var(--color-text-secondary);"></span>
+      <button id="check"><i class="ti ti-check" aria-hidden="true" style="font-size:15px;vertical-align:-2px;margin-right:4px;"></i>Check</button>
+      <button id="hintbtn"><i class="ti ti-bulb" aria-hidden="true" style="font-size:15px;vertical-align:-2px;margin-right:4px;"></i>Hint</button>
+    </div>
+
+    <div id="feedback" style="margin-top: 12px; font-size: 14px; line-height: 1.6;"></div>
+    <div id="solution" style="margin-top: 10px; font-size: 14px; line-height: 1.7; display: none; border-top: 0.5px solid var(--color-border-tertiary); padding-top: 12px;"></div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 1rem;">
+    <div class="csp-stat">
+      <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px;">Attempts</p>
+      <p id="stat-att" style="font-size: 22px; font-weight: 500; margin: 0;">0</p>
+    </div>
+    <div class="csp-stat">
+      <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px;">Correct</p>
+      <p id="stat-cor" style="font-size: 22px; font-weight: 500; margin: 0;">0</p>
+    </div>
+    <div class="csp-stat">
+      <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px;">Accuracy</p>
+      <p id="stat-acc" style="font-size: 22px; font-weight: 500; margin: 0;">—</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const rint = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+  let state = { solved: 0, streak: 0, attempts: 0, correct: 0, q: null, answered: false };
+
+  const dark = () => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  function updateStats() {
+    $('score').textContent = `Solved ${state.solved} · Streak ${state.streak}`;
+    $('stat-att').textContent = state.attempts;
+    $('stat-cor').textContent = state.correct;
+    $('stat-acc').textContent = state.attempts ? Math.round(100 * state.correct / state.attempts) + '%' : '—';
+  }
+
+  function svgWrap(w, h, inner) {
+    return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" style="max-width:100%;height:auto;"><title>Composite shape figure</title>${inner}</svg>`;
+  }
+
+  // Two color ramps. Each shape gets a front / top / side tint so the 3D
+  // form reads without relying on opacity. All resolved per color scheme.
+  function palette() {
+    const d = dark();
+    return {
+      teal:  d ? { front:'#0F6E56', top:'#1D9E75', side:'#085041' }
+               : { front:'#9FE1CB', top:'#E1F5EE', side:'#5DCAA5' },
+      amber: d ? { front:'#854F0B', top:'#BA7517', side:'#633806' }
+               : { front:'#FAC775', top:'#FAEEDA', side:'#EF9F27' },
+      stroke: d ? '#C2C0B6' : '#3D3D3A',
+      label:  d ? '#C2C0B6' : '#3D3D3A',
+      danger: d ? '#F09595' : '#A32D2D',
+      legendTeal: d ? '#1D9E75' : '#5DCAA5',
+      legendAmber: d ? '#BA7517' : '#EF9F27'
+    };
+  }
+
+  function lbl(x, y, t, anchor, col) {
+    return `<text x="${x}" y="${y}" font-size="13" font-family="var(--font-sans)" fill="${col}" text-anchor="${anchor||'middle'}">${t}</text>`;
+  }
+  function qmark(x, y, anchor, col) {
+    return `<text x="${x}" y="${y}" font-size="16" font-weight="500" font-family="var(--font-sans)" fill="${col}" text-anchor="${anchor||'middle'}">?</text>`;
+  }
+
+  // ---- 2D: L-shape made of two rectangles ----
+  function genArea(findMissing) {
+    const P = palette();
+    const a = rint(4, 9), b = rint(3, 7), c = rint(3, 8), d = rint(3, 6);
+    const big = a * b, small = c * d, total = big + small;
+    let q, ans, unit = 'cm²', hint, sol, legend = '';
+
+    if (!findMissing) {
+      q = `An L-shaped figure is built from two rectangles. The teal rectangle is ${a} cm by ${b} cm. The amber rectangle attached below it is ${c} cm by ${d} cm. What is the total area?`;
+      ans = total;
+      hint = `Find the area of each rectangle separately, then add them.`;
+      sol = `Teal rectangle: ${a} × ${b} = ${big} cm².<br>Amber rectangle: ${c} × ${d} = ${small} cm².<br>Total area = ${big} + ${small} = <strong>${total} cm²</strong>.`;
+    } else {
+      q = `An L-shaped figure has a total area of ${total} cm². The teal rectangle measures ${a} cm by ${b} cm. The amber rectangle is ${c} cm wide — what is its missing length?`;
+      ans = d;
+      hint = `Subtract the teal rectangle's area from the total. Then divide by the known side of the amber rectangle.`;
+      sol = `Teal rectangle: ${a} × ${b} = ${big} cm².<br>Remaining (amber) area = ${total} − ${big} = ${small} cm².<br>Missing length = ${small} ÷ ${c} = <strong>${d} cm</strong>.`;
+    }
+    legend = `<span class="csp-legend-dot" style="background:${P.legendTeal}"></span>Rectangle 1`
+           + `&nbsp;&nbsp;<span class="csp-legend-dot" style="background:${P.legendAmber}"></span>Rectangle 2`;
+
+    const sc = 17, ox = 44, oy = 26;
+    const W = a, H = b, w2 = c, h2 = d;
+    const px = v => ox + v * sc;
+    const py = v => oy + v * sc;
+    const svgH = py(H + h2) + 32;
+    const svgW = px(Math.max(W, w2)) + 56;
+
+    const inner = `
+      <rect x="${px(0)}" y="${py(0)}" width="${W*sc}" height="${H*sc}" fill="${P.teal.front}" stroke="${P.stroke}" stroke-width="1.5"/>
+      <rect x="${px(0)}" y="${py(H)}" width="${w2*sc}" height="${h2*sc}" fill="${P.amber.front}" stroke="${P.stroke}" stroke-width="1.5"/>
+      ${lbl(px(W/2), py(0)-9, a+' cm', 'middle', P.label)}
+      ${lbl(px(W)+9, py(H/2)+4, b+' cm', 'start', P.label)}
+      ${lbl(px(w2/2), py(H+h2)+19, c+' cm', 'middle', P.label)}
+      ${findMissing
+        ? qmark(px(w2)+15, py(H+h2/2)+4, 'start', P.danger)
+        : lbl(px(w2)+11, py(H+h2/2)+4, d+' cm', 'start', P.label)}
+    `;
+    return { type: 'area', q, ans, unit, hint, sol, legend, svg: svgWrap(svgW, svgH, inner) };
+  }
+
+  // ---- 3D: two rectangular prisms forming an L-shaped solid ----
+  // Block A (teal) is the base. Block B (amber) sits on top, sharing A's
+  // depth so the back faces are flush, but B is SHORTER in length and sits
+  // against A's back-left edge, leaving a visible step on A's top face.
+  function genVolume(findMissing) {
+    const P = palette();
+    const w  = rint(3, 5);
+    const lA = rint(6, 9);
+    const lB = rint(3, lA - 2);
+    const h1 = rint(3, 5);
+    const h2 = rint(2, 5);
+    const v1 = lA * w * h1, v2 = lB * w * h2, total = v1 + v2;
+    let q, ans, unit = 'cm³', hint, sol;
+
+    if (!findMissing) {
+      q = `An L-shaped solid is formed from two blocks that meet on a shared face. Block A (teal) is ${lA} × ${w} × ${h1} cm. Block B (amber) sits on top with the same ${w} cm depth and is ${lB} × ${w} × ${h2} cm. Find the total volume.`;
+      ans = total;
+      hint = `The blocks have different lengths, but you still treat them separately: volume = length × width × height for each, then add.`;
+      sol = `Block A: ${lA} × ${w} × ${h1} = ${v1} cm³.<br>Block B: ${lB} × ${w} × ${h2} = ${v2} cm³.<br>Total volume = ${v1} + ${v2} = <strong>${total} cm³</strong>.`;
+    } else {
+      q = `An L-shaped solid has a total volume of ${total} cm³. Block A (teal) is ${lA} × ${w} × ${h1} cm. Block B (amber), stacked on top, is ${lB} cm long and ${w} cm deep — what is Block B's missing height?`;
+      ans = h2;
+      hint = `Subtract Block A's volume from the total to get Block B's volume. Then divide by Block B's base area (its length × depth).`;
+      sol = `Block A: ${lA} × ${w} × ${h1} = ${v1} cm³.<br>Block B volume = ${total} − ${v1} = ${v2} cm³.<br>Block B base area = ${lB} × ${w} = ${lB*w} cm².<br>Missing height = ${v2} ÷ ${lB*w} = <strong>${h2} cm</strong>.`;
+    }
+    const legend = `<span class="csp-legend-dot" style="background:${P.legendTeal}"></span>Block A`
+                 + `&nbsp;&nbsp;<span class="csp-legend-dot" style="background:${P.legendAmber}"></span>Block B`;
+
+    const sc = 15, dx = 9, dy = 8;
+    const PAD = 36;
+    const ddx = w * dx, ddy = w * dy;
+    const fxA = lA * sc, fxB = lB * sc;
+    const Ah = h1 * sc, Bh = h2 * sc;
+
+    const Ax = PAD + 24;
+    const Ay = PAD + ddy + Bh + Ah;
+    const seamY = Ay - Ah;
+
+    function box(x, yBottom, fx, hpx) {
+      const yTop = yBottom - hpx;
+      return {
+        yTop, yBottom,
+        front: `${x},${yTop} ${x+fx},${yTop} ${x+fx},${yBottom} ${x},${yBottom}`,
+        top:   `${x},${yTop} ${x+ddx},${yTop-ddy} ${x+fx+ddx},${yTop-ddy} ${x+fx},${yTop}`,
+        side:  `${x+fx},${yTop} ${x+fx+ddx},${yTop-ddy} ${x+fx+ddx},${yBottom-ddy} ${x+fx},${yBottom}`
+      };
+    }
+
+    const A = box(Ax, Ay, fxA, Ah);
+    const B = box(Ax, seamY, fxB, Bh);
+
+    const dash = `stroke="${P.stroke}" stroke-width="1" stroke-dasharray="4 3" fill="none" opacity="0.7"`;
+
+    const stepTop = `<polygon points="${Ax+fxB},${seamY} ${Ax+fxB+ddx},${seamY-ddy} ${Ax+fxA+ddx},${seamY-ddy} ${Ax+fxA},${seamY}" fill="${P.teal.top}" stroke="${P.stroke}" stroke-width="1.5"/>`;
+    const seamHidden = `
+      <line x1="${Ax+ddx}" y1="${seamY-ddy}" x2="${Ax+fxB+ddx}" y2="${seamY-ddy}" ${dash}/>
+      <line x1="${Ax}" y1="${seamY}" x2="${Ax+ddx}" y2="${seamY-ddy}" ${dash}/>
+    `;
+
+    const inner = `
+      <polygon points="${A.side}" fill="${P.teal.side}" stroke="${P.stroke}" stroke-width="1.5"/>
+      <polygon points="${A.front}" fill="${P.teal.front}" stroke="${P.stroke}" stroke-width="1.5"/>
+      ${stepTop}
+      <polygon points="${B.side}" fill="${P.amber.side}" stroke="${P.stroke}" stroke-width="1.5"/>
+      <polygon points="${B.top}" fill="${P.amber.top}" stroke="${P.stroke}" stroke-width="1.5"/>
+      <polygon points="${B.front}" fill="${P.amber.front}" stroke="${P.stroke}" stroke-width="1.5"/>
+      ${seamHidden}
+      <line x1="${Ax}" y1="${seamY}" x2="${Ax+fxB}" y2="${seamY}" stroke="${P.stroke}" stroke-width="1.5"/>
+      ${lbl(Ax+fxA/2, Ay+21, lA+' cm', 'middle', P.label)}
+      ${lbl(Ax-10, Ay-Ah/2+4, h1+' cm', 'end', P.label)}
+      ${lbl(Ax+fxB/2 - 4, seamY-Bh-ddy-8, lB+' cm', 'middle', P.label)}
+      ${findMissing
+        ? qmark(Ax-10, seamY-Bh/2+4, 'end', P.danger)
+        : lbl(Ax-10, seamY-Bh/2+4, h2+' cm', 'end', P.label)}
+      ${lbl(Ax+fxA+ddx+12, Ay-ddy/2-Ah/2+4, w+' cm', 'start', P.label)}
+    `;
+
+    const svgW = Ax + fxA + ddx + 58;
+    const svgH = Ay + 32;
+    return { type: 'volume', q, ans, unit, hint, sol, legend, svg: svgWrap(svgW, svgH, inner) };
+  }
+
+  function newQuestion() {
+    const mode = $('mode').value;
+    const findMissing = $('level').value === '2';
+    let kind = mode;
+    if (mode === 'mixed') kind = pick(['area', 'volume']);
+    state.q = kind === 'area' ? genArea(findMissing) : genVolume(findMissing);
+    state.answered = false;
+
+    $('qtype').textContent = state.q.type === 'area' ? 'Surface area' : 'Volume';
+    $('prompt').textContent = state.q.q;
+    $('figure').innerHTML = state.q.svg;
+    $('legend').innerHTML = state.q.legend;
+    $('unit').textContent = state.q.unit;
+    $('answer').value = '';
+    $('feedback').innerHTML = '';
+    $('solution').style.display = 'none';
+    $('answer').focus();
+  }
+
+  function check() {
+    if (!state.q || state.answered) return;
+    const val = parseFloat($('answer').value);
+    if (isNaN(val)) {
+      $('feedback').innerHTML = `<span style="color:var(--color-text-secondary);">Type a number first.</span>`;
+      return;
+    }
+    state.answered = true;
+    state.attempts++;
+    const correct = Math.abs(val - state.q.ans) < 0.001;
+    if (correct) {
+      state.correct++; state.solved++; state.streak++;
+      $('feedback').innerHTML = `<span style="color:var(--color-text-success);"><i class="ti ti-circle-check" style="vertical-align:-2px;"></i> Correct — ${state.q.ans} ${state.q.unit}. Nice work.</span>`;
+    } else {
+      state.streak = 0;
+      $('feedback').innerHTML = `<span style="color:var(--color-text-danger);"><i class="ti ti-circle-x" style="vertical-align:-2px;"></i> Not quite. The answer is ${state.q.ans} ${state.q.unit}.</span>`;
+    }
+    $('solution').innerHTML = `<strong style="font-weight:500;">Worked solution</strong><br>${state.q.sol}`;
+    $('solution').style.display = 'block';
+    updateStats();
+  }
+
+  $('newq').addEventListener('click', newQuestion);
+  $('check').addEventListener('click', check);
+  $('hintbtn').addEventListener('click', () => {
+    if (state.q) $('feedback').innerHTML = `<span style="color:var(--color-text-info);"><i class="ti ti-bulb" style="vertical-align:-2px;"></i> ${state.q.hint}</span>`;
+  });
+  $('answer').addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+  $('mode').addEventListener('change', newQuestion);
+  $('level').addEventListener('change', newQuestion);
+
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (state.q) {
+        const mode = $('mode').value, findMissing = $('level').value === '2';
+        const kind = state.q.type;
+        const re = kind === 'area' ? genArea(findMissing) : genVolume(findMissing);
+      }
+    });
+  }
+
+  newQuestion();
+  updateStats();
+})();
+</script>
