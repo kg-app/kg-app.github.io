@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lean Canvas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-page: #fafaf7;
+    --bg-surface: #ffffff;
+    --bg-emph: #fbf7ec;
+    --bg-subtle: #f5f2e9;
+    --line: #e6e0cc;
+    --line-strong: #c8b870;
+    --line-faint: #efead8;
+    --gold: #c4900e;
+    --gold-soft: #e5bd55;
+    --gold-pale: #f5e8b8;
+    --ink: #1a1508;
+    --ink-2: #4a3d14;
+    --ink-3: #7a6020;
+    --ink-mute: #b09040;
+    --seg1-bg: #eceef8;
+    --seg1-border: #b0b6e0;
+    --seg2-bg: #faedc8;
+    --seg2-border: #d4a844;
+    --radius: 6px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg-page);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .logo-area h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+  .logo-area h1 span { color: var(--gold); }
+  .logo-area p { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: var(--bg-surface);
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover { background: var(--bg-emph); border-color: var(--gold-soft); }
+  .btn-primary { background: var(--gold); color: #fff; border-color: var(--gold); }
+  .btn-primary:hover { background: #9a7010; border-color: #9a7010; }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
+  .btn-save { background: var(--gold); color: #fff; border-color: var(--gold); }
+  .btn-save:hover { background: #9a7010; }
+
+  /* LEGEND */
+  .belief-legend {
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .legend-head {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .belief-items { display: flex; gap: 16px; flex-wrap: wrap; flex: 1; }
+  .belief-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-2); }
+  .belief-num {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--bg-emph);
+    border: 1px solid var(--line-strong);
+    color: var(--gold);
+    font-size: 10px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .seg-legend { display: flex; gap: 12px; margin-left: auto; align-items: center; }
+  .seg-dot { width: 12px; height: 12px; border-radius: 3px; }
+  .seg-dot.s1 { background: var(--seg1-bg); border: 1px solid var(--seg1-border); }
+  .seg-dot.s2 { background: var(--seg2-bg); border: 1px solid var(--seg2-border); }
+
+  /* CANVAS */
+  .canvas-outer {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--line-strong);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .pm-bar { display: grid; grid-template-columns: 1fr 1px 1fr; border-bottom: 1px solid var(--line); }
+  .pm-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-mute);
+    text-align: center; padding: 6px 0; background: var(--bg-subtle);
+  }
+  .pm-divider { background: var(--line-strong); }
+
+  .canvas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.15fr 1fr 1fr;
+    grid-template-rows: auto auto;
+    border-bottom: 1.5px solid var(--line-strong);
+  }
+  .canvas-bottom { display: grid; grid-template-columns: 1fr 1px 1fr; }
+  .bottom-divider { background: var(--line-strong); }
+
+  /* CELL */
+  .cell {
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 14px;
+    position: relative;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+  }
+  .cell.no-right { border-right: none; }
+  .cell.no-bottom { border-bottom: none; }
+  .cell.span-row { grid-row: span 2; min-height: 440px; }
+  .cell.seg1 { background: var(--seg1-bg); }
+  .cell.seg2 { background: var(--seg2-bg); }
+  .canvas-bottom .cell { min-height: 150px; border-bottom: none; }
+
+  /* CELL HEADER */
+  .cell-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .cell-icon { font-size: 17px; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+  .cell-title-block { flex: 1; min-width: 0; }
+  .cell-title {
+    font-size: 13px; font-weight: 600; color: var(--ink);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .order-num {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--gold-pale); border: 1px solid var(--gold-soft);
+    color: var(--gold); font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .cell-hint {
+    font-size: 10px; color: var(--ink-3); font-style: italic;
+    margin-top: 2px; line-height: 1.4;
+  }
+
+  /* CELL ACTIONS */
+  .cell-actions {
+    position: absolute;
+    top: 10px; right: 10px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .cell:hover .cell-actions { opacity: 1; }
+  .cell.editing .cell-actions { opacity: 1; }
+
+  /* CONTENT AREA */
+  .cell-body { flex: 1; position: relative; }
+
+  /* VIEW MODE */
+  .cell-view {
+    font-size: 11.5px;
+    color: var(--ink-2);
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 60px;
+  }
+  .cell-view.empty {
+    color: var(--ink-mute);
+    font-style: italic;
+    font-size: 11px;
+    opacity: 0.6;
+  }
+
+  /* EDIT MODE */
+  .cell-textarea {
+    display: none;
+    width: 100%;
+    height: 100%;
+    min-height: 140px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink);
+    background: var(--bg-surface);
+    border: 1px solid var(--gold-soft);
+    border-radius: 4px;
+    padding: 8px;
+    resize: none;
+    line-height: 1.65;
+    outline: none;
+    flex: 1;
+  }
+  .cell.editing .cell-view { display: none; }
+  .cell.editing .cell-textarea { display: block; }
+  .cell.span-row .cell-textarea { min-height: 300px; }
+  .canvas-bottom .cell .cell-textarea { min-height: 100px; }
+
+  /* MODALS */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(26,21,8,0.45);
+    z-index: 100; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg-surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    width: min(720px, 95vw);
+    max-height: 85vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 12px 40px rgba(26,21,8,0.18);
+  }
+  .modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid var(--line);
+  }
+  .modal-head h2 { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .modal-head .hint { font-size: 11px; color: var(--ink-3); font-style: italic; margin-top: 2px; }
+  .modal-close {
+    background: none; border: none; cursor: pointer;
+    font-size: 18px; color: var(--ink-mute); padding: 2px 6px; border-radius: 4px;
+    font-family: inherit;
+  }
+  .modal-close:hover { background: var(--bg-emph); color: var(--ink); }
+  .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+  .modal-note {
+    font-size: 11px; color: var(--ink-3);
+    background: var(--bg-emph); border-left: 3px solid var(--gold-soft);
+    padding: 8px 12px; border-radius: 0 4px 4px 0;
+    margin-bottom: 14px; line-height: 1.5;
+  }
+  .modal-body textarea {
+    width: 100%; font-family: 'DM Mono', monospace; font-size: 12px;
+    color: var(--ink); background: var(--bg-page);
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 12px; resize: vertical; min-height: 340px;
+    line-height: 1.65; outline: none; transition: border-color 0.15s;
+  }
+  .modal-body textarea:focus { border-color: var(--gold-soft); }
+  .modal-body pre {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    background: var(--bg-page); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 14px; white-space: pre-wrap;
+    color: var(--ink-2); max-height: 420px; overflow-y: auto; line-height: 1.6;
+  }
+  .modal-foot {
+    padding: 14px 20px; border-top: 1px solid var(--line);
+    display: flex; gap: 8px; justify-content: flex-end;
+  }
+
+  @media (max-width: 900px) {
+    body { padding: 12px; }
+    .canvas-grid { grid-template-columns: 1fr 1fr; }
+    .canvas-bottom { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <h1>Lean <span>Canvas</span></h1>
+    <p>A single-page business model</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn" onclick="openTemplateModal()">📋 Template</button>
+    <button class="btn" onclick="openImportModal()">⬆ Import Markdown</button>
+    <button class="btn" onclick="openSaveModal()">⬇ Export Markdown</button>
+  </div>
+</header>
+
+<div class="belief-legend">
+  <div class="legend-head">Fill order</div>
+  <div class="belief-items">
+    <div class="belief-item"><div class="belief-num">1</div>Customer Segments</div>
+    <div class="belief-item"><div class="belief-num">2</div>Problem</div>
+    <div class="belief-item"><div class="belief-num">3</div>UVP</div>
+    <div class="belief-item"><div class="belief-num">4</div>Solution</div>
+    <div class="belief-item"><div class="belief-num">5</div>Channels</div>
+    <div class="belief-item"><div class="belief-num">6</div>Revenue</div>
+    <div class="belief-item"><div class="belief-num">7</div>Cost Structure</div>
+    <div class="belief-item"><div class="belief-num">8</div>Key Metrics</div>
+    <div class="belief-item"><div class="belief-num">9</div>Unfair Advantage</div>
+  </div>
+  <div class="seg-legend">
+    <div class="belief-item"><div class="seg-dot s2"></div>Desirability risk</div>
+    <div class="belief-item"><div class="seg-dot s1"></div>Market risk</div>
+  </div>
+</div>
+
+<div class="canvas-outer">
+
+  <div class="pm-bar">
+    <div class="pm-label">◀ Product</div>
+    <div class="pm-divider"></div>
+    <div class="pm-label">Market ▶</div>
+  </div>
+
+  <div class="canvas-grid">
+
+    <!-- Problem — col 1, spans 2 rows -->
+    <div class="cell span-row seg2" id="cell-problem">
+      <div class="cell-header">
+        <div class="cell-icon">⚠️</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Problem <div class="order-num">2</div></div>
+          <div class="cell-hint">Top 3 problems your customers face today</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-problem">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-problem" placeholder="List your customers' top 3 problems&#10;&#10;Also note how they solve these today (existing alternatives)"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-problem" onclick="toggleEdit('problem')">✎ Edit</button>
+      </div>
+    </div>
+
+    <!-- Solution — col 2, row 1 -->
+    <div class="cell" id="cell-solution">
+      <div class="cell-header">
+        <div class="cell-icon">💡</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Solution <div class="order-num">4</div></div>
+          <div class="cell-hint">Outline a possible solution for each problem</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-solution">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-solution" placeholder="Top 3 features or capabilities that address each problem"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-solution" onclick="toggleEdit('solution')">✎ Edit</button>
+      </div>
+    </div>
+
+    <!-- UVP — col 3, spans 2 rows -->
+    <div class="cell span-row" id="cell-uvp">
+      <div class="cell-header">
+        <div class="cell-icon">🎁</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Unique Value Proposition <div class="order-num">3</div></div>
+          <div class="cell-hint">Single, clear, compelling message that turns an unaware visitor into an interested prospect</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-uvp">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-uvp" placeholder="Your single, clear, compelling message&#10;&#10;High-level concept (X for Y analogy)&#10;&#10;e.g. YouTube = Flickr for videos"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-uvp" onclick="toggleEdit('uvp')">✎ Edit</button>
+      </div>
+    </div>
+
+    <!-- Unfair Advantage — col 4, row 1 -->
+    <div class="cell" id="cell-advantage">
+      <div class="cell-header">
+        <div class="cell-icon">⭐</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Unfair Advantage <div class="order-num">9</div></div>
+          <div class="cell-hint">Something that cannot easily be bought or copied — fill this last and be honest</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-advantage">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-advantage" placeholder="What do you have that can't easily be bought or replicated?"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-advantage" onclick="toggleEdit('advantage')">✎ Edit</button>
+      </div>
+    </div>
+
+    <!-- Customer Segments — col 5, spans 2 rows -->
+    <div class="cell span-row seg1 no-right" id="cell-segments">
+      <div class="cell-header">
+        <div class="cell-icon">👥</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Customer Segments <div class="order-num">1</div></div>
+          <div class="cell-hint">List your target customers and users — start here, always. Narrow to early adopters first</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-segments">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-segments" placeholder="Who are your target customers and users?&#10;&#10;Early adopters: who will pay before the product is perfect?"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-segments" onclick="toggleEdit('segments')">✎ Edit</button>
+      </div>
+    </div>
+
+    <!-- Key Metrics — col 2, row 2 -->
+    <div class="cell no-bottom" id="cell-metrics">
+      <div class="cell-header">
+        <div class="cell-icon">📊</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Key Metrics <div class="order-num">8</div></div>
+          <div class="cell-hint">Key activities you measure — numbers that tell you how your business is doing today</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-metrics">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-metrics" placeholder="Which numbers tell you the business is working?&#10;&#10;Focus on leading indicators, not vanity metrics"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-metrics" onclick="toggleEdit('metrics')">✎ Edit</button>
+      </div>
+    </div>
+
+    <!-- Channels — col 4, row 2 -->
+    <div class="cell no-bottom" id="cell-channels">
+      <div class="cell-header">
+        <div class="cell-icon">🚀</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Channels <div class="order-num">5</div></div>
+          <div class="cell-hint">List your path to customers — inbound or outbound</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-channels">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-channels" placeholder="How do you reach your customers?&#10;&#10;Early channels are almost always founder-led and outbound"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-channels" onclick="toggleEdit('channels')">✎ Edit</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom row -->
+  <div class="canvas-bottom">
+
+    <div class="cell no-bottom" id="cell-costs">
+      <div class="cell-header">
+        <div class="cell-icon">🏷️</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Cost Structure <div class="order-num">7</div></div>
+          <div class="cell-hint">Fixed and variable costs — customer acquisition, distribution, hosting, people</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-costs">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-costs" placeholder="List your fixed and variable costs&#10;&#10;Revenue model · Lifetime value · Revenue · Gross margin"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-costs" onclick="toggleEdit('costs')">✎ Edit</button>
+      </div>
+    </div>
+
+    <div class="bottom-divider"></div>
+
+    <div class="cell no-bottom no-right" id="cell-revenue">
+      <div class="cell-header">
+        <div class="cell-icon">💰</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Revenue Streams <div class="order-num">6</div></div>
+          <div class="cell-hint">Sources of revenue — revenue model, lifetime value, gross margin</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-revenue">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-revenue" placeholder="How do you make money?&#10;&#10;Price relative to value, not cost to build"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-revenue" onclick="toggleEdit('revenue')">✎ Edit</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2>Import Markdown</h2>
+        <div class="hint">Paste your filled-in canvas — same format as Export</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('import-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-note" id="import-status">Paste the full markdown document and click Import. All existing content will be replaced.</div>
+      <textarea id="import-textarea" placeholder="# Lean Canvas&#10;&#10;## 1. Customer Segments&#10;&#10;Your content here..."></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('import-modal')">Cancel</button>
+      <button class="btn" onclick="document.getElementById('import-textarea').value=''">🗑 Clear</button>
+      <button class="btn btn-primary" onclick="importMarkdown()">⬆ Import &amp; Render</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEMPLATE MODAL -->
+<div class="modal-overlay" id="template-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2>Markdown Template</h2>
+        <div class="hint">Copy, fill in offline, then Import</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('template-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-note">Each section is a plain text block. Replace placeholder lines with your content. One idea per line works well.</div>
+      <pre id="template-output"></pre>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('template-modal')">Close</button>
+      <button class="btn" onclick="copyText('template-output')">📋 Copy</button>
+      <button class="btn btn-primary" onclick="downloadText(generateTemplate(), 'lean-canvas-template.md')">⬇ Download</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="save-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2>Export Markdown</h2>
+        <div class="hint">Copy or download your canvas as a .md file</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('save-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <pre id="export-output"></pre>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('save-modal')">Close</button>
+      <button class="btn" onclick="copyText('export-output')">📋 Copy</button>
+      <button class="btn btn-primary" onclick="downloadText(generateExport(), 'lean-canvas.md')">⬇ Download .md</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CELLS = ['problem','solution','uvp','advantage','segments','metrics','channels','costs','revenue'];
+
+const CELL_META = {
+  problem:   { order: 2,  title: 'Problem' },
+  solution:  { order: 4,  title: 'Solution' },
+  uvp:       { order: 3,  title: 'Unique Value Proposition' },
+  advantage: { order: 9,  title: 'Unfair Advantage' },
+  segments:  { order: 1,  title: 'Customer Segments' },
+  metrics:   { order: 8,  title: 'Key Metrics' },
+  channels:  { order: 5,  title: 'Channels' },
+  costs:     { order: 7,  title: 'Cost Structure' },
+  revenue:   { order: 6,  title: 'Revenue Streams' },
+};
+
+const ORDER = ['segments','problem','uvp','solution','channels','revenue','costs','metrics','advantage'];
+
+function getVal(key) {
+  return document.getElementById('ta-' + key).value.trim();
+}
+
+function setView(key, text) {
+  const view = document.getElementById('view-' + key);
+  if (!text) {
+    view.textContent = 'Click ✎ Edit to add content';
+    view.classList.add('empty');
+  } else {
+    view.textContent = text;
+    view.classList.remove('empty');
+  }
+}
+
+function toggleEdit(key) {
+  const cell = document.getElementById('cell-' + key);
+  const btn  = document.getElementById('btn-' + key);
+  const ta   = document.getElementById('ta-' + key);
+  const isEditing = cell.classList.contains('editing');
+
+  if (isEditing) {
+    cell.classList.remove('editing');
+    btn.textContent = '✎ Edit';
+    btn.classList.remove('btn-save');
+    setView(key, getVal(key));
+  } else {
+    cell.classList.add('editing');
+    btn.textContent = '✓ Save';
+    btn.classList.add('btn-save');
+    ta.focus();
+    ta.style.height = 'auto';
+    ta.style.height = Math.max(ta.scrollHeight, 120) + 'px';
+  }
+}
+
+function generateExport() {
+  let md = '# Lean Canvas\n\n';
+  md += '> Date: ' + new Date().toLocaleDateString('en-CA') + '\n\n---\n\n';
+  ORDER.forEach(key => {
+    const m = CELL_META[key];
+    md += '## ' + m.order + '. ' + m.title + '\n\n';
+    const val = getVal(key);
+    md += (val || '*(empty)*') + '\n\n---\n\n';
+  });
+  return md;
+}
+
+function generateTemplate() {
+  const HINTS = {
+    segments:  'Who are your target customers and users? Start with early adopters — who will pay before the product is perfect?',
+    problem:   'Top 3 problems your customers face. Also note existing alternatives — how do they solve this today?',
+    uvp:       'Single, clear, compelling message. Try an X for Y analogy. What turns an unaware visitor into an interested prospect?',
+    solution:  'Outline a possible solution for each problem. Keep it to the minimum viable feature set.',
+    channels:  'How do you reach your customers? Early channels are almost always founder-led and outbound.',
+    revenue:   'How do you make money? Include pricing model and lifetime value. Price relative to value, not cost.',
+    costs:     'List fixed and variable costs — people, hosting, acquisition, distribution.',
+    metrics:   'Key numbers that tell you the business is working. Focus on leading indicators, not vanity metrics.',
+    advantage: 'Something that cannot easily be bought or copied. Fill this last and be ruthlessly honest.',
+  };
+  let md = '# Lean Canvas\n\n';
+  md += '> Date: ' + new Date().toLocaleDateString('en-CA') + '  |  Author: [Your name]\n\n';
+  md += '> Instructions: Fill in each section below, then paste into Import Markdown. One idea per line works well.\n\n---\n\n';
+  ORDER.forEach(key => {
+    const m = CELL_META[key];
+    md += '## ' + m.order + '. ' + m.title + '\n\n';
+    md += '> ' + HINTS[key] + '\n\n';
+    md += '[Your content here]\n\n---\n\n';
+  });
+  return md;
+}
+
+const HEADING_MAP = {
+  'customer segments': 'segments',
+  'problem': 'problem',
+  'unique value proposition': 'uvp',
+  'solution': 'solution',
+  'channels': 'channels',
+  'revenue streams': 'revenue',
+  'cost structure': 'costs',
+  'key metrics': 'metrics',
+  'unfair advantage': 'advantage',
+};
+
+function importMarkdown() {
+  const raw = document.getElementById('import-textarea').value.trim();
+  if (!raw) { showImportStatus('Nothing to import — paste your markdown first.', 'warn'); return; }
+
+  const lines = raw.split('\n');
+  let currentKey = null;
+  const blocks = {};
+
+  for (const line of lines) {
+    const h2 = line.match(/^##\s+(.+)/);
+    if (h2) {
+      const norm = h2[1].replace(/^\d+\.\s+/, '').toLowerCase().trim();
+      currentKey = HEADING_MAP[norm] || null;
+      if (currentKey && !blocks[currentKey]) blocks[currentKey] = [];
+      continue;
+    }
+    if (line.match(/^---+$/) || line.match(/^#[^#]/) || line.match(/^>\s/)) continue;
+    if (currentKey && line.trim() && line.trim() !== '*(empty)*') {
+      blocks[currentKey].push(line.trim());
+    }
+  }
+
+  const keys = Object.keys(blocks);
+  if (!keys.length) { showImportStatus('No recognised sections found. Check headings match the template (e.g. "## 1. Customer Segments").', 'error'); return; }
+
+  keys.forEach(key => {
+    const text = blocks[key].join('\n');
+    document.getElementById('ta-' + key).value = text;
+    const cell = document.getElementById('cell-' + key);
+    if (cell.classList.contains('editing')) {
+      document.getElementById('btn-' + key).textContent = '✎ Edit';
+      document.getElementById('btn-' + key).classList.remove('btn-save');
+      cell.classList.remove('editing');
+    }
+    setView(key, text);
+  });
+
+  showImportStatus('✓ Imported ' + keys.length + ' section(s): ' + keys.map(k => CELL_META[k].title).join(', '), 'ok');
+}
+
+function showImportStatus(msg, type) {
+  const el = document.getElementById('import-status');
+  el.textContent = msg;
+  el.style.borderLeftColor = type === 'ok' ? '#2e7d32' : type === 'warn' ? '#c4900e' : '#c0392b';
+  el.style.background = type === 'ok' ? '#e3f0dc' : type === 'warn' ? '#fbf7ec' : '#fdecea';
+}
+
+function openSaveModal() {
+  document.getElementById('export-output').textContent = generateExport();
+  openModal('save-modal');
+}
+function openImportModal() {
+  const el = document.getElementById('import-status');
+  el.textContent = 'Paste the full markdown document and click Import. All existing content will be replaced.';
+  el.style.borderLeftColor = '#e5bd55';
+  el.style.background = '#fbf7ec';
+  openModal('import-modal');
+}
+function openTemplateModal() {
+  document.getElementById('template-output').textContent = generateTemplate();
+  openModal('template-modal');
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function copyText(elId) {
+  const text = document.getElementById(elId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = event.target.textContent;
+    event.target.textContent = '✓ Copied';
+    setTimeout(() => event.target.textContent = orig, 1600);
+  });
+}
+
+function downloadText(text, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/markdown' }));
+  a.download = filename;
+  a.click();
+}
+
+['import-modal','template-modal','save-modal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal(id);
+  });
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    ['import-modal','template-modal','save-modal'].forEach(closeModal);
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    CELLS.forEach(key => {
+      if (document.getElementById('cell-' + key).classList.contains('editing')) {
+        toggleEdit(key);
+      }
+    });
+  }
+});
+</script>
+</body>
+</html>
