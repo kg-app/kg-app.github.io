@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlphaVal — Lean Canvas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --av-bg-page: #fafaf7;
+    --av-bg-surface: #ffffff;
+    --av-bg-emph: #fbf7ec;
+    --av-bg-subtle: #f5f2e9;
+    --av-line: #e6e0cc;
+    --av-line-strong: #c8b870;
+    --av-line-faint: #efead8;
+    --av-gold: #c4900e;
+    --av-gold-soft: #e5bd55;
+    --av-gold-pale: #f5e8b8;
+    --av-ink: #1a1508;
+    --av-ink-2: #4a3d14;
+    --av-ink-3: #7a6020;
+    --av-ink-mute: #b09040;
+    --av-sec-pale: #eceef8;
+    --av-sec: #5058a8;
+    --av-sec-deep: #363c80;
+    --av-green: #2e7d32;
+    --av-green-pale: #e3f0dc;
+    --av-amber-pale: #faedc8;
+
+    /* segment tints */
+    --seg1-bg: #eceef8;   /* slate indigo — customer */
+    --seg1-border: #b0b6e0;
+    --seg2-bg: #faedc8;   /* amber — problem */
+    --seg2-border: #d4a844;
+
+    --radius: 6px;
+    --cell-pad: 14px 16px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--av-bg-page);
+    color: var(--av-ink);
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .logo-area h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--av-ink);
+    letter-spacing: -0.3px;
+  }
+  .logo-area h1 span { color: var(--av-gold); }
+  .logo-area p {
+    font-size: 12px;
+    color: var(--av-ink-3);
+    margin-top: 2px;
+  }
+  .meta-row {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--av-ink-3);
+    flex-wrap: wrap;
+  }
+  .meta-row span {
+    border: 1px solid var(--av-line);
+    border-radius: 4px;
+    padding: 4px 10px;
+    background: var(--av-bg-surface);
+  }
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: var(--radius);
+    border: 1px solid var(--av-line);
+    background: var(--av-bg-surface);
+    color: var(--av-ink-2);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover { background: var(--av-bg-emph); border-color: var(--av-gold-soft); }
+  .btn-primary {
+    background: var(--av-gold);
+    color: #fff;
+    border-color: var(--av-gold);
+  }
+  .btn-primary:hover { background: var(--av-gold-deep, #9a7010); border-color: var(--av-gold-deep, #9a7010); }
+
+  /* ── BELIEF LEGEND ── */
+  .belief-legend {
+    background: var(--av-bg-surface);
+    border: 1px solid var(--av-line);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .belief-legend .legend-head {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--av-ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .belief-items {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+  .belief-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--av-ink-2);
+  }
+  .belief-num {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--av-bg-emph);
+    border: 1px solid var(--av-line-strong);
+    color: var(--av-gold);
+    font-size: 10px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .seg-legend {
+    display: flex;
+    gap: 12px;
+    margin-left: auto;
+    align-items: center;
+  }
+  .seg-dot {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+  }
+  .seg-dot.s1 { background: var(--seg1-bg); border: 1px solid var(--seg1-border); }
+  .seg-dot.s2 { background: var(--seg2-bg); border: 1px solid var(--seg2-border); }
+
+  /* ── CANVAS WRAPPER ── */
+  .canvas-outer {
+    background: var(--av-bg-surface);
+    border: 1.5px solid var(--av-line-strong);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  /* ── PRODUCT / MARKET LABELS ── */
+  .pm-bar {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    border-bottom: 1px solid var(--av-line);
+  }
+  .pm-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--av-ink-mute);
+    text-align: center;
+    padding: 6px 0;
+    background: var(--av-bg-subtle);
+  }
+  .pm-divider { background: var(--av-line-strong); }
+
+  /* ── MAIN GRID ── */
+  .canvas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.15fr 1fr 1fr;
+    grid-template-rows: auto auto;
+    border-bottom: 1.5px solid var(--av-line-strong);
+  }
+  .canvas-bottom {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+  }
+
+  /* ── CELL ── */
+  .cell {
+    border-right: 1px solid var(--av-line);
+    border-bottom: 1px solid var(--av-line);
+    padding: var(--cell-pad);
+    position: relative;
+    min-height: 210px;
+    transition: background 0.15s;
+  }
+  .cell:last-child, .cell.no-right { border-right: none; }
+  .cell.no-bottom { border-bottom: none; }
+  .cell.span-row { grid-row: span 2; min-height: 420px; }
+  .cell.seg1 { background: var(--seg1-bg); }
+  .cell.seg2 { background: var(--seg2-bg); }
+
+  .canvas-bottom .cell { min-height: 150px; border-bottom: none; }
+  .bottom-divider { background: var(--av-line-strong); }
+
+  /* ── CELL HEADER ── */
+  .cell-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .cell-icon {
+    font-size: 18px;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .cell-title-block { flex: 1; }
+  .cell-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--av-ink);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .cell-title .order-num {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--av-gold-pale);
+    border: 1px solid var(--av-gold-soft);
+    color: var(--av-gold);
+    font-size: 10px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .cell-hint {
+    font-size: 10px;
+    color: var(--av-ink-3);
+    font-style: italic;
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  /* ── EDIT BTN ── */
+  .edit-trigger {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--av-ink-mute);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 3px 5px;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s;
+    font-family: inherit;
+  }
+  .cell:hover .edit-trigger { opacity: 1; }
+  .edit-trigger:hover { background: var(--av-bg-emph); border-color: var(--av-line); color: var(--av-ink); }
+
+  /* ── CONTENT AREA ── */
+  .cell-content {
+    font-size: 11.5px;
+    color: var(--av-ink-2);
+    line-height: 1.6;
+  }
+  .cell-content ul {
+    list-style: none;
+    padding: 0;
+  }
+  .cell-content ul li {
+    padding: 3px 0 3px 14px;
+    position: relative;
+    border-bottom: 1px dashed var(--av-line-faint);
+  }
+  .cell-content ul li:last-child { border-bottom: none; }
+  .cell-content ul li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--av-ink-mute);
+    font-size: 10px;
+    top: 4px;
+  }
+  .cell-content .sub-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--av-ink-3);
+    margin: 9px 0 4px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--av-line-faint);
+  }
+  .pipeline-step {
+    display: flex;
+    gap: 7px;
+    align-items: flex-start;
+    padding: 3px 0;
+    font-size: 11px;
+    color: var(--av-ink-2);
+    line-height: 1.45;
+  }
+  .pipeline-step .ps-num {
+    flex-shrink: 0;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--av-gold-pale);
+    color: var(--av-gold);
+    font-size: 9px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 1px;
+  }
+  .pipeline-arrow {
+    font-size: 10px;
+    color: var(--av-ink-mute);
+    padding-left: 23px;
+    line-height: 1;
+    margin: 1px 0;
+  }
+  .stage-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin: 6px 0 4px;
+  }
+  .badge-amber { background: var(--av-amber-pale); color: #7a5008; border: 1px solid #d4a844; }
+  .badge-indigo { background: var(--av-sec-pale); color: var(--av-sec-deep); border: 1px solid #b0b6e0; }
+  .badge-green { background: var(--av-green-pale); color: var(--av-green); border: 1px solid #a0c8a0; }
+  .badge-gray { background: var(--av-bg-subtle); color: var(--av-ink-3); border: 1px solid var(--av-line); }
+
+  /* ── MODAL OVERLAY ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(26,21,8,0.45);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--av-bg-surface);
+    border: 1px solid var(--av-line-strong);
+    border-radius: 10px;
+    width: min(680px, 95vw);
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 40px rgba(26,21,8,0.18);
+  }
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--av-line);
+  }
+  .modal-head h2 { font-size: 15px; font-weight: 600; color: var(--av-ink); }
+  .modal-head .hint { font-size: 11px; color: var(--av-ink-3); font-style: italic; margin-top: 2px; }
+  .modal-close {
+    background: none; border: none; cursor: pointer;
+    font-size: 18px; color: var(--av-ink-mute); padding: 2px 6px;
+    border-radius: 4px;
+    font-family: inherit;
+  }
+  .modal-close:hover { background: var(--av-bg-emph); color: var(--av-ink); }
+  .modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .modal-note {
+    font-size: 11px;
+    color: var(--av-ink-3);
+    background: var(--av-bg-emph);
+    border-left: 3px solid var(--av-gold-soft);
+    padding: 8px 12px;
+    border-radius: 0 4px 4px 0;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .modal-body textarea {
+    width: 100%;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--av-ink);
+    background: var(--av-bg-page);
+    border: 1px solid var(--av-line);
+    border-radius: var(--radius);
+    padding: 12px;
+    resize: vertical;
+    min-height: 300px;
+    line-height: 1.65;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  #import-textarea { min-height: 380px; }
+  .modal-body textarea:focus { border-color: var(--av-gold-soft); }
+  .modal-foot {
+    padding: 14px 20px;
+    border-top: 1px solid var(--av-line);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  /* ── SAVE MODAL ── */
+  .save-modal .modal-body pre {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: var(--av-bg-page);
+    border: 1px solid var(--av-line);
+    border-radius: var(--radius);
+    padding: 14px;
+    white-space: pre-wrap;
+    color: var(--av-ink-2);
+    max-height: 400px;
+    overflow-y: auto;
+    line-height: 1.6;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-hint {
+    font-size: 11px;
+    color: var(--av-ink-mute);
+    font-style: italic;
+    text-align: center;
+    margin-top: 20px;
+    opacity: 0.6;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    body { padding: 12px; }
+    .canvas-grid { grid-template-columns: 1fr 1fr; }
+    .canvas-bottom { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <h1>Alpha<span>Val</span> &mdash; Lean Canvas</h1>
+    <p>Mining CAPEX Lifecycle Platform &nbsp;·&nbsp; FEL 1 MVP</p>
+  </div>
+  <div class="meta-row">
+    <span>Designed for: AlphaVal</span>
+    <span id="meta-date">Date: —</span>
+    <span>Version: MVP-2</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn" onclick="openTemplateModal()">📋 Template</button>
+    <button class="btn" onclick="openImportModal()">⬆ Import Markdown</button>
+    <button class="btn" onclick="openSaveModal()">⬇ Export Markdown</button>
+  </div>
+</header>
+
+<!-- belief legend -->
+<div class="belief-legend">
+  <div class="legend-head">Fill order<br>(Ash Maurya)</div>
+  <div class="belief-items">
+    <div class="belief-item"><div class="belief-num">1</div>Customer Segments</div>
+    <div class="belief-item"><div class="belief-num">2</div>Problem</div>
+    <div class="belief-item"><div class="belief-num">3</div>UVP</div>
+    <div class="belief-item"><div class="belief-num">4</div>Solution</div>
+    <div class="belief-item"><div class="belief-num">5</div>Channels</div>
+    <div class="belief-item"><div class="belief-num">6</div>Revenue</div>
+    <div class="belief-item"><div class="belief-num">7</div>Cost Structure</div>
+    <div class="belief-item"><div class="belief-num">8</div>Key Metrics</div>
+    <div class="belief-item"><div class="belief-num">9</div>Unfair Advantage</div>
+  </div>
+  <div class="seg-legend">
+    <div class="belief-item"><div class="seg-dot s2"></div>Desirability risk</div>
+    <div class="belief-item"><div class="seg-dot s1"></div>Market risk</div>
+  </div>
+</div>
+
+<div class="canvas-outer">
+
+  <!-- Product / Market bar -->
+  <div class="pm-bar">
+    <div class="pm-label">◀ Product</div>
+    <div class="pm-divider"></div>
+    <div class="pm-label">Market ▶</div>
+  </div>
+
+  <!-- Main 5-column grid -->
+  <div class="canvas-grid">
+
+    <!-- Col 1: Problem (spans 2 rows) -->
+    <div class="cell span-row seg2" data-key="problem">
+      <div class="cell-header">
+        <div class="cell-icon">⚠️</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Problem <div class="order-num">2</div></div>
+          <div class="cell-hint">Top 3 problems your customers face today</div>
+        </div>
+      </div>
+      <div class="cell-content" id="content-problem"></div>
+      <button class="edit-trigger" onclick="openEdit('problem')">✎ Edit</button>
+    </div>
+
+    <!-- Col 2 row 1: Solution -->
+    <div class="cell" data-key="solution">
+      <div class="cell-header">
+        <div class="cell-icon">💡</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Solution <div class="order-num">4</div></div>
+          <div class="cell-hint">Outline a possible solution for each problem</div>
+        </div>
+      </div>
+      <div class="cell-content" id="content-solution"></div>
+      <button class="edit-trigger" onclick="openEdit('solution')">✎ Edit</button>
+    </div>
+
+    <!-- Col 3: UVP (spans 2 rows) -->
+    <div class="cell span-row" data-key="uvp">
+      <div class="cell-header">
+        <div class="cell-icon">🎁</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Unique Value Proposition <div class="order-num">3</div></div>
+          <div class="cell-hint">Single, clear, compelling message that turns an unaware visitor into an interested prospect</div>
+        </div>
+      </div>
+      <div class="cell-content" id="content-uvp"></div>
+      <button class="edit-trigger" onclick="openEdit('uvp')">✎ Edit</button>
+    </div>
+
+    <!-- Col 4 row 1: Unfair Advantage -->
+    <div class="cell" data-key="advantage">
+      <div class="cell-header">
+        <div class="cell-icon">⭐</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Unfair Advantage <div class="order-num">9</div></div>
+          <div class="cell-hint">Something that cannot easily be bought or copied</div>
+        </div>
+      </div>
+      <div class="cell-content" id="content-advantage"></div>
+      <button class="edit-trigger" onclick="openEdit('advantage')">✎ Edit</button>
+    </div>
+
+    <!-- Col 5: Customer Segments (spans 2 rows) -->
+    <div class="cell span-row seg1 no-right" data-key="segments">
+      <div class="cell-header">
+        <div class="cell-icon">👥</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Customer Segments <div class="order-num">1</div></div>
+          <div class="cell-hint">List your target customers and users — start with early adopters</div>
+        </div>
+      </div>
+      <div class="cell-content" id="content-segments"></div>
+      <button class="edit-trigger" onclick="openEdit('segments')">✎ Edit</button>
+    </div>
+
+    <!-- Col 2 row 2: Key Metrics -->
+    <div class="cell no-bottom" data-key="metrics">
+      <div class="cell-header">
+        <div class="cell-icon">📊</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Key Metrics <div class="order-num">8</div></div>
+          <div class="cell-hint">Key activities you measure — numbers telling how your business is doing</div>
+        </div>
+      </div>
+      <div class="cell-content" id="content-metrics"></div>
+      <button class="edit-trigger" onclick="openEdit('metrics')">✎ Edit</button>
+    </div>
+
+    <!-- Col 4 row 2: Channels -->
+    <div class="cell no-bottom" data-key="channels">
+      <div class="cell-header">
+        <div class="cell-icon">🚀</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Channels <div class="order-num">5</div></div>
+          <div class="cell-hint">List your path to customers (inbound or outbound)</div>
+        </div>
+      </div>
+      <div class="cell-content" id="content-channels"></div>
+      <button class="edit-trigger" onclick="openEdit('channels')">✎ Edit</button>
+    </div>
+
+  </div>
+
+  <!-- Bottom row: Cost + Revenue -->
+  <div class="canvas-bottom">
+    <div class="cell no-bottom" data-key="costs">
+      <div class="cell-header">
+        <div class="cell-icon">🏷️</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Cost Structure <div class="order-num">7</div></div>
+          <div class="cell-hint">List your fixed and variable costs — customer acquisition, distribution, hosting, people</div>
+        </div>
+      </div>
+      <div class="cell-content" id="content-costs"></div>
+      <button class="edit-trigger" onclick="openEdit('costs')">✎ Edit</button>
+    </div>
+    <div class="bottom-divider"></div>
+    <div class="cell no-bottom no-right" data-key="revenue">
+      <div class="cell-header">
+        <div class="cell-icon">💰</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Revenue Streams <div class="order-num">6</div></div>
+          <div class="cell-hint">List your sources of revenue — revenue model, lifetime value, gross margin</div>
+        </div>
+      </div>
+      <div class="cell-content" id="content-revenue"></div>
+      <button class="edit-trigger" onclick="openEdit('revenue')">✎ Edit</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── EDIT MODAL ── -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2 id="modal-title">Edit Block</h2>
+        <div class="hint" id="modal-hint"></div>
+      </div>
+      <button class="modal-close" onclick="closeEdit()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-note" id="modal-note"></div>
+      <textarea id="modal-textarea" spellcheck="true"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeEdit()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── IMPORT MODAL ── -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal" style="width: min(760px, 96vw);">
+    <div class="modal-head">
+      <div>
+        <h2>Import Markdown</h2>
+        <div class="hint">Paste your filled-in canvas markdown — the same format the Export produces</div>
+      </div>
+      <button class="modal-close" onclick="closeImportModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-note" id="import-status">
+        Paste the full markdown document below and click <strong>Import &amp; Render</strong>. All existing canvas content will be replaced. Use the <strong>Template</strong> button to get a blank scaffold to fill in first.
+      </div>
+      <textarea id="import-textarea" spellcheck="false" placeholder="# AlphaVal — Lean Canvas&#10;&#10;## 1. Customer Segments&#10;&#10;### Primary&#10;&#10;- Your content here&#10;..."></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeImportModal()">Cancel</button>
+      <button class="btn" onclick="clearImportArea()">🗑 Clear</button>
+      <button class="btn btn-primary" onclick="importMarkdown()">⬆ Import &amp; Render</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TEMPLATE MODAL ── -->
+<div class="modal-overlay save-modal" id="template-modal">
+  <div class="modal" style="width: min(720px, 96vw);">
+    <div class="modal-head">
+      <div>
+        <h2>Markdown Template</h2>
+        <div class="hint">Copy this, fill in your content, then use Import Markdown to load it</div>
+      </div>
+      <button class="modal-close" onclick="closeTemplateModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-note">
+        Each block shows its section headers and format hints. Replace the <em>italicised placeholder lines</em> with your own bullet points (one per line, starting with <code>-</code>). For Solution, use numbered lines (<code>1.</code>) inside each <code>### Stage</code> group. Save as <code>.md</code> and paste into Import.
+      </div>
+      <pre id="template-output" style="font-family:'DM Mono',monospace;font-size:11px;background:var(--av-bg-page);border:1px solid var(--av-line);border-radius:var(--radius);padding:14px;white-space:pre-wrap;color:var(--av-ink-2);max-height:420px;overflow-y:auto;line-height:1.65;"></pre>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeTemplateModal()">Close</button>
+      <button class="btn" onclick="copyTemplate()">📋 Copy template</button>
+      <button class="btn btn-primary" onclick="downloadTemplate()">⬇ Download template.md</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SAVE / EXPORT MODAL ── -->
+<div class="modal-overlay save-modal" id="save-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2>Export as Markdown</h2>
+        <div class="hint">Copy the text below or click Download</div>
+      </div>
+      <button class="modal-close" onclick="closeSaveModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <pre id="markdown-output"></pre>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeSaveModal()">Close</button>
+      <button class="btn" onclick="copyMarkdown()">📋 Copy</button>
+      <button class="btn btn-primary" onclick="downloadMarkdown()">⬇ Download .md</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA MODEL ──
+const BLOCKS = {
+  problem: {
+    title: 'Problem',
+    icon: '⚠️',
+    order: 2,
+    hint: 'Top 3 problems your customers face today',
+    note: 'Start here: if you get the problem wrong, everything else collapses. Be specific — describe customer pain better than they can.',
+    type: 'sections',
+    sections: [
+      { label: 'Core problems', key: 'main' },
+      { label: 'Existing alternatives', key: 'alt' }
+    ],
+    data: {
+      main: [
+        'FEL trade-off studies take weeks; only 2–3 alternatives evaluated per project due to manual SOW extraction, sizing, and re-costing',
+        'SOW documents are unstructured — system overviews, material flow, and equipment lists locked inside PDFs with no provenance',
+        'Sizing sheets exist but live in silos; mapping them to a global cost catalog is manual and error-prone',
+        'FEL stage transitions force full data re-entry; no continuous audit trail'
+      ],
+      alt: [
+        'Excel models + EPCM-led studies',
+        'AspenTech, Cleopatra, Bentley, Hexagon',
+        'Aggflow / Bruno (simulation tools — no cost output)'
+      ]
+    }
+  },
+  solution: {
+    title: 'Solution',
+    icon: '💡',
+    order: 4,
+    hint: 'Outline a possible solution for each problem',
+    note: 'Describe your solution after confirming the problem is real. Keep it to the minimum viable feature set for each stage.',
+    type: 'stages',
+    data: {
+      stages: [
+        {
+          badge: 'badge-amber',
+          label: 'Stage 1 — FEL 1 MVP · Deliverable: TIC Sheet',
+          steps: [
+            'SOW ingestion — LLM extracts system overview, rudimentary material flow (mass balance), and block flow diagram',
+            'Graph construction — equipment nodes + topology edges built from extracted BFD; flow quantities as edge-level stream properties',
+            'Sizing sheet mapping — parameters computed or entered by engineer; components matched to available equipment sizes',
+            'Cost catalog match — parameter set drives vector similarity + parametric scoring against global catalog; confidence score per line item',
+            'TEC → TIC (owner\'s costs only) — no Hand method rollup yet; every line traceable to catalog entry + source document',
+            'Deliverable: TIC sheet with confidence bands, provenance chain, optional PFD overlay'
+          ]
+        },
+        { badge: 'badge-gray', label: 'Stage 2 — FEL 1 Hardening', steps: ['Validate extraction quality; calibrate sizing rules against benchmarks', 'PFD layer; expanded catalog; reviewer workflow + provenance QC gates'] },
+        { badge: 'badge-indigo', label: 'Stage 3 — Optionality Analysis', steps: ['Scenario branching from frozen base case; propagation engine resizes under alternative objectives', 'N-way comparison: delta waterfalls, cost ranking, sensitivity — 10–20+ scenarios per study'] }
+      ]
+    }
+  },
+  uvp: {
+    title: 'Unique Value Proposition',
+    icon: '🎁',
+    order: 3,
+    hint: 'Single, clear, compelling message that turns an unaware visitor into an interested prospect',
+    note: 'A good UVP is narrow (targets early adopters) and specific (nails a problem). If you can describe your customer\'s problems better than they can, there is an automatic transfer of expertise.',
+    type: 'sections',
+    sections: [
+      { label: 'Value statement', key: 'main' },
+      { label: 'High-level concept', key: 'concept' },
+      { label: 'Pilot success thresholds', key: 'pilot' }
+    ],
+    data: {
+      main: [
+        'Upload a SOW and get a defensible, fully traceable TIC sheet — in hours, not weeks',
+        'Every cost line traces back to its source document, sizing sheet, and catalog match. Engineers review and override; the system never hides its math'
+      ],
+      concept: [
+        '"SOW in. TIC out. Graph-native, provenance-first — from FEL 1 through sanction."'
+      ],
+      pilot: [
+        'TIC accuracy within ±35% of engineer-reviewed benchmark',
+        'Engineer trust rating ≥ 4/5 on post-pilot survey',
+        '100% provenance completeness on all cost outputs',
+        'Lifecycle signal: ≥1 pilot customer requests FEL 2 continuation'
+      ]
+    }
+  },
+  advantage: {
+    title: 'Unfair Advantage',
+    icon: '⭐',
+    order: 9,
+    hint: 'Something that cannot easily be bought or copied',
+    note: 'Fill this last — be honest. Real unfair advantages are rare. Domain expertise + proprietary data + network effects qualify. First-mover advantage does not.',
+    type: 'list',
+    data: [
+      'Two-pass LLM pipeline purpose-built for mining SOW documents — extracts BFD, material flow, and equipment parameters that generic tools cannot',
+      'Sizing-sheet-to-catalog bridge: proprietary mapping from engineering sizing parameters to catalog entries (rare: domain depth + AI)',
+      'Graph-native schema: provenance spans from source PDF sentence to TIC line item — no other tool offers this audit trail at FEL 1',
+      'Owner\'s-cost-first TIC: faster to first credible number than rollup-factor approaches',
+      'Forward-compatible data model — Stage 1 graph carries into optionality and FEL 2/3 without re-entry',
+      'Founder depth in mining process engineering + AI/software — rare combination'
+    ]
+  },
+  segments: {
+    title: 'Customer Segments',
+    icon: '👥',
+    order: 1,
+    hint: 'List your target customers and users — start here, always',
+    note: 'This is the riskiest assumption. Fill this first. If you get the customer wrong, everything else is irrelevant. Narrow to early adopters for the pilot.',
+    type: 'sections',
+    sections: [
+      { label: 'Primary', key: 'primary' },
+      { label: 'Secondary', key: 'secondary' },
+      { label: 'Tertiary', key: 'tertiary' },
+      { label: 'Early adopters (pilot)', key: 'early' }
+    ],
+    data: {
+      primary: ['Mid-tier and junior miners needing fast FEL 1 TIC estimates for concept screening and budget approval'],
+      secondary: ['EPCMs delivering CAPEX estimates — want throughput without headcount growth'],
+      tertiary: ['Technical investors and PE-backed developers screening multiple assets at FEL 1 speed'],
+      early: [
+        'P1 (senior process engineer): owns TIC quality, values provenance and auditability',
+        'P3 (junior engineer): runs sizing inputs, benefits from guided entry and knowledge sidebar',
+        'Digitally mature miners with constrained internal engineering capacity'
+      ]
+    }
+  },
+  metrics: {
+    title: 'Key Metrics',
+    icon: '📊',
+    order: 8,
+    hint: 'Key numbers that tell you how your business is doing — measure what matters',
+    note: 'Pick metrics that indicate progress before you have revenue. Focus on leading indicators, not lagging ones.',
+    type: 'sections',
+    sections: [
+      { label: 'Product quality', key: 'product' },
+      { label: 'Trust signals', key: 'trust' },
+      { label: 'Commercial', key: 'commercial' }
+    ],
+    data: {
+      product: [
+        'SOW upload → TIC sheet cycle time (target: <2 hrs)',
+        'TIC accuracy vs. benchmark (target: ±35% FEL 1)',
+        'Extraction F1 per SOW document type',
+        'Catalog match confidence score distribution'
+      ],
+      trust: [
+        'Provenance completeness: 100% of cost lines traced',
+        'Engineer override rate (trust proxy)',
+        'Propagation convergence rate (SCC/Tarjan)'
+      ],
+      commercial: [
+        'Pilot-to-paid conversion (target: ≥50%)',
+        'Active projects and repeat scenario runs',
+        'Lifecycle signal: customer requests FEL 2 continuation'
+      ]
+    }
+  },
+  channels: {
+    title: 'Channels',
+    icon: '🚀',
+    order: 5,
+    hint: 'List your path to customers — inbound or outbound',
+    note: 'Early-stage channels are almost always outbound and founder-led. Inbound channels are built later once you know what resonates.',
+    type: 'list',
+    data: [
+      'Founder-led sales — bring a real SOW, produce a TIC in the room as the demo',
+      'Paid pilot: customer supplies SOW document; AlphaVal returns reviewed TIC sheet',
+      'EPCM and mining consultant partnerships for catalog calibration and benchmark data',
+      'Pathfinder-style comparable-project benchmarking partnerships (H2+)',
+      'OEM/vendor data provider integrations for cost catalog enrichment (H2+)'
+    ]
+  },
+  costs: {
+    title: 'Cost Structure',
+    icon: '🏷️',
+    order: 7,
+    hint: 'Fixed and variable costs — customer acquisition, hosting, people, data',
+    note: 'Distinguish fixed from variable costs. Variable costs scale with usage; fixed costs don\'t. Know your burn rate.',
+    type: 'sections',
+    sections: [
+      { label: 'Product & infrastructure', key: 'product' },
+      { label: 'Data & domain', key: 'data' }
+    ],
+    data: {
+      product: [
+        'Two-pass LLM pipeline development (SOW extraction + sizing pass)',
+        'Graph infrastructure: FastAPI, MongoDB, Atlas Vector, Redis',
+        'LLM/embedding API usage per extraction run (variable)',
+        'Cloud infra, DevOps, security, storage'
+      ],
+      data: [
+        'Sizing sheet curation — InfoMine USA 2015, CEPCI, Nelson-Farrar',
+        'Global cost catalog build and maintenance',
+        'Domain experts: process engineers, cost estimators',
+        'Ontology development and binding maintenance',
+        'Pilot support, customer discovery, legal, IP'
+      ]
+    }
+  },
+  revenue: {
+    title: 'Revenue Streams',
+    icon: '💰',
+    order: 6,
+    hint: 'Sources of revenue — revenue model, lifetime value, gross margin',
+    note: 'Price relative to customer value, not your costs. Early revenue validates willingness to pay — the most important signal.',
+    type: 'sections',
+    sections: [
+      { label: 'Early / pilot', key: 'early' },
+      { label: 'Scale', key: 'scale' },
+      { label: 'Premium modules (Stage 2/3)', key: 'premium' }
+    ],
+    data: {
+      early: [
+        'Per-study / paid pilot pricing for Stage 1 TIC deliverable',
+        'Consulting-led engagement: AlphaVal analyst produces TIC with customer\'s SOW'
+      ],
+      scale: [
+        'SaaS subscription — tiered by active projects, users, scenario volume',
+        'Usage-based pricing for AI extraction and propagation runs',
+        'Enterprise license for EPCMs (multi-project, white-label TIC output)'
+      ],
+      premium: [
+        'Custom sizing sheet rulesets + private catalog hosting',
+        'Optionality engine: scenario branching + N-way comparison',
+        'OPEX / schedule / carbon extensions (H3)',
+        'Comparable-project benchmarking reports'
+      ]
+    }
+  }
+};
+
+// ── RENDER ENGINE ──
+function renderAll() {
+  Object.keys(BLOCKS).forEach(renderBlock);
+}
+
+function renderBlock(key) {
+  const b = BLOCKS[key];
+  const el = document.getElementById('content-' + key);
+  if (!el) return;
+  el.innerHTML = buildHTML(b);
+}
+
+function buildHTML(b) {
+  if (b.type === 'list') {
+    if (!b.data || b.data.length === 0) return '<p class="empty-hint">Click ✎ Edit to add content</p>';
+    return '<ul>' + b.data.map(i => `<li>${esc(i)}</li>`).join('') + '</ul>';
+  }
+  if (b.type === 'sections') {
+    let html = '';
+    b.sections.forEach(s => {
+      const items = b.data[s.key] || [];
+      html += `<div class="sub-label">${esc(s.label)}</div>`;
+      if (items.length === 0) {
+        html += '<p class="empty-hint">—</p>';
+      } else {
+        html += '<ul>' + items.map(i => `<li>${esc(i)}</li>`).join('') + '</ul>';
+      }
+    });
+    return html;
+  }
+  if (b.type === 'stages') {
+    let html = '';
+    (b.data.stages || []).forEach(st => {
+      html += `<div class="stage-badge ${esc(st.badge)}">${esc(st.label)}</div>`;
+      st.steps.forEach((step, i) => {
+        html += `<div class="pipeline-step"><div class="ps-num">${i+1}</div><div>${esc(step)}</div></div>`;
+        if (i < st.steps.length - 1) html += `<div class="pipeline-arrow">↓</div>`;
+      });
+    });
+    return html;
+  }
+  return '';
+}
+
+function esc(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── EDIT MODAL ──
+let editingKey = null;
+
+const MODAL_NOTES = {
+  problem: 'Tip: List problems in order of severity. Include "existing alternatives" so you acknowledge how customers solve this today.',
+  solution: 'Tip: Structure by delivery stage. Use the pipeline format to show the MVP flow clearly.',
+  uvp: 'Tip: Write for a skeptical senior engineer. Include a tagline + concrete proof points.',
+  advantage: 'Tip: Be ruthlessly honest. Most teams have fewer unfair advantages than they think.',
+  segments: 'Tip: Fill this first (order #1). The riskiest assumption is always who your customer is.',
+  metrics: 'Tip: Pick 2–3 leading indicators per category. Avoid vanity metrics.',
+  channels: 'Tip: Early channels are almost always founder-led and outbound. Be specific.',
+  costs: 'Tip: Separate fixed from variable. Know your monthly burn.',
+  revenue: 'Tip: Price relative to value delivered, not cost to build.'
+};
+
+function openEdit(key) {
+  editingKey = key;
+  const b = BLOCKS[key];
+  document.getElementById('modal-title').textContent = b.title;
+  document.getElementById('modal-hint').textContent = b.hint;
+  document.getElementById('modal-note').textContent = MODAL_NOTES[key] || '';
+
+  // Build editable text
+  let text = '';
+  if (b.type === 'list') {
+    text = (b.data || []).join('\n');
+  } else if (b.type === 'sections') {
+    b.sections.forEach(s => {
+      text += `## ${s.label}\n`;
+      text += (b.data[s.key] || []).join('\n') + '\n\n';
+    });
+    text = text.trim();
+  } else if (b.type === 'stages') {
+    (b.data.stages || []).forEach(st => {
+      text += `### ${st.label} [${st.badge}]\n`;
+      text += st.steps.join('\n') + '\n\n';
+    });
+    text = text.trim();
+  }
+
+  document.getElementById('modal-textarea').value = text;
+  document.getElementById('edit-modal').classList.add('open');
+  setTimeout(() => document.getElementById('modal-textarea').focus(), 50);
+}
+
+function closeEdit() {
+  document.getElementById('edit-modal').classList.remove('open');
+  editingKey = null;
+}
+
+function saveEdit() {
+  const key = editingKey;
+  const b = BLOCKS[key];
+  const raw = document.getElementById('modal-textarea').value;
+
+  if (b.type === 'list') {
+    b.data = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  } else if (b.type === 'sections') {
+    const sections = {};
+    let currentKey = null;
+    raw.split('\n').forEach(line => {
+      const hMatch = line.match(/^##\s+(.+)/);
+      if (hMatch) {
+        const label = hMatch[1].trim();
+        const sec = b.sections.find(s => s.label === label);
+        currentKey = sec ? sec.key : null;
+        if (currentKey && !sections[currentKey]) sections[currentKey] = [];
+      } else if (currentKey && line.trim()) {
+        sections[currentKey].push(line.trim());
+      }
+    });
+    b.sections.forEach(s => { b.data[s.key] = sections[s.key] || []; });
+  } else if (b.type === 'stages') {
+    const stages = [];
+    let current = null;
+    raw.split('\n').forEach(line => {
+      const hMatch = line.match(/^###\s+(.+?)\s+\[([^\]]+)\]/);
+      if (hMatch) {
+        if (current) stages.push(current);
+        current = { label: hMatch[1].trim(), badge: hMatch[2].trim(), steps: [] };
+      } else if (current && line.trim()) {
+        current.steps.push(line.trim());
+      }
+    });
+    if (current) stages.push(current);
+    b.data.stages = stages;
+  }
+
+  renderBlock(key);
+  closeEdit();
+}
+
+// ── MARKDOWN EXPORT ──
+function generateMarkdown() {
+  const ORDER = ['segments','problem','uvp','solution','channels','revenue','costs','metrics','advantage'];
+  let md = `# AlphaVal — Lean Canvas\n\n`;
+  md += `> Generated: ${new Date().toLocaleDateString('en-CA')}\n\n`;
+  md += `---\n\n`;
+
+  ORDER.forEach(key => {
+    const b = BLOCKS[key];
+    md += `## ${b.order}. ${b.title}\n\n`;
+
+    if (b.type === 'list') {
+      (b.data || []).forEach(item => { md += `- ${item}\n`; });
+    } else if (b.type === 'sections') {
+      b.sections.forEach(s => {
+        md += `### ${s.label}\n\n`;
+        (b.data[s.key] || []).forEach(item => { md += `- ${item}\n`; });
+        md += '\n';
+      });
+    } else if (b.type === 'stages') {
+      (b.data.stages || []).forEach(st => {
+        md += `### ${st.label}\n\n`;
+        st.steps.forEach((step, i) => { md += `${i+1}. ${step}\n`; });
+        md += '\n';
+      });
+    }
+    md += '\n---\n\n';
+  });
+  return md;
+}
+
+function openSaveModal() {
+  document.getElementById('markdown-output').textContent = generateMarkdown();
+  document.getElementById('save-modal').classList.add('open');
+}
+
+function closeSaveModal() {
+  document.getElementById('save-modal').classList.remove('open');
+}
+
+function copyMarkdown() {
+  const text = document.getElementById('markdown-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied';
+    setTimeout(() => btn.textContent = orig, 1800);
+  });
+}
+
+function downloadMarkdown() {
+  const text = generateMarkdown();
+  const blob = new Blob([text], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'alphaval-lean-canvas.md';
+  a.click();
+}
+
+// ── IMPORT MODAL ──
+function openImportModal() {
+  document.getElementById('import-status').innerHTML = 'Paste the full markdown document below and click <strong>Import & Render</strong>. All existing canvas content will be replaced. Use the <strong>Template</strong> button to get a blank scaffold to fill in first.';
+  document.getElementById('import-status').style.borderLeftColor = 'var(--av-gold-soft)';
+  document.getElementById('import-modal').classList.add('open');
+  setTimeout(() => document.getElementById('import-textarea').focus(), 50);
+}
+function closeImportModal() {
+  document.getElementById('import-modal').classList.remove('open');
+}
+function clearImportArea() {
+  document.getElementById('import-textarea').value = '';
+  document.getElementById('import-textarea').focus();
+}
+
+function importMarkdown() {
+  const raw = document.getElementById('import-textarea').value.trim();
+  if (!raw) {
+    showImportStatus('Nothing to import — paste your markdown first.', 'warn');
+    return;
+  }
+  try {
+    const result = parseFullMarkdown(raw);
+    const keys = Object.keys(result);
+    if (keys.length === 0) {
+      showImportStatus('Could not find any recognised canvas blocks. Make sure your headings match the template (e.g. "## 1. Customer Segments").', 'error');
+      return;
+    }
+    keys.forEach(key => {
+      if (BLOCKS[key]) {
+        const b = BLOCKS[key];
+        const parsed = result[key];
+        if (b.type === 'list') {
+          if (parsed.items && parsed.items.length > 0) b.data = parsed.items;
+        } else if (b.type === 'sections') {
+          b.sections.forEach(s => {
+            if (parsed[s.label] !== undefined) b.data[s.key] = parsed[s.label];
+          });
+        } else if (b.type === 'stages') {
+          if (parsed.stages && parsed.stages.length > 0) b.data.stages = parsed.stages;
+        }
+        renderBlock(key);
+      }
+    });
+    showImportStatus(`✓ Imported ${keys.length} block(s) successfully: ${keys.map(k => BLOCKS[k] ? BLOCKS[k].title : k).join(', ')}.`, 'ok');
+  } catch(e) {
+    showImportStatus('Parse error: ' + e.message, 'error');
+  }
+}
+
+function showImportStatus(msg, type) {
+  const el = document.getElementById('import-status');
+  el.innerHTML = msg;
+  el.style.borderLeftColor = type === 'ok' ? 'var(--av-green)' : type === 'warn' ? 'var(--av-gold-soft)' : '#c0392b';
+  el.style.background = type === 'ok' ? 'var(--av-green-pale)' : type === 'warn' ? 'var(--av-bg-emph)' : '#fdecea';
+}
+
+// ── FULL-DOCUMENT MARKDOWN PARSER ──
+// Maps canonical block headings → BLOCKS keys
+const BLOCK_HEADING_MAP = {
+  'customer segments': 'segments',
+  'problem': 'problem',
+  'unique value proposition': 'uvp',
+  'solution': 'solution',
+  'channels': 'channels',
+  'revenue streams': 'revenue',
+  'cost structure': 'costs',
+  'key metrics': 'metrics',
+  'unfair advantage': 'advantage'
+};
+
+function normaliseHeading(h) {
+  // Strip leading "N. " order prefix, lowercase, trim
+  return h.replace(/^\d+\.\s+/, '').toLowerCase().trim();
+}
+
+function parseFullMarkdown(md) {
+  const lines = md.split('\n');
+  const result = {};
+
+  let currentBlockKey = null;
+  let currentSectionLabel = null;
+  let currentStageObj = null;
+  // buffer: holds lines for the current section/stage
+  let buffer = [];
+
+  function flushBuffer() {
+    if (!currentBlockKey) return;
+    const b = BLOCKS[currentBlockKey];
+    if (!b) return;
+    const items = buffer.map(l => l.replace(/^[-*]\s+/, '').replace(/^\d+\.\s+/, '').trim()).filter(Boolean);
+
+    if (b.type === 'list') {
+      if (!result[currentBlockKey]) result[currentBlockKey] = { items: [] };
+      result[currentBlockKey].items.push(...items);
+    } else if (b.type === 'sections') {
+      if (!result[currentBlockKey]) result[currentBlockKey] = {};
+      if (currentSectionLabel) {
+        result[currentBlockKey][currentSectionLabel] = items;
+      }
+    } else if (b.type === 'stages') {
+      if (!result[currentBlockKey]) result[currentBlockKey] = { stages: [] };
+      if (currentStageObj) {
+        currentStageObj.steps.push(...items);
+        result[currentBlockKey].stages.push(currentStageObj);
+        currentStageObj = null;
+      }
+    }
+    buffer = [];
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // H2 — block heading
+    const h2 = line.match(/^##\s+(.+)/);
+    if (h2) {
+      flushBuffer();
+      currentSectionLabel = null;
+      currentStageObj = null;
+      const norm = normaliseHeading(h2[1]);
+      currentBlockKey = BLOCK_HEADING_MAP[norm] || null;
+      if (currentBlockKey) {
+        const b = BLOCKS[currentBlockKey];
+        if (b.type === 'list' && !result[currentBlockKey]) result[currentBlockKey] = { items: [] };
+        if (b.type === 'sections' && !result[currentBlockKey]) result[currentBlockKey] = {};
+        if (b.type === 'stages' && !result[currentBlockKey]) result[currentBlockKey] = { stages: [] };
+      }
+      continue;
+    }
+
+    if (!currentBlockKey) continue;
+    const b = BLOCKS[currentBlockKey];
+
+    // H3 — section or stage
+    const h3 = line.match(/^###\s+(.+)/);
+    if (h3) {
+      flushBuffer();
+      const label = h3[1].trim();
+      if (b.type === 'sections') {
+        // Match against known section labels (case-insensitive, partial)
+        const matched = b.sections.find(s => s.label.toLowerCase() === label.toLowerCase()) ||
+                        b.sections.find(s => label.toLowerCase().includes(s.label.toLowerCase())) ||
+                        b.sections.find(s => s.label.toLowerCase().includes(label.toLowerCase().split('[')[0].trim()));
+        currentSectionLabel = matched ? matched.label : label;
+        if (!result[currentBlockKey][currentSectionLabel]) result[currentBlockKey][currentSectionLabel] = [];
+      } else if (b.type === 'stages') {
+        // Parse optional badge hint: ### Stage label [badge-class]
+        const badgeMatch = label.match(/^(.+?)\s*\[([^\]]+)\]\s*$/);
+        currentStageObj = {
+          label: badgeMatch ? badgeMatch[1].trim() : label,
+          badge: badgeMatch ? badgeMatch[2].trim() : 'badge-gray',
+          steps: []
+        };
+      } else if (b.type === 'list') {
+        // Lists don't use H3 sub-sections — treat content as list items
+      }
+      continue;
+    }
+
+    // Skip separators and blank doc-level headings
+    if (line.match(/^---+$/) || line.match(/^#[^#]/) || line.match(/^>\s/)) continue;
+
+    // Collect content lines
+    if (line.trim()) buffer.push(line.trim());
+  }
+  flushBuffer();
+  return result;
+}
+
+// ── TEMPLATE MODAL ──
+function generateTemplate() {
+  const ORDER = ['segments','problem','uvp','solution','channels','revenue','costs','metrics','advantage'];
+  const HINTS = {
+    segments: { main: 'One bullet per segment. Be specific — name the role, company type, and context.', sub: { Primary: 'Your primary paying customer', Secondary: 'Adjacent buyer or influencer', Tertiary: 'Opportunistic or future segment', 'Early adopters (pilot)': 'The first 1–3 customers who will pay before the product is perfect' } },
+    problem: { main: 'Top 3 problems in order of severity. Describe them as the customer would, not as you would.', sub: { 'Core problems': 'The pain points that make this product necessary', 'Existing alternatives': 'How customers solve these problems today — be honest about what already works' } },
+    uvp: { main: 'A single clear sentence that compels a skeptical buyer.', sub: { 'Value statement': 'What you do and for whom — measurable outcome preferred', 'High-level concept': 'X for Y analogy (e.g. "Stripe for mining CAPEX")', 'Pilot success thresholds': 'Measurable outcomes that would make a pilot customer say yes to a paid contract' } },
+    solution: { main: 'Describe the minimum solution for each problem. Use stages if phased delivery.' },
+    channels: { main: 'How do you reach and acquire customers? Start with the cheapest and most direct.' },
+    revenue: { main: 'How do you make money? Include pricing model, LTV estimate if possible.', sub: { 'Early / pilot': 'First revenue — consulting, per-study, or one-time', 'Scale': 'SaaS, usage-based, or enterprise licensing', 'Premium modules (Stage 2/3)': 'Add-ons, advanced features, or professional services' } },
+    costs: { main: 'Fixed and variable costs. Separate product/infra from data/domain.', sub: { 'Product & infrastructure': 'Engineering, cloud, APIs — what you pay to run the product', 'Data & domain': 'Catalog curation, domain experts, pilot support' } },
+    metrics: { main: 'Leading indicators only. Avoid vanity metrics.', sub: { 'Product quality': 'Accuracy, speed, completeness — does the product work?', 'Trust signals': 'Override rate, provenance pass rate — do users trust it?', 'Commercial': 'Conversion, retention, expansion — are you growing?' } },
+    advantage: { main: 'What you have that cannot be easily bought or copied. Be ruthlessly honest.' }
+  };
+
+  let md = `# Lean Canvas — [Your Product Name]\n\n`;
+  md += `> Date: ${new Date().toLocaleDateString('en-CA')}  |  Version: 1.0  |  Author: [Your name]\n\n`;
+  md += `> Fill in each section, then paste into Import Markdown. One bullet per line (- item). Delete placeholder lines.\n\n`;
+  md += `---\n\n`;
+
+  ORDER.forEach(key => {
+    const b = BLOCKS[key];
+    const hint = HINTS[key] || {};
+    md += `## ${b.order}. ${b.title}\n\n`;
+    if (hint.main) md += `> ${hint.main}\n\n`;
+
+    if (b.type === 'list') {
+      md += `- [Your item here]\n- [Your item here]\n\n`;
+    } else if (b.type === 'sections') {
+      b.sections.forEach(s => {
+        md += `### ${s.label}\n\n`;
+        const subHint = (hint.sub || {})[s.label];
+        if (subHint) md += `> ${subHint}\n\n`;
+        md += `- [Your item here]\n\n`;
+      });
+    } else if (b.type === 'stages') {
+      md += `### Stage 1 — [Name] [badge-amber]\n\n`;
+      md += `> Use badge-amber for MVP, badge-gray for hardening, badge-indigo for later phases.\n\n`;
+      md += `1. [Step one]\n2. [Step two]\n3. [Step three]\n\n`;
+      md += `### Stage 2 — [Name] [badge-gray]\n\n`;
+      md += `1. [Step one]\n2. [Step two]\n\n`;
+    }
+    md += `---\n\n`;
+  });
+  return md;
+}
+
+function openTemplateModal() {
+  document.getElementById('template-output').textContent = generateTemplate();
+  document.getElementById('template-modal').classList.add('open');
+}
+function closeTemplateModal() {
+  document.getElementById('template-modal').classList.remove('open');
+}
+function copyTemplate() {
+  const text = document.getElementById('template-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied';
+    setTimeout(() => btn.textContent = orig, 1800);
+  });
+}
+function downloadTemplate() {
+  const text = generateTemplate();
+  const blob = new Blob([text], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'lean-canvas-template.md';
+  a.click();
+}
+
+// Wire up new modal overlay-close and escape
+document.getElementById('import-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeImportModal();
+});
+document.getElementById('template-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeTemplateModal();
+});
+
+// Close modals on overlay click
+document.getElementById('edit-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeEdit();
+});
+document.getElementById('save-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeSaveModal();
+});
+
+// Keyboard shortcut — Escape closes any open modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeEdit();
+    closeSaveModal();
+    closeImportModal();
+    closeTemplateModal();
+  }
+});
+
+// Set date
+document.getElementById('meta-date').textContent = 'Date: ' + new Date().toLocaleDateString('en-CA');
+
+// Boot
+renderAll();
+</script>
+</body>
+</html>
