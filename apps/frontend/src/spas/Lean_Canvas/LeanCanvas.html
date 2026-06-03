@@ -5,45 +5,46 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lean Canvas</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --primary: #7c3aed;
-    --primary-hover: #6d28d9;
-    --primary-soft: #a78bfa;
-    --primary-pale: #ede9fe;
-    --secondary: #14b8a6;
-    --secondary-hover: #0d9488;
-    --secondary-soft: #5eead4;
-    --secondary-pale: #ccfbf1;
-    --bg-page: #f8fafc;
+    --primary: #1d4ed8;
+    --primary-hover: #1e40af;
+    --primary-soft: #3b82f6;
+    --primary-pale: #eff6ff;
+    --secondary: #0f766e;
+    --secondary-hover: #115e59;
+    --secondary-soft: #14b8a6;
+    --secondary-pale: #f0fdfa;
+    --bg-page: #f5f5f4;
     --bg-surface: #ffffff;
-    --bg-emph: #f5f3ff;
-    --bg-subtle: #f1f5f9;
-    --line: #e2e8f0;
-    --line-strong: #c4b5fd;
-    --line-faint: #f1f5f9;
-    --ink: #0f172a;
-    --ink-2: #334155;
-    --ink-3: #64748b;
-    --ink-mute: #94a3b8;
-    --seg1-bg: #f0fdfa;
-    --seg1-border: #99f6e4;
-    --seg2-bg: #faf5ff;
-    --seg2-border: #ddd6fe;
-    --radius: 10px;
-    --radius-lg: 14px;
-    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-    --shadow-md: 0 4px 20px rgba(124, 58, 237, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
-    --shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.12);
+    --bg-emph: #fafaf9;
+    --bg-subtle: #f5f5f4;
+    --line: #e7e5e4;
+    --line-strong: #d6d3d1;
+    --line-faint: #f5f5f4;
+    --ink: #1c1917;
+    --ink-2: #44403c;
+    --ink-3: #78716c;
+    --ink-mute: #a8a29e;
+    --seg1-accent: #2563eb;
+    --seg1-pale: #eff6ff;
+    --seg2-accent: #dc2626;
+    --seg2-pale: #fef2f2;
+    --radius: 6px;
+    --radius-lg: 8px;
+    --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.04);
+    --shadow-md: 0 2px 8px rgba(28, 25, 23, 0.06);
+    --shadow-lg: 0 8px 24px rgba(28, 25, 23, 0.08);
+    --content-size: 1rem;
+    --content-leading: 1.65;
   }
 
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    background: linear-gradient(160deg, var(--bg-page) 0%, #eef2ff 45%, #f0fdfa 100%);
-    background-attachment: fixed;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg-page);
     color: var(--ink);
     min-height: 100vh;
     padding: 28px 24px 40px;
@@ -67,48 +68,60 @@
     flex-wrap: wrap;
   }
   .logo-area h1 {
-    font-size: 1.5rem;
+    font-size: 1.375rem;
     font-weight: 700;
     color: var(--ink);
-    letter-spacing: -0.04em;
+    letter-spacing: -0.025em;
     line-height: 1.2;
   }
-  .logo-area h1 span {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .logo-area h1 span { color: var(--primary); }
+  .canvas-bar {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .canvas-title-group {
+    flex: 1;
+    min-width: 220px;
   }
   .canvas-title-input {
     font-family: inherit;
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: 700;
     color: var(--ink);
-    background: var(--bg-surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 8px 14px;
-    margin-top: 10px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--line-strong);
+    border-radius: 0;
+    padding: 2px 0 8px;
     width: 100%;
-    max-width: 420px;
-    box-shadow: var(--shadow-sm);
-    transition: border-color 0.2s, box-shadow 0.2s;
-    letter-spacing: -0.02em;
+    transition: border-color 0.2s, color 0.2s;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
   }
-  .canvas-title-input::placeholder { color: var(--ink-mute); font-weight: 500; }
-  .canvas-title-input:hover { border-color: var(--primary-soft); }
+  .canvas-title-input::placeholder { color: var(--ink-mute); font-weight: 600; }
+  .canvas-title-input:hover { border-bottom-color: var(--ink-3); }
   .canvas-title-input:focus {
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+    border-bottom-color: var(--primary);
+    box-shadow: none;
+  }
+  .canvas-title-hint {
+    display: block;
+    font-size: 0.6875rem;
+    color: var(--ink-mute);
+    margin-top: 5px;
+    letter-spacing: 0.01em;
   }
   .canvas-switcher {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 12px;
     flex-wrap: wrap;
-    max-width: 520px;
+    flex-shrink: 0;
+    padding-bottom: 6px;
   }
   .canvas-switcher[hidden] { display: none !important; }
   .canvas-switcher label {
@@ -133,14 +146,13 @@
     background: var(--bg-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M3 4.5L6 8l3-3.5'/%3E%3C/svg%3E") no-repeat right 10px center;
     appearance: none;
     cursor: pointer;
-    box-shadow: var(--shadow-sm);
     transition: border-color 0.2s, box-shadow 0.2s;
   }
-  .canvas-select:hover { border-color: var(--primary-soft); }
+  .canvas-select:hover { border-color: var(--line-strong); }
   .canvas-select:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+    box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.12);
   }
   .logo-area .tagline {
     font-size: 0.8125rem;
@@ -153,33 +165,32 @@
   .btn {
     font-family: inherit;
     font-size: 0.8125rem;
-    font-weight: 600;
-    padding: 8px 14px;
+    font-weight: 500;
+    padding: 7px 12px;
     border-radius: var(--radius);
     border: 1px solid var(--line);
     background: var(--bg-surface);
     color: var(--ink-2);
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
     display: flex;
     align-items: center;
     gap: 6px;
-    box-shadow: var(--shadow-sm);
   }
   .btn:hover {
     background: var(--bg-emph);
-    border-color: var(--primary-soft);
-    box-shadow: var(--shadow-md);
+    border-color: var(--line-strong);
+    color: var(--ink);
   }
-  .btn:active { transform: scale(0.98); }
   .btn-primary {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+    background: var(--primary);
     color: #fff;
-    border-color: transparent;
+    border-color: var(--primary);
   }
   .btn-primary:hover {
-    background: linear-gradient(135deg, var(--primary-hover) 0%, #5b21b6 100%);
-    border-color: transparent;
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    color: #fff;
   }
   .btn-sm { padding: 5px 11px; font-size: 0.75rem; border-radius: 8px; }
   .btn-save {
@@ -211,7 +222,7 @@
     padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius);
     background: var(--bg-page); color: var(--ink); outline: none;
   }
-  .auth-form input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12); }
+  .auth-form input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.1); }
   .auth-divider {
     display: flex; align-items: center; gap: 10px;
     font-size: 11px; color: var(--ink-mute); margin: 4px 0;
@@ -228,13 +239,12 @@
     background: var(--bg-surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
-    padding: 12px 18px;
-    margin-bottom: 18px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
     display: flex;
     align-items: flex-start;
-    gap: 24px;
+    gap: 20px;
     flex-wrap: wrap;
-    box-shadow: var(--shadow-md);
   }
   .legend-head {
     font-size: 11px;
@@ -249,34 +259,34 @@
   .belief-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-2); }
   .belief-num {
     width: 18px; height: 18px;
-    border-radius: 50%;
-    background: var(--bg-emph);
-    border: 1px solid var(--line-strong);
-    color: var(--primary);
-    font-size: 10px; font-weight: 700;
+    border-radius: 4px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--line);
+    color: var(--ink-3);
+    font-size: 10px; font-weight: 600;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
   .seg-legend { display: flex; gap: 12px; margin-left: auto; align-items: center; }
-  .seg-dot { width: 12px; height: 12px; border-radius: 4px; }
-  .seg-dot.s1 { background: var(--seg1-bg); border: 1px solid var(--seg1-border); }
-  .seg-dot.s2 { background: var(--seg2-bg); border: 1px solid var(--seg2-border); }
+  .seg-dot { width: 10px; height: 10px; border-radius: 2px; }
+  .seg-dot.s1 { background: var(--seg1-accent); }
+  .seg-dot.s2 { background: var(--seg2-accent); }
 
   /* CANVAS */
   .canvas-outer {
     background: var(--bg-surface);
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-strong);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-sm);
   }
   .pm-bar { display: grid; grid-template-columns: 1fr 1px 1fr; border-bottom: 1px solid var(--line); }
   .pm-label {
-    font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
     text-transform: uppercase; color: var(--ink-3);
-    text-align: center; padding: 8px 0; background: var(--bg-subtle);
+    text-align: center; padding: 7px 0; background: var(--bg-subtle);
   }
-  .pm-divider { background: var(--line-strong); }
+  .pm-divider { background: var(--line); }
 
   .canvas-grid {
     display: grid;
@@ -285,50 +295,51 @@
     border-bottom: 1.5px solid var(--line-strong);
   }
   .canvas-bottom { display: grid; grid-template-columns: 1fr 1px 1fr; }
-  .bottom-divider { background: var(--line-strong); }
+  .bottom-divider { background: var(--line); }
 
   /* CELL */
   .cell {
     border-right: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
-    padding: 12px 14px;
+    padding: 14px 16px;
     position: relative;
     min-height: 220px;
     display: flex;
     flex-direction: column;
+    background: var(--bg-surface);
   }
   .cell.no-right { border-right: none; }
   .cell.no-bottom { border-bottom: none; }
   .cell.span-row { grid-row: span 2; min-height: 440px; }
-  .cell.seg1 { background: var(--seg1-bg); }
-  .cell.seg2 { background: var(--seg2-bg); }
+  .cell.seg1 { box-shadow: inset 3px 0 0 var(--seg1-accent); background: var(--seg1-pale); }
+  .cell.seg2 { box-shadow: inset 3px 0 0 var(--seg2-accent); background: var(--seg2-pale); }
   .canvas-bottom .cell { min-height: 150px; border-bottom: none; }
 
   /* CELL HEADER */
   .cell-header {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 0;
+    margin-bottom: 10px;
     flex-shrink: 0;
   }
-  .cell-icon { font-size: 17px; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+  .cell-icon { display: none; }
   .cell-title-block { flex: 1; min-width: 0; }
   .cell-title {
-    font-size: 13px; font-weight: 700; color: var(--ink);
-    display: flex; align-items: center; gap: 6px;
-    letter-spacing: -0.02em;
+    font-size: 0.8125rem; font-weight: 600; color: var(--ink);
+    display: flex; align-items: center; gap: 8px;
+    letter-spacing: -0.01em;
   }
   .order-num {
-    width: 20px; height: 20px; border-radius: 6px;
-    background: var(--primary-pale); border: 1px solid var(--primary-soft);
-    color: var(--primary); font-size: 10px; font-weight: 700;
+    width: 18px; height: 18px; border-radius: 4px;
+    background: var(--bg-subtle); border: 1px solid var(--line);
+    color: var(--ink-3); font-size: 10px; font-weight: 600;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
   .cell-hint {
-    font-size: 10px; color: var(--ink-3); font-style: italic;
-    margin-top: 2px; line-height: 1.4;
+    font-size: 0.6875rem; color: var(--ink-3);
+    margin-top: 3px; line-height: 1.45;
   }
 
   /* CELL ACTIONS */
@@ -348,18 +359,16 @@
 
   /* VIEW MODE */
   .cell-view {
-    font-size: 11.5px;
-    color: var(--ink-2);
-    line-height: 1.65;
+    font-size: var(--content-size);
+    color: var(--ink);
+    line-height: var(--content-leading);
     white-space: pre-wrap;
     word-break: break-word;
     min-height: 60px;
   }
   .cell-view.empty {
     color: var(--ink-mute);
-    font-style: italic;
-    font-size: 11px;
-    opacity: 0.6;
+    font-size: 0.8125rem;
   }
 
   /* EDIT MODE */
@@ -368,18 +377,19 @@
     width: 100%;
     height: 100%;
     min-height: 140px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
+    font-family: inherit;
+    font-size: var(--content-size);
     color: var(--ink);
     background: var(--bg-surface);
-    border: 1px solid var(--primary-soft);
-    border-radius: 8px;
-    padding: 8px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    padding: 10px 12px;
     resize: none;
-    line-height: 1.65;
+    line-height: var(--content-leading);
     outline: none;
     flex: 1;
   }
+  .cell-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.1); }
   .cell.editing .cell-view { display: none; }
   .cell.editing .cell-textarea { display: block; }
   .cell.span-row .cell-textarea { min-height: 300px; }
@@ -388,8 +398,7 @@
   /* MODALS */
   .modal-overlay {
     display: none; position: fixed; inset: 0;
-    background: rgba(15, 23, 42, 0.5);
-    backdrop-filter: blur(4px);
+    background: rgba(28, 25, 23, 0.4);
     z-index: 100; align-items: center; justify-content: center;
   }
   .modal-overlay.open { display: flex; }
@@ -407,7 +416,7 @@
     padding: 16px 20px; border-bottom: 1px solid var(--line);
   }
   .modal-head h2 { font-size: 15px; font-weight: 600; color: var(--ink); }
-  .modal-head .hint { font-size: 11px; color: var(--ink-3); font-style: italic; margin-top: 2px; }
+  .modal-head .hint { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
   .modal-close {
     background: none; border: none; cursor: pointer;
     font-size: 18px; color: var(--ink-mute); padding: 2px 6px; border-radius: 4px;
@@ -417,8 +426,8 @@
   .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
   .modal-note {
     font-size: 11px; color: var(--ink-3);
-    background: var(--bg-emph); border-left: 3px solid var(--secondary);
-    padding: 8px 12px; border-radius: 0 8px 8px 0;
+    background: var(--bg-subtle); border-left: 2px solid var(--line-strong);
+    padding: 8px 12px; border-radius: 0 var(--radius) var(--radius) 0;
     margin-bottom: 14px; line-height: 1.5;
   }
   .modal-body textarea {
@@ -428,7 +437,7 @@
     padding: 12px; resize: vertical; min-height: 340px;
     line-height: 1.65; outline: none; transition: border-color 0.15s;
   }
-  .modal-body textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12); }
+  .modal-body textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.1); }
   .modal-body pre {
     font-family: 'JetBrains Mono', monospace; font-size: 11px;
     background: var(--bg-page); border: 1px solid var(--line);
@@ -440,6 +449,90 @@
     display: flex; gap: 8px; justify-content: flex-end;
   }
 
+  /* SIGN-IN EMPTY STATE */
+  body.auth-pending #app-content,
+  body.auth-pending #sign-in-empty { visibility: hidden; }
+  #app-content[hidden],
+  #sign-in-empty[hidden] { display: none !important; }
+  .sign-in-empty {
+    min-height: calc(100vh - 56px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px 48px;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+  .sign-in-empty-panel {
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 40px 32px 36px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+  }
+  .sign-in-empty-brand {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+  .sign-in-empty-brand span { color: var(--primary); }
+  .sign-in-empty-graphic {
+    width: min(100%, 240px);
+    margin: 0 auto 24px;
+    color: var(--ink-mute);
+  }
+  .sign-in-empty h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .sign-in-empty p {
+    font-size: 0.875rem;
+    color: var(--ink-3);
+    line-height: 1.55;
+    margin-bottom: 24px;
+  }
+  .sign-in-empty-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+  .sign-in-empty-actions .btn {
+    justify-content: center;
+    width: 100%;
+    padding: 10px 16px;
+  }
+  .sign-in-empty-actions .btn-google::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%234285F4' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/%3E%3Cpath fill='%2334A853' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/%3E%3Cpath fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/%3E%3Cpath fill='%23EA4335' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  .sign-in-empty-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 4px 0;
+    font-size: 0.75rem;
+    color: var(--ink-mute);
+  }
+  .sign-in-empty-divider::before,
+  .sign-in-empty-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  #empty-auth-msg { margin-top: 8px; text-align: center; }
+
   @media (max-width: 900px) {
     body { padding: 12px; }
     .canvas-grid { grid-template-columns: 1fr 1fr; }
@@ -447,29 +540,63 @@
   }
 </style>
 <style>:is([id*='google_ads_iframe'],[id*='taboola-'],.taboolaHeight,.taboola-placeholder,#top-ad,#credential_picker_container,#credentials-picker-container,#credential_picker_iframe,[id*='google-one-tap-iframe'],#google-one-tap-popup-container,.google-one-tap__module,.google-one-tap-modal-div,#amp_floatingAdDiv,#ez-content-blocker-container) {display:none!important;min-height:0!important;height:0!important;}</style></head>
-<body>
+<body class="auth-pending">
+
+<div class="sign-in-empty" id="sign-in-empty" hidden>
+  <div class="sign-in-empty-panel">
+    <div class="sign-in-empty-brand">Lean <span>Canvas</span></div>
+    <svg class="sign-in-empty-graphic" viewBox="0 0 240 160" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="1" y="1" width="238" height="158" rx="4" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
+      <rect x="12" y="12" width="62" height="68" rx="2" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+      <rect x="82" y="12" width="62" height="30" rx="2" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+      <rect x="152" y="12" width="76" height="68" rx="2" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+      <rect x="82" y="50" width="62" height="30" rx="2" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+      <rect x="12" y="88" width="62" height="30" rx="2" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+      <rect x="82" y="88" width="62" height="30" rx="2" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+      <rect x="152" y="88" width="76" height="30" rx="2" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+      <rect x="12" y="126" width="100" height="22" rx="2" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+      <rect x="120" y="126" width="108" height="22" rx="2" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+    </svg>
+    <h2>Sign in to get started</h2>
+    <p>Save and sync your business models across devices.</p>
+    <div class="sign-in-empty-actions">
+      <button class="btn btn-primary btn-google" type="button" onclick="signInWithGoogle()">Continue with Google</button>
+      <div class="sign-in-empty-divider">or</div>
+      <button class="btn" type="button" onclick="openAuthModal()">Sign in with email</button>
+      <button class="btn" type="button" onclick="openAuthModal(true)">Create account</button>
+      <div class="auth-msg" id="empty-auth-msg"></div>
+    </div>
+  </div>
+</div>
+
+<div id="app-content" hidden>
 
 <header>
   <div class="logo-area">
     <div class="brand-row">
       <h1>Lean <span>Canvas</span></h1>
     </div>
-    <div class="canvas-switcher" id="canvas-switcher" hidden>
-      <label for="canvas-select">Business models</label>
-      <select class="canvas-select" id="canvas-select" aria-label="Select business model" onchange="onCanvasSelectChange()"></select>
-      <button type="button" class="btn btn-sm" onclick="createNewCanvas()">+ New</button>
-    </div>
-    <input type="text" class="canvas-title-input" id="canvas-title" value="My Business Model" maxlength="120" aria-label="Canvas name" placeholder="Canvas name">
     <p class="tagline">A single-page business model</p>
+    <div class="canvas-bar">
+      <div class="canvas-switcher" id="canvas-switcher" hidden>
+        <label for="canvas-select">Business Model</label>
+        <select class="canvas-select" id="canvas-select" aria-label="Select business model" onchange="onCanvasSelectChange()"></select>
+        <button type="button" class="btn btn-sm" onclick="createNewCanvas()">+ New</button>
+      </div>
+      <div class="canvas-title-group">
+        <input type="text" class="canvas-title-input" id="canvas-title" value="My Business Model" maxlength="120" aria-label="Canvas name" placeholder="Untitled canvas">
+        <span class="canvas-title-hint">Click to edit canvas name</span>
+      </div>
+    </div>
   </div>
   <div class="header-actions auth-area">
     <span class="sync-status" id="sync-status" title="Cloud sync">Local only</span>
     <span class="user-chip" id="user-chip" hidden></span>
     <button class="btn" id="btn-sign-in" onclick="openAuthModal()">Sign in</button>
     <button class="btn" id="btn-sign-out" onclick="signOutUser()" hidden>Sign out</button>
-    <button class="btn" onclick="openTemplateModal()">📋 Template</button>
-    <button class="btn" onclick="openImportModal()">⬆ Import Markdown</button>
-    <button class="btn" onclick="openSaveModal()">⬇ Export Markdown</button>
+    <button class="btn" onclick="openTemplateModal()">Template</button>
+    <button class="btn" onclick="openImportModal()">Import</button>
+    <button class="btn" onclick="openSaveModal()">Export</button>
   </div>
 </header>
 
@@ -487,17 +614,17 @@
     <div class="belief-item"><div class="belief-num">9</div>Unfair Advantage</div>
   </div>
   <div class="seg-legend">
-    <div class="belief-item"><div class="seg-dot s2"></div>Desirability risk</div>
-    <div class="belief-item"><div class="seg-dot s1"></div>Market risk</div>
+    <div class="belief-item"><div class="seg-dot s1"></div>Market risk (#1)</div>
+    <div class="belief-item"><div class="seg-dot s2"></div>Desirability risk (#2)</div>
   </div>
 </div>
 
 <div class="canvas-outer">
 
   <div class="pm-bar">
-    <div class="pm-label">◀ Product</div>
+    <div class="pm-label">Product</div>
     <div class="pm-divider"></div>
-    <div class="pm-label">Market ▶</div>
+    <div class="pm-label">Market</div>
   </div>
 
   <div class="canvas-grid">
@@ -512,13 +639,13 @@
         </div>
       </div>
       <div class="cell-body">
-        <div class="cell-view empty" id="view-problem">Click ✎ Edit to add content</div>
+        <div class="cell-view empty" id="view-problem">Add content…</div>
         <textarea class="cell-textarea" id="ta-problem" placeholder="List your customers&#39; top 3 problems
 
 Also note how they solve these today (existing alternatives)" style="height: 298px;"></textarea>
       </div>
       <div class="cell-actions">
-        <button class="btn btn-sm" id="btn-problem" onclick="toggleEdit(&#39;problem&#39;)">✎ Edit</button>
+        <button class="btn btn-sm" id="btn-problem" onclick="toggleEdit(&#39;problem&#39;)">Edit</button>
       </div>
     </div>
 
@@ -532,11 +659,11 @@ Also note how they solve these today (existing alternatives)" style="height: 298
         </div>
       </div>
       <div class="cell-body">
-        <div class="cell-view empty" id="view-solution">Click ✎ Edit to add content</div>
+        <div class="cell-view empty" id="view-solution">Add content…</div>
         <textarea class="cell-textarea" id="ta-solution" placeholder="Top 3 features or capabilities that address each problem"></textarea>
       </div>
       <div class="cell-actions">
-        <button class="btn btn-sm" id="btn-solution" onclick="toggleEdit(&#39;solution&#39;)">✎ Edit</button>
+        <button class="btn btn-sm" id="btn-solution" onclick="toggleEdit(&#39;solution&#39;)">Edit</button>
       </div>
     </div>
 
@@ -550,7 +677,7 @@ Also note how they solve these today (existing alternatives)" style="height: 298
         </div>
       </div>
       <div class="cell-body">
-        <div class="cell-view empty" id="view-uvp">Click ✎ Edit to add content</div>
+        <div class="cell-view empty" id="view-uvp">Add content…</div>
         <textarea class="cell-textarea" id="ta-uvp" placeholder="Your single, clear, compelling message
 
 High-level concept (X for Y analogy)
@@ -558,7 +685,7 @@ High-level concept (X for Y analogy)
 e.g. YouTube = Flickr for videos"></textarea>
       </div>
       <div class="cell-actions">
-        <button class="btn btn-sm" id="btn-uvp" onclick="toggleEdit(&#39;uvp&#39;)">✎ Edit</button>
+        <button class="btn btn-sm" id="btn-uvp" onclick="toggleEdit(&#39;uvp&#39;)">Edit</button>
       </div>
     </div>
 
@@ -572,11 +699,11 @@ e.g. YouTube = Flickr for videos"></textarea>
         </div>
       </div>
       <div class="cell-body">
-        <div class="cell-view empty" id="view-advantage">Click ✎ Edit to add content</div>
+        <div class="cell-view empty" id="view-advantage">Add content…</div>
         <textarea class="cell-textarea" id="ta-advantage" placeholder="What do you have that can&#39;t easily be bought or replicated?"></textarea>
       </div>
       <div class="cell-actions">
-        <button class="btn btn-sm" id="btn-advantage" onclick="toggleEdit(&#39;advantage&#39;)">✎ Edit</button>
+        <button class="btn btn-sm" id="btn-advantage" onclick="toggleEdit(&#39;advantage&#39;)">Edit</button>
       </div>
     </div>
 
@@ -597,7 +724,7 @@ e.g. YouTube = Flickr for videos"></textarea>
 Early adopters: who will pay before the product is perfect?" style="height: 298px;"></textarea>
       </div>
       <div class="cell-actions">
-        <button class="btn btn-sm" id="btn-segments" onclick="toggleEdit(&#39;segments&#39;)">✎ Edit</button>
+        <button class="btn btn-sm" id="btn-segments" onclick="toggleEdit(&#39;segments&#39;)">Edit</button>
       </div>
     </div>
 
@@ -611,13 +738,13 @@ Early adopters: who will pay before the product is perfect?" style="height: 298p
         </div>
       </div>
       <div class="cell-body">
-        <div class="cell-view empty" id="view-metrics">Click ✎ Edit to add content</div>
+        <div class="cell-view empty" id="view-metrics">Add content…</div>
         <textarea class="cell-textarea" id="ta-metrics" placeholder="Which numbers tell you the business is working?
 
 Focus on leading indicators, not vanity metrics"></textarea>
       </div>
       <div class="cell-actions">
-        <button class="btn btn-sm" id="btn-metrics" onclick="toggleEdit(&#39;metrics&#39;)">✎ Edit</button>
+        <button class="btn btn-sm" id="btn-metrics" onclick="toggleEdit(&#39;metrics&#39;)">Edit</button>
       </div>
     </div>
 
@@ -631,13 +758,13 @@ Focus on leading indicators, not vanity metrics"></textarea>
         </div>
       </div>
       <div class="cell-body">
-        <div class="cell-view empty" id="view-channels">Click ✎ Edit to add content</div>
+        <div class="cell-view empty" id="view-channels">Add content…</div>
         <textarea class="cell-textarea" id="ta-channels" placeholder="How do you reach your customers?
 
 Early channels are almost always founder-led and outbound"></textarea>
       </div>
       <div class="cell-actions">
-        <button class="btn btn-sm" id="btn-channels" onclick="toggleEdit(&#39;channels&#39;)">✎ Edit</button>
+        <button class="btn btn-sm" id="btn-channels" onclick="toggleEdit(&#39;channels&#39;)">Edit</button>
       </div>
     </div>
 
@@ -655,13 +782,13 @@ Early channels are almost always founder-led and outbound"></textarea>
         </div>
       </div>
       <div class="cell-body">
-        <div class="cell-view empty" id="view-costs">Click ✎ Edit to add content</div>
+        <div class="cell-view empty" id="view-costs">Add content…</div>
         <textarea class="cell-textarea" id="ta-costs" placeholder="List your fixed and variable costs
 
 Revenue model · Lifetime value · Revenue · Gross margin"></textarea>
       </div>
       <div class="cell-actions">
-        <button class="btn btn-sm" id="btn-costs" onclick="toggleEdit(&#39;costs&#39;)">✎ Edit</button>
+        <button class="btn btn-sm" id="btn-costs" onclick="toggleEdit(&#39;costs&#39;)">Edit</button>
       </div>
     </div>
 
@@ -676,18 +803,20 @@ Revenue model · Lifetime value · Revenue · Gross margin"></textarea>
         </div>
       </div>
       <div class="cell-body">
-        <div class="cell-view empty" id="view-revenue">Click ✎ Edit to add content</div>
+        <div class="cell-view empty" id="view-revenue">Add content…</div>
         <textarea class="cell-textarea" id="ta-revenue" placeholder="How do you make money?
 
 Price relative to value, not cost to build"></textarea>
       </div>
       <div class="cell-actions">
-        <button class="btn btn-sm" id="btn-revenue" onclick="toggleEdit(&#39;revenue&#39;)">✎ Edit</button>
+        <button class="btn btn-sm" id="btn-revenue" onclick="toggleEdit(&#39;revenue&#39;)">Edit</button>
       </div>
     </div>
 
   </div>
 </div>
+
+</div><!-- #app-content -->
 
 <!-- IMPORT MODAL -->
 <div class="modal-overlay" id="import-modal">
@@ -710,7 +839,7 @@ Your content here..."></textarea>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal(&#39;import-modal&#39;)">Cancel</button>
       <button class="btn" onclick="document.getElementById(&#39;import-textarea&#39;).value=&#39;&#39;">🗑 Clear</button>
-      <button class="btn btn-primary" onclick="importMarkdown()">⬆ Import &amp; Render</button>
+      <button class="btn btn-primary" onclick="importMarkdown()">Import &amp; Render</button>
     </div>
   </div>
 </div>
@@ -811,8 +940,8 @@ Your content here..."></textarea>
     </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal(&#39;template-modal&#39;)">Close</button>
-      <button class="btn" onclick="copyText(&#39;template-output&#39;)">📋 Copy</button>
-      <button class="btn btn-primary" onclick="downloadText(generateTemplate(), &#39;lean-canvas-template.md&#39;)">⬇ Download</button>
+      <button class="btn" onclick="copyText(&#39;template-output&#39;)">Copy</button>
+      <button class="btn btn-primary" onclick="downloadText(generateTemplate(), &#39;lean-canvas-template.md&#39;)">Download</button>
     </div>
   </div>
 </div>
@@ -863,8 +992,8 @@ Your content here..."></textarea>
     </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal(&#39;save-modal&#39;)">Close</button>
-      <button class="btn" onclick="copyText(&#39;export-output&#39;)">📋 Copy</button>
-      <button class="btn btn-primary" onclick="downloadText(generateExport(), exportFilename())">⬇ Download .md</button>
+      <button class="btn" onclick="copyText(&#39;export-output&#39;)">Copy</button>
+      <button class="btn btn-primary" onclick="downloadText(generateExport(), exportFilename())">Download .md</button>
     </div>
   </div>
 </div>
@@ -933,7 +1062,7 @@ function applyCells(cells) {
     document.getElementById('ta-' + key).value = text;
     const cell = document.getElementById('cell-' + key);
     if (cell.classList.contains('editing')) {
-      document.getElementById('btn-' + key).textContent = '✎ Edit';
+      document.getElementById('btn-' + key).textContent = 'Edit';
       document.getElementById('btn-' + key).classList.remove('btn-save');
       cell.classList.remove('editing');
     }
@@ -1032,6 +1161,9 @@ function setSyncStatus(text, type) {
 
 function setAuthUi(user) {
   const signedIn = !!user;
+  document.body.classList.remove('auth-pending');
+  document.getElementById('app-content').hidden = !signedIn;
+  document.getElementById('sign-in-empty').hidden = signedIn;
   document.getElementById('btn-sign-in').hidden = signedIn;
   document.getElementById('btn-sign-out').hidden = !signedIn;
   setCanvasSwitcherVisible(signedIn);
@@ -1043,6 +1175,8 @@ function setAuthUi(user) {
   } else {
     chip.hidden = true;
     chip.textContent = '';
+    document.getElementById('empty-auth-msg').textContent = '';
+    document.getElementById('empty-auth-msg').className = 'auth-msg';
   }
 }
 
@@ -1050,9 +1184,11 @@ function authHostname() {
   return window.location.hostname || '';
 }
 
-function openAuthModal() {
+function openAuthModal(focusRegister) {
   document.getElementById('auth-msg').textContent = '';
   document.getElementById('auth-msg').className = 'auth-msg';
+  document.getElementById('empty-auth-msg').textContent = '';
+  document.getElementById('empty-auth-msg').className = 'auth-msg';
   const host = authHostname();
   const hint = document.getElementById('auth-domain-hint');
   if (!host || window.location.protocol === 'file:') {
@@ -1061,6 +1197,9 @@ function openAuthModal() {
     hint.textContent = 'Firebase must authorize this exact host: "' + host + '" (you are on ' + location.origin + ').';
   }
   openModal('auth-modal');
+  if (focusRegister) {
+    setTimeout(() => document.getElementById('btn-email-register').focus(), 50);
+  }
 }
 
 function formatAuthError(err) {
@@ -1083,6 +1222,11 @@ function showAuthError(msg) {
   const el = document.getElementById('auth-msg');
   el.textContent = msg;
   el.className = 'auth-msg err';
+  const emptyEl = document.getElementById('empty-auth-msg');
+  if (emptyEl && !currentUser) {
+    emptyEl.textContent = msg;
+    emptyEl.className = 'auth-msg err';
+  }
 }
 
 function setAuthBusy(busy) {
@@ -1295,7 +1439,7 @@ auth.onAuthStateChanged(async user => {
 function setView(key, text) {
   const view = document.getElementById('view-' + key);
   if (!text) {
-    view.textContent = 'Click ✎ Edit to add content';
+    view.textContent = 'Add content…';
     view.classList.add('empty');
   } else {
     view.textContent = text;
@@ -1311,13 +1455,13 @@ function toggleEdit(key) {
 
   if (isEditing) {
     cell.classList.remove('editing');
-    btn.textContent = '✎ Edit';
+    btn.textContent = 'Edit';
     btn.classList.remove('btn-save');
     setView(key, getVal(key));
     scheduleCloudSave();
   } else {
     cell.classList.add('editing');
-    btn.textContent = '✓ Save';
+    btn.textContent = 'Save';
     btn.classList.add('btn-save');
     ta.focus();
     ta.style.height = 'auto';
@@ -1414,7 +1558,7 @@ function importMarkdown() {
     document.getElementById('ta-' + key).value = text;
     const cell = document.getElementById('cell-' + key);
     if (cell.classList.contains('editing')) {
-      document.getElementById('btn-' + key).textContent = '✎ Edit';
+      document.getElementById('btn-' + key).textContent = 'Edit';
       document.getElementById('btn-' + key).classList.remove('btn-save');
       cell.classList.remove('editing');
     }
