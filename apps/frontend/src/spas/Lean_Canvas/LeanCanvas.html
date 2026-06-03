@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)https://kg-app.github.io/apps/frontend/src/spas/lean-canvas.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lean Canvas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #7c3aed;
+    --primary-hover: #6d28d9;
+    --primary-soft: #a78bfa;
+    --primary-pale: #ede9fe;
+    --secondary: #14b8a6;
+    --secondary-hover: #0d9488;
+    --secondary-soft: #5eead4;
+    --secondary-pale: #ccfbf1;
+    --bg-page: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-emph: #f5f3ff;
+    --bg-subtle: #f1f5f9;
+    --line: #e2e8f0;
+    --line-strong: #c4b5fd;
+    --line-faint: #f1f5f9;
+    --ink: #0f172a;
+    --ink-2: #334155;
+    --ink-3: #64748b;
+    --ink-mute: #94a3b8;
+    --seg1-bg: #f0fdfa;
+    --seg1-border: #99f6e4;
+    --seg2-bg: #faf5ff;
+    --seg2-border: #ddd6fe;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+    --shadow-md: 0 4px 20px rgba(124, 58, 237, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.12);
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: linear-gradient(160deg, var(--bg-page) 0%, #eef2ff 45%, #f0fdfa 100%);
+    background-attachment: fixed;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 28px 24px 40px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .logo-area { flex: 1; min-width: 220px; }
+  .brand-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .logo-area h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.04em;
+    line-height: 1.2;
+  }
+  .logo-area h1 span {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .canvas-title-input {
+    font-family: inherit;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    margin-top: 10px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    letter-spacing: -0.02em;
+  }
+  .canvas-title-input::placeholder { color: var(--ink-mute); font-weight: 500; }
+  .canvas-title-input:hover { border-color: var(--primary-soft); }
+  .canvas-title-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  }
+  .canvas-switcher {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    max-width: 520px;
+  }
+  .canvas-switcher[hidden] { display: none !important; }
+  .canvas-switcher label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .canvas-select {
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--ink);
+    flex: 1;
+    min-width: 160px;
+    max-width: 280px;
+    padding: 8px 32px 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M3 4.5L6 8l3-3.5'/%3E%3C/svg%3E") no-repeat right 10px center;
+    appearance: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .canvas-select:hover { border-color: var(--primary-soft); }
+  .canvas-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  }
+  .logo-area .tagline {
+    font-size: 0.8125rem;
+    color: var(--ink-3);
+    margin-top: 8px;
+    font-weight: 500;
+  }
+  .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .btn {
+    font-family: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: var(--bg-surface);
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: var(--shadow-sm);
+  }
+  .btn:hover {
+    background: var(--bg-emph);
+    border-color: var(--primary-soft);
+    box-shadow: var(--shadow-md);
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+    color: #fff;
+    border-color: transparent;
+  }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-hover) 0%, #5b21b6 100%);
+    border-color: transparent;
+  }
+  .btn-sm { padding: 5px 11px; font-size: 0.75rem; border-radius: 8px; }
+  .btn-save {
+    background: var(--secondary);
+    color: #fff;
+    border-color: var(--secondary);
+  }
+  .btn-save:hover { background: var(--secondary-hover); border-color: var(--secondary-hover); }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+  .auth-area { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .user-chip {
+    font-size: 11px; color: var(--ink-3);
+    max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .sync-status {
+    font-size: 11px; color: var(--ink-mute);
+    padding: 4px 8px; border-radius: 4px;
+    background: var(--bg-subtle); border: 1px solid var(--line-faint);
+  }
+  .sync-status.ok { color: #2e7d32; border-color: #a5d6a7; background: #e8f5e9; }
+  .sync-status.warn { color: var(--primary-hover); border-color: var(--primary-soft); background: var(--primary-pale); }
+  .sync-status.err { color: #c0392b; border-color: #f5b7b1; background: #fdecea; }
+
+  .auth-form { display: flex; flex-direction: column; gap: 10px; }
+  .auth-form label { font-size: 11px; font-weight: 600; color: var(--ink-3); }
+  .auth-form input {
+    font-family: inherit; font-size: 13px;
+    padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--bg-page); color: var(--ink); outline: none;
+  }
+  .auth-form input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12); }
+  .auth-divider {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; color: var(--ink-mute); margin: 4px 0;
+  }
+  .auth-divider::before, .auth-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--line);
+  }
+  .auth-msg { font-size: 11px; line-height: 1.5; min-height: 1.2em; }
+  .auth-msg.err { color: #c0392b; }
+  .auth-msg.ok { color: #2e7d32; }
+
+  /* LEGEND */
+  .belief-legend {
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 12px 18px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow-md);
+  }
+  .legend-head {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .belief-items { display: flex; gap: 16px; flex-wrap: wrap; flex: 1; }
+  .belief-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-2); }
+  .belief-num {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--bg-emph);
+    border: 1px solid var(--line-strong);
+    color: var(--primary);
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .seg-legend { display: flex; gap: 12px; margin-left: auto; align-items: center; }
+  .seg-dot { width: 12px; height: 12px; border-radius: 4px; }
+  .seg-dot.s1 { background: var(--seg1-bg); border: 1px solid var(--seg1-border); }
+  .seg-dot.s2 { background: var(--seg2-bg); border: 1px solid var(--seg2-border); }
+
+  /* CANVAS */
+  .canvas-outer {
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .pm-bar { display: grid; grid-template-columns: 1fr 1px 1fr; border-bottom: 1px solid var(--line); }
+  .pm-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-3);
+    text-align: center; padding: 8px 0; background: var(--bg-subtle);
+  }
+  .pm-divider { background: var(--line-strong); }
+
+  .canvas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.15fr 1fr 1fr;
+    grid-template-rows: auto auto;
+    border-bottom: 1.5px solid var(--line-strong);
+  }
+  .canvas-bottom { display: grid; grid-template-columns: 1fr 1px 1fr; }
+  .bottom-divider { background: var(--line-strong); }
+
+  /* CELL */
+  .cell {
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 14px;
+    position: relative;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+  }
+  .cell.no-right { border-right: none; }
+  .cell.no-bottom { border-bottom: none; }
+  .cell.span-row { grid-row: span 2; min-height: 440px; }
+  .cell.seg1 { background: var(--seg1-bg); }
+  .cell.seg2 { background: var(--seg2-bg); }
+  .canvas-bottom .cell { min-height: 150px; border-bottom: none; }
+
+  /* CELL HEADER */
+  .cell-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .cell-icon { font-size: 17px; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+  .cell-title-block { flex: 1; min-width: 0; }
+  .cell-title {
+    font-size: 13px; font-weight: 700; color: var(--ink);
+    display: flex; align-items: center; gap: 6px;
+    letter-spacing: -0.02em;
+  }
+  .order-num {
+    width: 20px; height: 20px; border-radius: 6px;
+    background: var(--primary-pale); border: 1px solid var(--primary-soft);
+    color: var(--primary); font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .cell-hint {
+    font-size: 10px; color: var(--ink-3); font-style: italic;
+    margin-top: 2px; line-height: 1.4;
+  }
+
+  /* CELL ACTIONS */
+  .cell-actions {
+    position: absolute;
+    top: 10px; right: 10px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .cell:hover .cell-actions { opacity: 1; }
+  .cell.editing .cell-actions { opacity: 1; }
+
+  /* CONTENT AREA */
+  .cell-body { flex: 1; position: relative; }
+
+  /* VIEW MODE */
+  .cell-view {
+    font-size: 11.5px;
+    color: var(--ink-2);
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 60px;
+  }
+  .cell-view.empty {
+    color: var(--ink-mute);
+    font-style: italic;
+    font-size: 11px;
+    opacity: 0.6;
+  }
+
+  /* EDIT MODE */
+  .cell-textarea {
+    display: none;
+    width: 100%;
+    height: 100%;
+    min-height: 140px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink);
+    background: var(--bg-surface);
+    border: 1px solid var(--primary-soft);
+    border-radius: 8px;
+    padding: 8px;
+    resize: none;
+    line-height: 1.65;
+    outline: none;
+    flex: 1;
+  }
+  .cell.editing .cell-view { display: none; }
+  .cell.editing .cell-textarea { display: block; }
+  .cell.span-row .cell-textarea { min-height: 300px; }
+  .canvas-bottom .cell .cell-textarea { min-height: 100px; }
+
+  /* MODALS */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 100; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    width: min(720px, 95vw);
+    max-height: 85vh;
+    display: flex; flex-direction: column;
+    box-shadow: var(--shadow-lg);
+  }
+  .modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid var(--line);
+  }
+  .modal-head h2 { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .modal-head .hint { font-size: 11px; color: var(--ink-3); font-style: italic; margin-top: 2px; }
+  .modal-close {
+    background: none; border: none; cursor: pointer;
+    font-size: 18px; color: var(--ink-mute); padding: 2px 6px; border-radius: 4px;
+    font-family: inherit;
+  }
+  .modal-close:hover { background: var(--bg-emph); color: var(--ink); }
+  .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+  .modal-note {
+    font-size: 11px; color: var(--ink-3);
+    background: var(--bg-emph); border-left: 3px solid var(--secondary);
+    padding: 8px 12px; border-radius: 0 8px 8px 0;
+    margin-bottom: 14px; line-height: 1.5;
+  }
+  .modal-body textarea {
+    width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--ink); background: var(--bg-page);
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 12px; resize: vertical; min-height: 340px;
+    line-height: 1.65; outline: none; transition: border-color 0.15s;
+  }
+  .modal-body textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12); }
+  .modal-body pre {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: var(--bg-page); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 14px; white-space: pre-wrap;
+    color: var(--ink-2); max-height: 420px; overflow-y: auto; line-height: 1.6;
+  }
+  .modal-foot {
+    padding: 14px 20px; border-top: 1px solid var(--line);
+    display: flex; gap: 8px; justify-content: flex-end;
+  }
+
+  @media (max-width: 900px) {
+    body { padding: 12px; }
+    .canvas-grid { grid-template-columns: 1fr 1fr; }
+    .canvas-bottom { grid-template-columns: 1fr; }
+  }
+</style>
+<style>:is([id*='google_ads_iframe'],[id*='taboola-'],.taboolaHeight,.taboola-placeholder,#top-ad,#credential_picker_container,#credentials-picker-container,#credential_picker_iframe,[id*='google-one-tap-iframe'],#google-one-tap-popup-container,.google-one-tap__module,.google-one-tap-modal-div,#amp_floatingAdDiv,#ez-content-blocker-container) {display:none!important;min-height:0!important;height:0!important;}</style></head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <div class="brand-row">
+      <h1>Lean <span>Canvas</span></h1>
+    </div>
+    <div class="canvas-switcher" id="canvas-switcher" hidden>
+      <label for="canvas-select">Business models</label>
+      <select class="canvas-select" id="canvas-select" aria-label="Select business model" onchange="onCanvasSelectChange()"></select>
+      <button type="button" class="btn btn-sm" onclick="createNewCanvas()">+ New</button>
+    </div>
+    <input type="text" class="canvas-title-input" id="canvas-title" value="My Business Model" maxlength="120" aria-label="Canvas name" placeholder="Canvas name">
+    <p class="tagline">A single-page business model</p>
+  </div>
+  <div class="header-actions auth-area">
+    <span class="sync-status" id="sync-status" title="Cloud sync">Local only</span>
+    <span class="user-chip" id="user-chip" hidden></span>
+    <button class="btn" id="btn-sign-in" onclick="openAuthModal()">Sign in</button>
+    <button class="btn" id="btn-sign-out" onclick="signOutUser()" hidden>Sign out</button>
+    <button class="btn" onclick="openTemplateModal()">📋 Template</button>
+    <button class="btn" onclick="openImportModal()">⬆ Import Markdown</button>
+    <button class="btn" onclick="openSaveModal()">⬇ Export Markdown</button>
+  </div>
+</header>
+
+<div class="belief-legend">
+  <div class="legend-head">Fill order</div>
+  <div class="belief-items">
+    <div class="belief-item"><div class="belief-num">1</div>Customer Segments</div>
+    <div class="belief-item"><div class="belief-num">2</div>Problem</div>
+    <div class="belief-item"><div class="belief-num">3</div>UVP</div>
+    <div class="belief-item"><div class="belief-num">4</div>Solution</div>
+    <div class="belief-item"><div class="belief-num">5</div>Channels</div>
+    <div class="belief-item"><div class="belief-num">6</div>Revenue</div>
+    <div class="belief-item"><div class="belief-num">7</div>Cost Structure</div>
+    <div class="belief-item"><div class="belief-num">8</div>Key Metrics</div>
+    <div class="belief-item"><div class="belief-num">9</div>Unfair Advantage</div>
+  </div>
+  <div class="seg-legend">
+    <div class="belief-item"><div class="seg-dot s2"></div>Desirability risk</div>
+    <div class="belief-item"><div class="seg-dot s1"></div>Market risk</div>
+  </div>
+</div>
+
+<div class="canvas-outer">
+
+  <div class="pm-bar">
+    <div class="pm-label">◀ Product</div>
+    <div class="pm-divider"></div>
+    <div class="pm-label">Market ▶</div>
+  </div>
+
+  <div class="canvas-grid">
+
+    <!-- Problem — col 1, spans 2 rows -->
+    <div class="cell span-row seg2" id="cell-problem">
+      <div class="cell-header">
+        <div class="cell-icon">⚠️</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Problem <div class="order-num">2</div></div>
+          <div class="cell-hint">Top 3 problems your customers face today</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-problem">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-problem" placeholder="List your customers&#39; top 3 problems
+
+Also note how they solve these today (existing alternatives)" style="height: 298px;"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-problem" onclick="toggleEdit(&#39;problem&#39;)">✎ Edit</button>
+      </div>
+    </div>
+
+    <!-- Solution — col 2, row 1 -->
+    <div class="cell" id="cell-solution">
+      <div class="cell-header">
+        <div class="cell-icon">💡</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Solution <div class="order-num">4</div></div>
+          <div class="cell-hint">Outline a possible solution for each problem</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-solution">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-solution" placeholder="Top 3 features or capabilities that address each problem"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-solution" onclick="toggleEdit(&#39;solution&#39;)">✎ Edit</button>
+      </div>
+    </div>
+
+    <!-- UVP — col 3, spans 2 rows -->
+    <div class="cell span-row" id="cell-uvp">
+      <div class="cell-header">
+        <div class="cell-icon">🎁</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Unique Value Proposition <div class="order-num">3</div></div>
+          <div class="cell-hint">Single, clear, compelling message that turns an unaware visitor into an interested prospect</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-uvp">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-uvp" placeholder="Your single, clear, compelling message
+
+High-level concept (X for Y analogy)
+
+e.g. YouTube = Flickr for videos"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-uvp" onclick="toggleEdit(&#39;uvp&#39;)">✎ Edit</button>
+      </div>
+    </div>
+
+    <!-- Unfair Advantage — col 4, row 1 -->
+    <div class="cell" id="cell-advantage">
+      <div class="cell-header">
+        <div class="cell-icon">⭐</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Unfair Advantage <div class="order-num">9</div></div>
+          <div class="cell-hint">Something that cannot easily be bought or copied — fill this last and be honest</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-advantage">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-advantage" placeholder="What do you have that can&#39;t easily be bought or replicated?"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-advantage" onclick="toggleEdit(&#39;advantage&#39;)">✎ Edit</button>
+      </div>
+    </div>
+
+    <!-- Customer Segments — col 5, spans 2 rows -->
+    <div class="cell span-row seg1 no-right" id="cell-segments">
+      <div class="cell-header">
+        <div class="cell-icon">👥</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Customer Segments <div class="order-num">1</div></div>
+          <div class="cell-hint">List your target customers and users — start here, always. Narrow to early adopters first</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view" id="view-segments">* Parents
+* Student</div>
+        <textarea class="cell-textarea" id="ta-segments" placeholder="Who are your target customers and users?
+
+Early adopters: who will pay before the product is perfect?" style="height: 298px;"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-segments" onclick="toggleEdit(&#39;segments&#39;)">✎ Edit</button>
+      </div>
+    </div>
+
+    <!-- Key Metrics — col 2, row 2 -->
+    <div class="cell no-bottom" id="cell-metrics">
+      <div class="cell-header">
+        <div class="cell-icon">📊</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Key Metrics <div class="order-num">8</div></div>
+          <div class="cell-hint">Key activities you measure — numbers that tell you how your business is doing today</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-metrics">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-metrics" placeholder="Which numbers tell you the business is working?
+
+Focus on leading indicators, not vanity metrics"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-metrics" onclick="toggleEdit(&#39;metrics&#39;)">✎ Edit</button>
+      </div>
+    </div>
+
+    <!-- Channels — col 4, row 2 -->
+    <div class="cell no-bottom" id="cell-channels">
+      <div class="cell-header">
+        <div class="cell-icon">🚀</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Channels <div class="order-num">5</div></div>
+          <div class="cell-hint">List your path to customers — inbound or outbound</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-channels">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-channels" placeholder="How do you reach your customers?
+
+Early channels are almost always founder-led and outbound"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-channels" onclick="toggleEdit(&#39;channels&#39;)">✎ Edit</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom row -->
+  <div class="canvas-bottom">
+
+    <div class="cell no-bottom" id="cell-costs">
+      <div class="cell-header">
+        <div class="cell-icon">🏷️</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Cost Structure <div class="order-num">7</div></div>
+          <div class="cell-hint">Fixed and variable costs — customer acquisition, distribution, hosting, people</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-costs">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-costs" placeholder="List your fixed and variable costs
+
+Revenue model · Lifetime value · Revenue · Gross margin"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-costs" onclick="toggleEdit(&#39;costs&#39;)">✎ Edit</button>
+      </div>
+    </div>
+
+    <div class="bottom-divider"></div>
+
+    <div class="cell no-bottom no-right" id="cell-revenue">
+      <div class="cell-header">
+        <div class="cell-icon">💰</div>
+        <div class="cell-title-block">
+          <div class="cell-title">Revenue Streams <div class="order-num">6</div></div>
+          <div class="cell-hint">Sources of revenue — revenue model, lifetime value, gross margin</div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <div class="cell-view empty" id="view-revenue">Click ✎ Edit to add content</div>
+        <textarea class="cell-textarea" id="ta-revenue" placeholder="How do you make money?
+
+Price relative to value, not cost to build"></textarea>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-sm" id="btn-revenue" onclick="toggleEdit(&#39;revenue&#39;)">✎ Edit</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2>Import Markdown</h2>
+        <div class="hint">Paste your filled-in canvas — same format as Export</div>
+      </div>
+      <button class="modal-close" onclick="closeModal(&#39;import-modal&#39;)">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-note" id="import-status">Paste the full markdown document and click Import. All existing content will be replaced.</div>
+      <textarea id="import-textarea" placeholder="# Lean Canvas
+
+## 1. Customer Segments
+
+Your content here..."></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal(&#39;import-modal&#39;)">Cancel</button>
+      <button class="btn" onclick="document.getElementById(&#39;import-textarea&#39;).value=&#39;&#39;">🗑 Clear</button>
+      <button class="btn btn-primary" onclick="importMarkdown()">⬆ Import &amp; Render</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEMPLATE MODAL -->
+<div class="modal-overlay" id="template-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2>Markdown Template</h2>
+        <div class="hint">Copy, fill in offline, then Import</div>
+      </div>
+      <button class="modal-close" onclick="closeModal(&#39;template-modal&#39;)">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-note">Each section is a plain text block. Replace placeholder lines with your content. One idea per line works well.</div>
+      <pre id="template-output"># Lean Canvas
+
+&gt; Date: 2026-06-02  |  Author: [Your name]
+
+&gt; Instructions: Fill in each section below, then paste into Import Markdown. One idea per line works well.
+
+---
+
+## 1. Customer Segments
+
+&gt; Who are your target customers and users? Start with early adopters — who will pay before the product is perfect?
+
+[Your content here]
+
+---
+
+## 2. Problem
+
+&gt; Top 3 problems your customers face. Also note existing alternatives — how do they solve this today?
+
+[Your content here]
+
+---
+
+## 3. Unique Value Proposition
+
+&gt; Single, clear, compelling message. Try an X for Y analogy. What turns an unaware visitor into an interested prospect?
+
+[Your content here]
+
+---
+
+## 4. Solution
+
+&gt; Outline a possible solution for each problem. Keep it to the minimum viable feature set.
+
+[Your content here]
+
+---
+
+## 5. Channels
+
+&gt; How do you reach your customers? Early channels are almost always founder-led and outbound.
+
+[Your content here]
+
+---
+
+## 6. Revenue Streams
+
+&gt; How do you make money? Include pricing model and lifetime value. Price relative to value, not cost.
+
+[Your content here]
+
+---
+
+## 7. Cost Structure
+
+&gt; List fixed and variable costs — people, hosting, acquisition, distribution.
+
+[Your content here]
+
+---
+
+## 8. Key Metrics
+
+&gt; Key numbers that tell you the business is working. Focus on leading indicators, not vanity metrics.
+
+[Your content here]
+
+---
+
+## 9. Unfair Advantage
+
+&gt; Something that cannot easily be bought or copied. Fill this last and be ruthlessly honest.
+
+[Your content here]
+
+---
+
+</pre>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal(&#39;template-modal&#39;)">Close</button>
+      <button class="btn" onclick="copyText(&#39;template-output&#39;)">📋 Copy</button>
+      <button class="btn btn-primary" onclick="downloadText(generateTemplate(), &#39;lean-canvas-template.md&#39;)">⬇ Download</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal" style="width:min(400px,95vw)">
+    <div class="modal-head">
+      <div>
+        <h2>Sign in</h2>
+        <div class="hint">Save your canvas to the cloud</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-note">Sign in to sync your Lean Canvas across devices. Data is stored in your Firebase account only.</div>
+      <div class="modal-note" id="auth-domain-hint" style="margin-top:8px;font-size:10px"></div>
+      <div class="auth-form">
+        <button class="btn btn-primary" type="button" id="btn-google" onclick="signInWithGoogle()">Continue with Google</button>
+        <div class="auth-divider">or email</div>
+        <label for="auth-email">Email</label>
+        <input type="email" id="auth-email" autocomplete="email" placeholder="you@example.com">
+        <label for="auth-password">Password</label>
+        <input type="password" id="auth-password" autocomplete="current-password" placeholder="••••••••">
+        <div class="auth-msg" id="auth-msg"></div>
+        <button class="btn btn-primary" type="button" id="btn-email-sign-in" onclick="signInWithEmail()">Sign in with email</button>
+        <button class="btn" type="button" id="btn-email-register" onclick="registerWithEmail()">Create account</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('auth-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="save-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2>Export Markdown</h2>
+        <div class="hint">Copy or download your canvas as a .md file</div>
+      </div>
+      <button class="modal-close" onclick="closeModal(&#39;save-modal&#39;)">✕</button>
+    </div>
+    <div class="modal-body">
+      <pre id="export-output"></pre>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal(&#39;save-modal&#39;)">Close</button>
+      <button class="btn" onclick="copyText(&#39;export-output&#39;)">📋 Copy</button>
+      <button class="btn btn-primary" onclick="downloadText(generateExport(), exportFilename())">⬇ Download .md</button>
+    </div>
+  </div>
+</div>
+
+<script src="firebase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+let currentUser = null;
+let activeCanvasId = null;
+let canvasList = [];
+let saveTimer = null;
+let cloudReady = false;
+let switchingCanvas = false;
+
+const DEFAULT_CANVAS_TITLE = 'My Business Model';
+const CELLS = ['problem','solution','uvp','advantage','segments','metrics','channels','costs','revenue'];
+
+const CELL_META = {
+  problem:   { order: 2,  title: 'Problem' },
+  solution:  { order: 4,  title: 'Solution' },
+  uvp:       { order: 3,  title: 'Unique Value Proposition' },
+  advantage: { order: 9,  title: 'Unfair Advantage' },
+  segments:  { order: 1,  title: 'Customer Segments' },
+  metrics:   { order: 8,  title: 'Key Metrics' },
+  channels:  { order: 5,  title: 'Channels' },
+  costs:     { order: 7,  title: 'Cost Structure' },
+  revenue:   { order: 6,  title: 'Revenue Streams' },
+};
+
+const ORDER = ['segments','problem','uvp','solution','channels','revenue','costs','metrics','advantage'];
+
+function getVal(key) {
+  return document.getElementById('ta-' + key).value.trim();
+}
+
+function getCanvasTitle() {
+  const t = document.getElementById('canvas-title').value.trim();
+  return t || DEFAULT_CANVAS_TITLE;
+}
+
+function setCanvasTitle(title) {
+  const el = document.getElementById('canvas-title');
+  el.value = title || DEFAULT_CANVAS_TITLE;
+  document.title = getCanvasTitle() + ' · Lean Canvas';
+}
+
+function applyCanvasData(data) {
+  applyCells((data && data.cells) || {});
+  setCanvasTitle(data && data.title);
+}
+
+function getAllCells() {
+  const cells = {};
+  CELLS.forEach(key => { cells[key] = getVal(key); });
+  return cells;
+}
+
+function applyCells(cells) {
+  CELLS.forEach(key => {
+    const text = (cells && cells[key]) ? String(cells[key]) : '';
+    document.getElementById('ta-' + key).value = text;
+    const cell = document.getElementById('cell-' + key);
+    if (cell.classList.contains('editing')) {
+      document.getElementById('btn-' + key).textContent = '✎ Edit';
+      document.getElementById('btn-' + key).classList.remove('btn-save');
+      cell.classList.remove('editing');
+    }
+    setView(key, text);
+  });
+}
+
+function activeCanvasStorageKey(uid) {
+  return 'activeCanvasId_' + uid;
+}
+
+function canvasesCol(uid) {
+  return db.collection('users').doc(uid).collection('canvases');
+}
+
+function canvasRef(uid, id) {
+  return canvasesCol(uid).doc(id || activeCanvasId);
+}
+
+function setCanvasSwitcherVisible(visible) {
+  document.getElementById('canvas-switcher').hidden = !visible;
+}
+
+function renderCanvasSelect() {
+  const sel = document.getElementById('canvas-select');
+  sel.innerHTML = '';
+  canvasList.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.title || DEFAULT_CANVAS_TITLE;
+    sel.appendChild(opt);
+  });
+  if (activeCanvasId) sel.value = activeCanvasId;
+}
+
+function uniqueCanvasTitle(base) {
+  const names = new Set(canvasList.map(c => c.title));
+  if (!names.has(base)) return base;
+  let n = 2;
+  while (names.has(base + ' ' + n)) n++;
+  return base + ' ' + n;
+}
+
+async function loadUserCanvases(uid) {
+  const snap = await canvasesCol(uid).get();
+  canvasList = snap.docs.map(d => {
+    const data = d.data();
+    return {
+      id: d.id,
+      title: data.title || DEFAULT_CANVAS_TITLE,
+      updatedAt: data.updatedAt || null,
+    };
+  });
+  canvasList.sort((a, b) => {
+    const ta = a.updatedAt && a.updatedAt.toMillis ? a.updatedAt.toMillis() : 0;
+    const tb = b.updatedAt && b.updatedAt.toMillis ? b.updatedAt.toMillis() : 0;
+    return tb - ta;
+  });
+}
+
+async function ensureActiveCanvas(uid) {
+  await loadUserCanvases(uid);
+  if (!canvasList.length) {
+    const ref = canvasesCol(uid).doc();
+    activeCanvasId = ref.id;
+    const title = DEFAULT_CANVAS_TITLE;
+    await ref.set({
+      title,
+      cells: getAllCells(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    canvasList.push({ id: activeCanvasId, title, updatedAt: null });
+  } else {
+    const stored = sessionStorage.getItem(activeCanvasStorageKey(uid));
+    activeCanvasId = (stored && canvasList.some(c => c.id === stored))
+      ? stored
+      : canvasList[0].id;
+  }
+  sessionStorage.setItem(activeCanvasStorageKey(uid), activeCanvasId);
+}
+
+async function flushCloudSave() {
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  if (currentUser && activeCanvasId && cloudReady) {
+    await saveCanvasToCloud(currentUser.uid, { silent: true });
+  }
+}
+
+function setSyncStatus(text, type) {
+  const el = document.getElementById('sync-status');
+  el.textContent = text;
+  el.className = 'sync-status' + (type ? ' ' + type : '');
+}
+
+function setAuthUi(user) {
+  const signedIn = !!user;
+  document.getElementById('btn-sign-in').hidden = signedIn;
+  document.getElementById('btn-sign-out').hidden = !signedIn;
+  setCanvasSwitcherVisible(signedIn);
+  const chip = document.getElementById('user-chip');
+  if (signedIn) {
+    chip.hidden = false;
+    chip.textContent = user.displayName || user.email || 'Signed in';
+    chip.title = user.email || '';
+  } else {
+    chip.hidden = true;
+    chip.textContent = '';
+  }
+}
+
+function authHostname() {
+  return window.location.hostname || '';
+}
+
+function openAuthModal() {
+  document.getElementById('auth-msg').textContent = '';
+  document.getElementById('auth-msg').className = 'auth-msg';
+  const host = authHostname();
+  const hint = document.getElementById('auth-domain-hint');
+  if (!host || window.location.protocol === 'file:') {
+    hint.textContent = 'Open this app over http(s) (e.g. GitHub Pages or localhost), not as a local file.';
+  } else {
+    hint.textContent = 'Firebase must authorize this exact host: "' + host + '" (you are on ' + location.origin + ').';
+  }
+  openModal('auth-modal');
+}
+
+function formatAuthError(err) {
+  const host = authHostname();
+  if (err && err.code === 'auth/unauthorized-domain') {
+    let msg = 'Host "' + host + '" is not in Firebase authorized domains.';
+    if (host === '127.0.0.1') {
+      msg += ' Add "127.0.0.1" in the console, or open http://localhost:' + (location.port || '8080') + ' instead.';
+    } else if (host === 'github.com' || host.endsWith('.github.dev')) {
+      msg += ' You are viewing the repo on GitHub, not GitHub Pages. Open your Pages URL (e.g. https://kg-app.github.io/…/sample.html).';
+    } else {
+      msg += ' Add "' + host + '" under Authentication → Settings → Authorized domains (not just kg-app.github.io if your URL uses a different host).';
+    }
+    return msg;
+  }
+  return (err && err.message) || 'Sign-in failed';
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-msg');
+  el.textContent = msg;
+  el.className = 'auth-msg err';
+}
+
+function setAuthBusy(busy) {
+  ['btn-google', 'btn-email-sign-in', 'btn-email-register'].forEach(id => {
+    document.getElementById(id).disabled = busy;
+  });
+}
+
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+async function signInWithGoogle() {
+  if (!authHostname() || window.location.protocol === 'file:') {
+    showAuthError('Open the app via GitHub Pages or localhost before signing in.');
+    return;
+  }
+  setAuthBusy(true);
+  try {
+    await auth.signInWithPopup(googleProvider);
+    closeModal('auth-modal');
+  } catch (e) {
+    const useRedirect = e.code === 'auth/popup-blocked'
+      || e.code === 'auth/cancelled-popup-request'
+      || (e.message && e.message.indexOf('Cross-Origin') !== -1);
+    if (useRedirect && e.code !== 'auth/unauthorized-domain') {
+      sessionStorage.setItem('authRedirectPending', '1');
+      await auth.signInWithRedirect(googleProvider);
+      return;
+    }
+    showAuthError(formatAuthError(e));
+  } finally {
+    setAuthBusy(false);
+  }
+}
+
+async function signInWithEmail() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if (!email || !password) { showAuthError('Enter email and password.'); return; }
+  setAuthBusy(true);
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    closeModal('auth-modal');
+  } catch (e) {
+    showAuthError(formatAuthError(e));
+  } finally {
+    setAuthBusy(false);
+  }
+}
+
+async function registerWithEmail() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if (!email || !password) { showAuthError('Enter email and password.'); return; }
+  if (password.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+  setAuthBusy(true);
+  try {
+    await auth.createUserWithEmailAndPassword(email, password);
+    closeModal('auth-modal');
+  } catch (e) {
+    showAuthError(formatAuthError(e));
+  } finally {
+    setAuthBusy(false);
+  }
+}
+
+auth.getRedirectResult().then(result => {
+  if (result && result.user) closeModal('auth-modal');
+}).catch(e => {
+  if (sessionStorage.getItem('authRedirectPending')) {
+    sessionStorage.removeItem('authRedirectPending');
+    showAuthError(formatAuthError(e));
+    openModal('auth-modal');
+  }
+});
+
+async function signOutUser() {
+  try {
+    await auth.signOut();
+  } catch (e) {
+    setSyncStatus('Sign-out failed', 'err');
+  }
+}
+
+async function loadCanvasById(uid, id) {
+  setSyncStatus('Loading…', 'warn');
+  try {
+    const snap = await canvasRef(uid, id).get();
+    if (snap.exists) {
+      applyCanvasData(snap.data());
+      setSyncStatus('Synced', 'ok');
+    } else {
+      applyCanvasData({});
+      setSyncStatus('Canvas not found', 'err');
+    }
+    cloudReady = true;
+  } catch (e) {
+    cloudReady = false;
+    setSyncStatus('Load failed', 'err');
+    console.error(e);
+  }
+}
+
+async function initUserCanvases(uid) {
+  setSyncStatus('Loading…', 'warn');
+  try {
+    await ensureActiveCanvas(uid);
+    renderCanvasSelect();
+    await loadCanvasById(uid, activeCanvasId);
+  } catch (e) {
+    cloudReady = false;
+    setSyncStatus('Load failed', 'err');
+    console.error(e);
+  }
+}
+
+async function onCanvasSelectChange() {
+  if (!currentUser || switchingCanvas) return;
+  const id = document.getElementById('canvas-select').value;
+  if (!id || id === activeCanvasId) return;
+
+  switchingCanvas = true;
+  cloudReady = false;
+  try {
+    await flushCloudSave();
+    activeCanvasId = id;
+    sessionStorage.setItem(activeCanvasStorageKey(currentUser.uid), id);
+    await loadCanvasById(currentUser.uid, id);
+  } finally {
+    switchingCanvas = false;
+  }
+}
+
+async function createNewCanvas() {
+  if (!currentUser) return;
+  switchingCanvas = true;
+  cloudReady = false;
+  try {
+    await flushCloudSave();
+    const ref = canvasesCol(currentUser.uid).doc();
+    const title = uniqueCanvasTitle(DEFAULT_CANVAS_TITLE);
+    await ref.set({
+      title,
+      cells: {},
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    activeCanvasId = ref.id;
+    sessionStorage.setItem(activeCanvasStorageKey(currentUser.uid), ref.id);
+    canvasList.unshift({ id: ref.id, title, updatedAt: null });
+    applyCanvasData({ title, cells: {} });
+    renderCanvasSelect();
+    cloudReady = true;
+    setSyncStatus('New model created', 'ok');
+  } catch (e) {
+    setSyncStatus('Could not create model', 'err');
+    console.error(e);
+  } finally {
+    switchingCanvas = false;
+  }
+}
+
+function scheduleCloudSave() {
+  if (!currentUser || !cloudReady || !activeCanvasId || switchingCanvas) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveCanvasToCloud(currentUser.uid), 800);
+}
+
+async function saveCanvasToCloud(uid, opts = {}) {
+  if (!uid || !activeCanvasId) return;
+  if (!opts.silent) setSyncStatus('Saving…', 'warn');
+  const title = getCanvasTitle();
+  try {
+    await canvasRef(uid, activeCanvasId).set({
+      title,
+      cells: getAllCells(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+    const entry = canvasList.find(c => c.id === activeCanvasId);
+    if (entry) {
+      entry.title = title;
+      canvasList = canvasList.filter(c => c.id !== activeCanvasId);
+      canvasList.unshift(entry);
+    }
+    renderCanvasSelect();
+    if (!opts.silent) setSyncStatus('Saved', 'ok');
+  } catch (e) {
+    setSyncStatus('Save failed', 'err');
+    console.error(e);
+  }
+}
+
+auth.onAuthStateChanged(async user => {
+  const prevUid = currentUser ? currentUser.uid : null;
+  currentUser = user;
+  cloudReady = false;
+  setAuthUi(user);
+  if (user) {
+    if (prevUid && prevUid !== user.uid) applyCanvasData({});
+    await initUserCanvases(user.uid);
+  } else {
+    activeCanvasId = null;
+    canvasList = [];
+    if (prevUid) sessionStorage.removeItem(activeCanvasStorageKey(prevUid));
+    renderCanvasSelect();
+    if (prevUid) applyCanvasData({});
+    setSyncStatus('Local only', '');
+  }
+});
+
+function setView(key, text) {
+  const view = document.getElementById('view-' + key);
+  if (!text) {
+    view.textContent = 'Click ✎ Edit to add content';
+    view.classList.add('empty');
+  } else {
+    view.textContent = text;
+    view.classList.remove('empty');
+  }
+}
+
+function toggleEdit(key) {
+  const cell = document.getElementById('cell-' + key);
+  const btn  = document.getElementById('btn-' + key);
+  const ta   = document.getElementById('ta-' + key);
+  const isEditing = cell.classList.contains('editing');
+
+  if (isEditing) {
+    cell.classList.remove('editing');
+    btn.textContent = '✎ Edit';
+    btn.classList.remove('btn-save');
+    setView(key, getVal(key));
+    scheduleCloudSave();
+  } else {
+    cell.classList.add('editing');
+    btn.textContent = '✓ Save';
+    btn.classList.add('btn-save');
+    ta.focus();
+    ta.style.height = 'auto';
+    ta.style.height = Math.max(ta.scrollHeight, 120) + 'px';
+  }
+}
+
+function generateExport() {
+  let md = '# ' + getCanvasTitle() + '\n\n';
+  md += '> Lean Canvas · Date: ' + new Date().toLocaleDateString('en-CA') + '\n\n---\n\n';
+  ORDER.forEach(key => {
+    const m = CELL_META[key];
+    md += '## ' + m.order + '. ' + m.title + '\n\n';
+    const val = getVal(key);
+    md += (val || '*(empty)*') + '\n\n---\n\n';
+  });
+  return md;
+}
+
+function generateTemplate() {
+  const HINTS = {
+    segments:  'Who are your target customers and users? Start with early adopters — who will pay before the product is perfect?',
+    problem:   'Top 3 problems your customers face. Also note existing alternatives — how do they solve this today?',
+    uvp:       'Single, clear, compelling message. Try an X for Y analogy. What turns an unaware visitor into an interested prospect?',
+    solution:  'Outline a possible solution for each problem. Keep it to the minimum viable feature set.',
+    channels:  'How do you reach your customers? Early channels are almost always founder-led and outbound.',
+    revenue:   'How do you make money? Include pricing model and lifetime value. Price relative to value, not cost.',
+    costs:     'List fixed and variable costs — people, hosting, acquisition, distribution.',
+    metrics:   'Key numbers that tell you the business is working. Focus on leading indicators, not vanity metrics.',
+    advantage: 'Something that cannot easily be bought or copied. Fill this last and be ruthlessly honest.',
+  };
+  let md = '# ' + DEFAULT_CANVAS_TITLE + '\n\n';
+  md += '> Lean Canvas · Date: ' + new Date().toLocaleDateString('en-CA') + '  |  Author: [Your name]\n\n';
+  md += '> Instructions: Fill in each section below, then paste into Import Markdown. One idea per line works well.\n\n---\n\n';
+  ORDER.forEach(key => {
+    const m = CELL_META[key];
+    md += '## ' + m.order + '. ' + m.title + '\n\n';
+    md += '> ' + HINTS[key] + '\n\n';
+    md += '[Your content here]\n\n---\n\n';
+  });
+  return md;
+}
+
+const HEADING_MAP = {
+  'customer segments': 'segments',
+  'problem': 'problem',
+  'unique value proposition': 'uvp',
+  'solution': 'solution',
+  'channels': 'channels',
+  'revenue streams': 'revenue',
+  'cost structure': 'costs',
+  'key metrics': 'metrics',
+  'unfair advantage': 'advantage',
+};
+
+function importMarkdown() {
+  const raw = document.getElementById('import-textarea').value.trim();
+  if (!raw) { showImportStatus('Nothing to import — paste your markdown first.', 'warn'); return; }
+
+  const lines = raw.split('\n');
+  let currentKey = null;
+  const blocks = {};
+  let gotTitle = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const h1 = line.match(/^#\s+(.+)/);
+    if (h1 && !line.startsWith('##') && !gotTitle) {
+      const t = h1[1].trim();
+      if (t.toLowerCase() !== 'lean canvas') {
+        setCanvasTitle(t);
+        gotTitle = true;
+      }
+      continue;
+    }
+    const h2 = line.match(/^##\s+(.+)/);
+    if (h2) {
+      const norm = h2[1].replace(/^\d+\.\s+/, '').toLowerCase().trim();
+      currentKey = HEADING_MAP[norm] || null;
+      if (currentKey && !blocks[currentKey]) blocks[currentKey] = [];
+      continue;
+    }
+    if (line.match(/^---+$/) || line.match(/^#[^#]/) || line.match(/^>\s/)) continue;
+    if (currentKey && line.trim() && line.trim() !== '*(empty)*') {
+      blocks[currentKey].push(line.trim());
+    }
+  }
+
+  const keys = Object.keys(blocks);
+  if (!keys.length) { showImportStatus('No recognised sections found. Check headings match the template (e.g. "## 1. Customer Segments").', 'error'); return; }
+
+  keys.forEach(key => {
+    const text = blocks[key].join('\n');
+    document.getElementById('ta-' + key).value = text;
+    const cell = document.getElementById('cell-' + key);
+    if (cell.classList.contains('editing')) {
+      document.getElementById('btn-' + key).textContent = '✎ Edit';
+      document.getElementById('btn-' + key).classList.remove('btn-save');
+      cell.classList.remove('editing');
+    }
+    setView(key, text);
+  });
+
+  showImportStatus('✓ Imported ' + keys.length + ' section(s): ' + keys.map(k => CELL_META[k].title).join(', '), 'ok');
+  scheduleCloudSave();
+}
+
+function showImportStatus(msg, type) {
+  const el = document.getElementById('import-status');
+  el.textContent = msg;
+  el.style.borderLeftColor = type === 'ok' ? '#14b8a6' : type === 'warn' ? '#7c3aed' : '#dc2626';
+  el.style.background = type === 'ok' ? '#ccfbf1' : type === 'warn' ? '#ede9fe' : '#fee2e2';
+}
+
+function openSaveModal() {
+  document.getElementById('export-output').textContent = generateExport();
+  openModal('save-modal');
+}
+function openImportModal() {
+  const el = document.getElementById('import-status');
+  el.textContent = 'Paste the full markdown document and click Import. All existing content will be replaced.';
+  el.style.borderLeftColor = '#a78bfa';
+  el.style.background = '#ede9fe';
+  openModal('import-modal');
+}
+function openTemplateModal() {
+  document.getElementById('template-output').textContent = generateTemplate();
+  openModal('template-modal');
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function copyText(elId) {
+  const text = document.getElementById(elId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = event.target.textContent;
+    event.target.textContent = '✓ Copied';
+    setTimeout(() => event.target.textContent = orig, 1600);
+  });
+}
+
+function downloadText(text, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/markdown' }));
+  a.download = filename;
+  a.click();
+}
+
+['import-modal','template-modal','save-modal','auth-modal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal(id);
+  });
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    ['import-modal','template-modal','save-modal','auth-modal'].forEach(closeModal);
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    CELLS.forEach(key => {
+      if (document.getElementById('cell-' + key).classList.contains('editing')) {
+        toggleEdit(key);
+      }
+    });
+  }
+});
+
+function exportFilename() {
+  const slug = getCanvasTitle().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'lean-canvas';
+  return slug + '.md';
+}
+
+document.getElementById('canvas-title').addEventListener('input', () => {
+  document.title = getCanvasTitle() + ' · Lean Canvas';
+  const entry = canvasList.find(c => c.id === activeCanvasId);
+  if (entry) {
+    entry.title = getCanvasTitle();
+    renderCanvasSelect();
+  }
+  scheduleCloudSave();
+});
+
+CELLS.forEach(key => setView(key, getVal(key)));
+setCanvasTitle(getCanvasTitle());
+</script>
+
+
+</body></html>
