@@ -47,103 +47,116 @@
     background: var(--bg-page);
     color: var(--ink);
     min-height: 100vh;
-    padding: 28px 24px 40px;
+    padding: 20px 24px 40px;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* HEADER */
-  header {
+  /* HEADER BAR */
+  .header-bar {
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px 14px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 12px;
+    z-index: 40;
+  }
+  .header-main {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0;
+    flex-wrap: nowrap;
+  }
+  .header-rest {
+    display: flex;
+    align-items: flex-end;
     gap: 16px;
-  }
-  .logo-area { flex: 1; min-width: 220px; }
-  .brand-row {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
+    flex: 1;
     flex-wrap: wrap;
+    min-width: 0;
+    padding-bottom: calc(0.6875rem + 5px);
   }
-  .logo-area h1 {
+  .header-divider {
+    width: 1px;
+    background: var(--line);
+    margin: 0 20px;
+    flex-shrink: 0;
+    align-self: stretch;
+  }
+  .toolbar-brand {
+    flex-shrink: 0;
+    padding-bottom: calc(0.6875rem + 5px);
+  }
+  .toolbar-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .toolbar-field-grow {
+    flex: 1;
+    min-width: 180px;
+    max-width: 320px;
+  }
+  .toolbar-field-hint {
+    font-size: 0.6875rem;
+    color: var(--ink-mute);
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .toolbar-brand h1 {
     font-size: 1.375rem;
     font-weight: 700;
     color: var(--ink);
     letter-spacing: -0.025em;
     line-height: 1.2;
   }
-  .logo-area h1 span { color: var(--primary); }
-  .canvas-bar {
+  .toolbar-brand h1 span { color: var(--primary); }
+  #canvas-toolbar {
     display: flex;
     align-items: flex-end;
-    gap: 20px;
+    gap: 16px;
     flex-wrap: wrap;
-    margin-top: 14px;
+    min-width: 0;
   }
-  .canvas-title-group {
-    flex: 1;
-    min-width: 220px;
-  }
+  #canvas-toolbar[hidden] { display: none !important; }
   .canvas-title-input {
     font-family: inherit;
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.0625rem;
+    font-weight: 600;
     color: var(--ink);
     background: transparent;
     border: none;
-    border-bottom: 2px solid var(--line-strong);
+    border-bottom: 1px solid var(--line-strong);
     border-radius: 0;
-    padding: 2px 0 8px;
+    padding: 7px 0;
     width: 100%;
-    transition: border-color 0.2s, color 0.2s;
-    letter-spacing: -0.03em;
-    line-height: 1.2;
+    transition: border-color 0.2s;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
   }
-  .canvas-title-input::placeholder { color: var(--ink-mute); font-weight: 600; }
+  .canvas-title-input::placeholder { color: var(--ink-mute); font-weight: 500; }
   .canvas-title-input:hover { border-bottom-color: var(--ink-3); }
   .canvas-title-input:focus {
     outline: none;
     border-bottom-color: var(--primary);
     box-shadow: none;
   }
-  .canvas-title-hint {
-    display: block;
-    font-size: 0.6875rem;
-    color: var(--ink-mute);
-    margin-top: 5px;
-    letter-spacing: 0.01em;
-  }
-  .canvas-switcher {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    flex-shrink: 0;
-    padding-bottom: 6px;
-  }
-  .canvas-switcher[hidden] { display: none !important; }
-  .canvas-switcher label {
-    font-size: 0.6875rem;
-    font-weight: 700;
-    color: var(--ink-3);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    white-space: nowrap;
-  }
   .canvas-select {
     font-family: inherit;
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--ink);
-    flex: 1;
-    min-width: 160px;
-    max-width: 280px;
-    padding: 8px 32px 8px 12px;
+    min-width: 180px;
+    max-width: 240px;
+    width: 100%;
+    height: 34px;
+    padding: 0 32px 0 10px;
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    background: var(--bg-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M3 4.5L6 8l3-3.5'/%3E%3C/svg%3E") no-repeat right 10px center;
+    background: var(--bg-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2378716c' d='M3 4.5L6 8l3-3.5'/%3E%3C/svg%3E") no-repeat right 10px center;
     appearance: none;
     cursor: pointer;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -154,13 +167,102 @@
     border-color: var(--primary);
     box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.12);
   }
-  .logo-area .tagline {
+  #canvas-toolbar .btn-primary {
+    height: 34px;
+    padding: 0 14px;
+    align-self: auto;
+  }
+  header .tagline {
     font-size: 0.8125rem;
     color: var(--ink-3);
-    margin-top: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line-faint);
     font-weight: 500;
   }
-  .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .header-actions {
+    display: flex;
+    align-items: flex-end;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  /* USER MENU */
+  .user-menu { position: relative; }
+  .user-menu-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--primary);
+    border-radius: var(--radius);
+    background: var(--primary);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .user-menu-trigger:hover,
+  .user-menu.open .user-menu-trigger {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    color: #fff;
+  }
+  .user-menu-trigger svg { width: 18px; height: 18px; }
+  .user-menu-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 200px;
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 6px;
+    z-index: 50;
+  }
+  .user-menu-panel[hidden] { display: none !important; }
+  .user-menu-head {
+    padding: 8px 10px 10px;
+    border-bottom: 1px solid var(--line-faint);
+    margin-bottom: 4px;
+  }
+  .user-menu-name {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .user-menu-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--ink-2);
+    background: none;
+    border: none;
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .user-menu-item:hover {
+    background: var(--bg-subtle);
+    color: var(--ink);
+  }
+  .user-menu-item.danger { color: #b91c1c; }
+  .user-menu-item.danger:hover { background: #fef2f2; }
+  .user-menu-divider {
+    height: 1px;
+    background: var(--line-faint);
+    margin: 4px 0;
+  }
 
   .btn {
     font-family: inherit;
@@ -201,15 +303,12 @@
   .btn-save:hover { background: var(--secondary-hover); border-color: var(--secondary-hover); }
   .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
-  .auth-area { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .user-chip {
-    font-size: 11px; color: var(--ink-3);
-    max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
+  .auth-area { display: flex; align-items: center; }
   .sync-status {
-    font-size: 11px; color: var(--ink-mute);
-    padding: 4px 8px; border-radius: 4px;
+    font-size: 0.6875rem; color: var(--ink-mute);
+    padding: 3px 7px; border-radius: 4px;
     background: var(--bg-subtle); border: 1px solid var(--line-faint);
+    display: inline-block;
   }
   .sync-status.ok { color: #2e7d32; border-color: #a5d6a7; background: #e8f5e9; }
   .sync-status.warn { color: var(--primary-hover); border-color: var(--primary-soft); background: var(--primary-pale); }
@@ -571,33 +670,52 @@
 
 <div id="app-content" hidden>
 
-<header>
-  <div class="logo-area">
-    <div class="brand-row">
+<header class="header-bar">
+  <div class="header-main">
+    <div class="toolbar-field toolbar-brand">
       <h1>Lean <span>Canvas</span></h1>
+      <span class="toolbar-field-hint">A single-page business model.</span>
     </div>
-    <p class="tagline">A single-page business model</p>
-    <div class="canvas-bar">
-      <div class="canvas-switcher" id="canvas-switcher" hidden>
-        <label for="canvas-select">Business Model</label>
-        <select class="canvas-select" id="canvas-select" aria-label="Select business model" onchange="onCanvasSelectChange()"></select>
-        <button type="button" class="btn btn-sm" onclick="createNewCanvas()">+ New</button>
+    <div class="header-divider" aria-hidden="true"></div>
+    <div class="header-rest">
+      <div class="canvas-toolbar" id="canvas-toolbar" hidden>
+        <div class="toolbar-field">
+          <button type="button" class="btn btn-primary btn-sm" onclick="createNewCanvas()">+ New</button>
+          <span class="toolbar-field-hint" aria-hidden="true">&nbsp;</span>
+        </div>
+        <div class="toolbar-field">
+          <select class="canvas-select" id="canvas-select" aria-label="Select existing model" onchange="onCanvasSelectChange()"></select>
+          <span class="toolbar-field-hint">Select existing model</span>
+        </div>
+        <div class="toolbar-field toolbar-field-grow">
+          <input type="text" class="canvas-title-input" id="canvas-title" value="My Business Model" maxlength="120" aria-label="Canvas name" placeholder="Untitled canvas">
+          <span class="toolbar-field-hint">Click to edit canvas name</span>
+        </div>
       </div>
-      <div class="canvas-title-group">
-        <input type="text" class="canvas-title-input" id="canvas-title" value="My Business Model" maxlength="120" aria-label="Canvas name" placeholder="Untitled canvas">
-        <span class="canvas-title-hint">Click to edit canvas name</span>
+      <div class="header-actions auth-area">
+        <div class="user-menu" id="user-menu">
+          <button type="button" class="user-menu-trigger" id="user-menu-trigger" aria-label="Account menu" aria-expanded="false" aria-controls="user-menu-panel" onclick="toggleUserMenu(event)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+              <circle cx="12" cy="8" r="3.5"/>
+              <path d="M5 20c0-3.3 3.1-5 7-5s7 1.7 7 5"/>
+            </svg>
+          </button>
+          <div class="user-menu-panel" id="user-menu-panel" role="menu" hidden>
+            <div class="user-menu-head">
+              <span class="user-menu-name" id="user-menu-name"></span>
+              <span class="sync-status" id="sync-status" title="Cloud sync">Local only</span>
+            </div>
+            <button type="button" class="user-menu-item" role="menuitem" onclick="menuAction(openTemplateModal)">Template</button>
+            <button type="button" class="user-menu-item" role="menuitem" onclick="menuAction(openImportModal)">Import</button>
+            <button type="button" class="user-menu-item" role="menuitem" onclick="menuAction(openSaveModal)">Export</button>
+            <div class="user-menu-divider"></div>
+            <button type="button" class="user-menu-item danger" role="menuitem" onclick="menuAction(signOutUser)">Sign out</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <div class="header-actions auth-area">
-    <span class="sync-status" id="sync-status" title="Cloud sync">Local only</span>
-    <span class="user-chip" id="user-chip" hidden></span>
-    <button class="btn" id="btn-sign-in" onclick="openAuthModal()">Sign in</button>
-    <button class="btn" id="btn-sign-out" onclick="signOutUser()" hidden>Sign out</button>
-    <button class="btn" onclick="openTemplateModal()">Template</button>
-    <button class="btn" onclick="openImportModal()">Import</button>
-    <button class="btn" onclick="openSaveModal()">Export</button>
-  </div>
+  <p class="tagline">Edit each section to build your business model. Then export and analyze in your favorite LLM.</p>
 </header>
 
 <div class="belief-legend">
@@ -1083,7 +1201,7 @@ function canvasRef(uid, id) {
 }
 
 function setCanvasSwitcherVisible(visible) {
-  document.getElementById('canvas-switcher').hidden = !visible;
+  document.getElementById('canvas-toolbar').hidden = !visible;
 }
 
 function renderCanvasSelect() {
@@ -1164,21 +1282,47 @@ function setAuthUi(user) {
   document.body.classList.remove('auth-pending');
   document.getElementById('app-content').hidden = !signedIn;
   document.getElementById('sign-in-empty').hidden = signedIn;
-  document.getElementById('btn-sign-in').hidden = signedIn;
-  document.getElementById('btn-sign-out').hidden = !signedIn;
   setCanvasSwitcherVisible(signedIn);
-  const chip = document.getElementById('user-chip');
+  const nameEl = document.getElementById('user-menu-name');
   if (signedIn) {
-    chip.hidden = false;
-    chip.textContent = user.displayName || user.email || 'Signed in';
-    chip.title = user.email || '';
+    nameEl.textContent = user.displayName || user.email || 'Signed in';
+    nameEl.title = user.email || '';
   } else {
-    chip.hidden = true;
-    chip.textContent = '';
+    nameEl.textContent = '';
+    nameEl.title = '';
+    closeUserMenu();
     document.getElementById('empty-auth-msg').textContent = '';
     document.getElementById('empty-auth-msg').className = 'auth-msg';
   }
 }
+
+function toggleUserMenu(event) {
+  event.stopPropagation();
+  const panel = document.getElementById('user-menu-panel');
+  const trigger = document.getElementById('user-menu-trigger');
+  const menu = document.getElementById('user-menu');
+  const open = panel.hidden;
+  panel.hidden = !open;
+  trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  menu.classList.toggle('open', open);
+}
+
+function closeUserMenu() {
+  const panel = document.getElementById('user-menu-panel');
+  const trigger = document.getElementById('user-menu-trigger');
+  const menu = document.getElementById('user-menu');
+  if (!panel) return;
+  panel.hidden = true;
+  trigger.setAttribute('aria-expanded', 'false');
+  menu.classList.remove('open');
+}
+
+function menuAction(fn) {
+  closeUserMenu();
+  fn();
+}
+
+document.addEventListener('click', () => closeUserMenu());
 
 function authHostname() {
   return window.location.hostname || '';
@@ -1619,6 +1763,7 @@ function downloadText(text, filename) {
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
+    closeUserMenu();
     ['import-modal','template-modal','save-modal','auth-modal'].forEach(closeModal);
   }
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
