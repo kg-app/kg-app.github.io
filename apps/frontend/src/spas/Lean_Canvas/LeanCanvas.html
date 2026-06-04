@@ -3,6 +3,8 @@
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="lean_canvas.ico" type="image/x-icon">
+<link rel="shortcut icon" href="lean_canvas.ico" type="image/x-icon">
 <title>Lean Canvas</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -38,7 +40,7 @@
     --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.04);
     --shadow-md: 0 2px 8px rgba(28, 25, 23, 0.06);
     --shadow-lg: 0 8px 24px rgba(28, 25, 23, 0.08);
-    --content-size: 1rem;
+    --content-size: 0.75rem;
     --content-leading: 1.65;
   }
 
@@ -441,6 +443,101 @@
     margin-top: 3px; line-height: 1.45;
   }
 
+  /* CELL TOOLTIP / POPOVER */
+  .cell-tip { position: relative; display: inline-flex; }
+  .cell-tip-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: inherit;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--seg2-accent);
+    background: #fff;
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    border-radius: 999px;
+    padding: 3px 9px 3px 7px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    white-space: nowrap;
+  }
+  .cell-tip-trigger svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+  .cell-tip-trigger:hover,
+  .cell-tip.open .cell-tip-trigger {
+    background: var(--seg2-pale);
+    border-color: rgba(220, 38, 38, 0.45);
+    box-shadow: 0 1px 4px rgba(220, 38, 38, 0.12);
+  }
+  .cell-tip-panel {
+    position: fixed;
+    z-index: 60;
+    width: min(340px, calc(100vw - 48px));
+    max-height: min(420px, 70vh);
+    overflow: auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--seg2-accent);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 14px 16px 16px;
+    text-align: left;
+  }
+  .cell-tip-panel[hidden] { display: none !important; }
+  .cell-tip-head {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    padding-right: 18px;
+  }
+  .cell-tip-intro {
+    font-size: 0.75rem;
+    color: var(--ink-3);
+    line-height: 1.55;
+    margin-bottom: 12px;
+  }
+  .cell-tip-items { display: flex; flex-direction: column; gap: 10px; }
+  .cell-tip-item {
+    padding: 10px 12px;
+    background: var(--seg2-pale);
+    border: 1px solid rgba(220, 38, 38, 0.12);
+    border-radius: var(--radius);
+  }
+  .cell-tip-item dt {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--seg2-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .cell-tip-item dd {
+    font-size: 0.75rem;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+  .cell-tip-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--ink-mute);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .cell-tip-close:hover { background: var(--bg-subtle); color: var(--ink); }
+
   /* CELL ACTIONS */
   .cell-actions {
     position: absolute;
@@ -467,7 +564,7 @@
   }
   .cell-view.empty {
     color: var(--ink-mute);
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
   }
 
   /* EDIT MODE */
@@ -632,6 +729,49 @@
   }
   #empty-auth-msg { margin-top: 8px; text-align: center; }
 
+  /* TOAST */
+  .toast {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--ink);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .toast[hidden] { display: none !important; }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast.success { border-color: #a5d6a7; }
+  .toast.success::before {
+    content: '✓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
   @media (max-width: 900px) {
     body { padding: 12px; }
     .canvas-grid { grid-template-columns: 1fr 1fr; }
@@ -752,7 +892,37 @@
       <div class="cell-header">
         <div class="cell-icon">⚠️</div>
         <div class="cell-title-block">
-          <div class="cell-title">Problem <div class="order-num">2</div></div>
+          <div class="cell-title">Problem <div class="order-num">2</div>
+            <div class="cell-tip" id="tip-problem-wrap">
+              <button type="button" class="cell-tip-trigger" id="tip-problem-trigger" aria-expanded="false" aria-controls="tip-problem-4u" onclick="toggleCellTip(event, 'tip-problem-wrap')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+                4U Criteria
+              </button>
+              <div class="cell-tip-panel" id="tip-problem-4u" role="dialog" aria-labelledby="tip-problem-head" hidden onclick="event.stopPropagation()">
+                <button type="button" class="cell-tip-close" aria-label="Close" onclick="closeCellTips()">✕</button>
+                <div class="cell-tip-head" id="tip-problem-head">The 4U Qualifying Criteria</div>
+                <p class="cell-tip-intro">The 4U framework helps entrepreneurs qualify a problem by determining if it meets four specific characteristics:</p>
+                <dl class="cell-tip-items">
+                  <div class="cell-tip-item">
+                    <dt>Unworkable</dt>
+                    <dd>This applies when current processes break down operationally, causing delays, errors, or risks. A problem is unworkable if it disrupts workflows across teams or if existing &ldquo;workarounds&rdquo; are fragile and unsustainable.</dd>
+                  </div>
+                  <div class="cell-tip-item">
+                    <dt>Unavoidable</dt>
+                    <dd>This evaluates if fixing the problem is a mandate, often driven by regulation, safety standards, or governance. Find champions among those held responsible for the dire consequences of avoiding these issues.</dd>
+                  </div>
+                  <div class="cell-tip-item">
+                    <dt>Urgent</dt>
+                    <dd>For B2B, this means the problem is a top priority that has the attention of the C-suite. In B2C, urgency is measured by what consumers would forfeit (such as food or shelter) to solve the problem.</dd>
+                  </div>
+                  <div class="cell-tip-item">
+                    <dt>Underserved</dt>
+                    <dd>This identifies a &ldquo;whitespace&rdquo; in the market where there is a conspicuous absence of valid solutions or only inadequate workarounds.</dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+          </div>
           <div class="cell-hint">Top 3 problems your customers face today</div>
         </div>
       </div>
@@ -1116,6 +1286,8 @@ Your content here..."></textarea>
   </div>
 </div>
 
+<div class="toast success" id="toast" role="status" aria-live="polite" hidden></div>
+
 <script src="firebase-config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
@@ -1277,6 +1449,20 @@ function setSyncStatus(text, type) {
   el.className = 'sync-status' + (type ? ' ' + type : '');
 }
 
+let toastTimer = null;
+function showToast(message, type) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  clearTimeout(toastTimer);
+  el.textContent = message;
+  el.className = 'toast show' + (type ? ' ' + type : ' success');
+  el.hidden = false;
+  toastTimer = setTimeout(() => {
+    el.classList.remove('show');
+    toastTimer = setTimeout(() => { el.hidden = true; }, 200);
+  }, 3000);
+}
+
 function setAuthUi(user) {
   const signedIn = !!user;
   document.body.classList.remove('auth-pending');
@@ -1322,7 +1508,52 @@ function menuAction(fn) {
   fn();
 }
 
-document.addEventListener('click', () => closeUserMenu());
+document.addEventListener('click', () => {
+  closeUserMenu();
+  closeCellTips();
+});
+
+function toggleCellTip(event, wrapId) {
+  event.stopPropagation();
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  const panel = wrap.querySelector('.cell-tip-panel');
+  const trigger = wrap.querySelector('.cell-tip-trigger');
+  const willOpen = panel.hidden;
+  closeCellTips();
+  if (willOpen) {
+    panel.hidden = false;
+    trigger.setAttribute('aria-expanded', 'true');
+    wrap.classList.add('open');
+    positionCellTipPanel(wrap);
+  }
+}
+
+function positionCellTipPanel(wrap) {
+  const trigger = wrap.querySelector('.cell-tip-trigger');
+  const panel = wrap.querySelector('.cell-tip-panel');
+  if (!trigger || !panel) return;
+  const rect = trigger.getBoundingClientRect();
+  panel.style.top = (rect.bottom + 8) + 'px';
+  let left = rect.left;
+  const maxLeft = window.innerWidth - panel.offsetWidth - 16;
+  if (left > maxLeft) left = Math.max(16, maxLeft);
+  panel.style.left = left + 'px';
+}
+
+function closeCellTips() {
+  document.querySelectorAll('.cell-tip.open').forEach(wrap => {
+    wrap.classList.remove('open');
+    const panel = wrap.querySelector('.cell-tip-panel');
+    const trigger = wrap.querySelector('.cell-tip-trigger');
+    if (panel) {
+      panel.hidden = true;
+      panel.style.top = '';
+      panel.style.left = '';
+    }
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  });
+}
 
 function authHostname() {
   return window.location.hostname || '';
@@ -1461,15 +1692,18 @@ async function loadCanvasById(uid, id) {
     if (snap.exists) {
       applyCanvasData(snap.data());
       setSyncStatus('Synced', 'ok');
-    } else {
-      applyCanvasData({});
-      setSyncStatus('Canvas not found', 'err');
+      cloudReady = true;
+      return true;
     }
+    applyCanvasData({});
+    setSyncStatus('Canvas not found', 'err');
     cloudReady = true;
+    return false;
   } catch (e) {
     cloudReady = false;
     setSyncStatus('Load failed', 'err');
     console.error(e);
+    return false;
   }
 }
 
@@ -1497,7 +1731,8 @@ async function onCanvasSelectChange() {
     await flushCloudSave();
     activeCanvasId = id;
     sessionStorage.setItem(activeCanvasStorageKey(currentUser.uid), id);
-    await loadCanvasById(currentUser.uid, id);
+    const loaded = await loadCanvasById(currentUser.uid, id);
+    if (loaded) showToast('Loaded "' + getCanvasTitle() + '"', 'success');
   } finally {
     switchingCanvas = false;
   }
@@ -1764,6 +1999,7 @@ function downloadText(text, filename) {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeUserMenu();
+    closeCellTips();
     ['import-modal','template-modal','save-modal','auth-modal'].forEach(closeModal);
   }
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
