@@ -189,6 +189,59 @@
     margin-left: auto;
   }
 
+  .readonly-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
+    padding-bottom: calc(0.6875rem + 5px);
+  }
+  .readonly-banner[hidden] { display: none !important; }
+  .readonly-banner-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--seg2-accent);
+    background: var(--seg2-pale);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: 999px;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+  body.readonly-mode .canvas-toolbar,
+  body.readonly-mode .header-divider,
+  body.readonly-mode .toolbar-field-grow,
+  body.readonly-mode .cell-actions,
+  body.readonly-mode .belief-legend { display: none !important; }
+  body.readonly-mode .canvas-title-input {
+    pointer-events: none;
+    border-bottom-style: dashed;
+    color: var(--ink-2);
+  }
+  body.readonly-mode .user-menu-item.edit-only { display: none; }
+  .share-load-error {
+    max-width: 440px;
+    margin: 48px auto;
+    padding: 32px;
+    text-align: center;
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  .share-load-error h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .share-load-error p {
+    font-size: 0.875rem;
+    color: var(--ink-3);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
   /* USER MENU */
   .user-menu { position: relative; }
   .user-menu-trigger {
@@ -476,7 +529,7 @@
     position: fixed;
     z-index: 60;
     width: min(340px, calc(100vw - 48px));
-    max-height: min(420px, 70vh);
+    max-height: min(520px, 75vh);
     overflow: auto;
     background: var(--bg-surface);
     border: 1px solid var(--line);
@@ -521,6 +574,18 @@
     color: var(--ink-2);
     line-height: 1.5;
   }
+  .cell-tip-section {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+  .cell-tip-subhead {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
   .cell-tip-close {
     position: absolute;
     top: 10px;
@@ -558,9 +623,33 @@
     font-size: var(--content-size);
     color: var(--ink);
     line-height: var(--content-leading);
-    white-space: pre-wrap;
     word-break: break-word;
     min-height: 60px;
+  }
+  .cell-view.rendered > *:first-child { margin-top: 0; }
+  .cell-view.rendered > *:last-child { margin-bottom: 0; }
+  .cell-view.rendered p { margin: 0 0 0.5em; }
+  .cell-view.rendered p:last-child { margin-bottom: 0; }
+  .cell-view.rendered ul,
+  .cell-view.rendered ol {
+    margin: 0 0 0.5em;
+    padding-left: 1.25em;
+  }
+  .cell-view.rendered li { margin-bottom: 0.15em; }
+  .cell-view.rendered li:last-child { margin-bottom: 0; }
+  .cell-view.rendered strong { font-weight: 600; }
+  .cell-view.rendered em { font-style: italic; }
+  .cell-view.rendered code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.92em;
+    background: var(--bg-subtle);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+  .cell-view.rendered a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
   .cell-view.empty {
     color: var(--ink-mute);
@@ -808,6 +897,12 @@
   </div>
 </div>
 
+<div class="share-load-error" id="share-load-error" hidden>
+  <h2>Canvas not found</h2>
+  <p>This share link may be invalid or the canvas is no longer shared. Ask the owner for a new link, or sign in to open your own canvases.</p>
+  <button type="button" class="btn btn-primary" onclick="openAuthModal()">Sign in</button>
+</div>
+
 <div id="app-content" hidden>
 
 <header class="header-bar">
@@ -818,6 +913,11 @@
     </div>
     <div class="header-divider" aria-hidden="true"></div>
     <div class="header-rest">
+      <div class="readonly-banner" id="readonly-banner" hidden>
+        <span class="readonly-banner-label">Read-only</span>
+        <button type="button" class="btn btn-sm" onclick="openAuthModal()">Sign in to edit</button>
+        <button type="button" class="btn btn-sm" onclick="copyShareLink()">Copy share link</button>
+      </div>
       <div class="canvas-toolbar" id="canvas-toolbar" hidden>
         <div class="toolbar-field">
           <button type="button" class="btn btn-primary btn-sm" onclick="createNewCanvas()">+ New</button>
@@ -845,11 +945,12 @@
               <span class="user-menu-name" id="user-menu-name"></span>
               <span class="sync-status" id="sync-status" title="Cloud sync">Local only</span>
             </div>
-            <button type="button" class="user-menu-item" role="menuitem" onclick="menuAction(openTemplateModal)">Template</button>
-            <button type="button" class="user-menu-item" role="menuitem" onclick="menuAction(openImportModal)">Import</button>
-            <button type="button" class="user-menu-item" role="menuitem" onclick="menuAction(openSaveModal)">Export</button>
-            <div class="user-menu-divider"></div>
-            <button type="button" class="user-menu-item danger" role="menuitem" onclick="menuAction(signOutUser)">Sign out</button>
+          <button type="button" class="user-menu-item edit-only" role="menuitem" onclick="menuAction(openTemplateModal)">Template</button>
+          <button type="button" class="user-menu-item edit-only" role="menuitem" onclick="menuAction(openImportModal)">Import</button>
+          <button type="button" class="user-menu-item edit-only" role="menuitem" onclick="menuAction(openSaveModal)">Export</button>
+          <button type="button" class="user-menu-item" role="menuitem" onclick="menuAction(copyShareLink)">Copy share link</button>
+          <div class="user-menu-divider edit-only"></div>
+          <button type="button" class="user-menu-item danger edit-only" role="menuitem" onclick="menuAction(signOutUser)">Sign out</button>
           </div>
         </div>
       </div>
@@ -896,11 +997,12 @@
             <div class="cell-tip" id="tip-problem-wrap">
               <button type="button" class="cell-tip-trigger" id="tip-problem-trigger" aria-expanded="false" aria-controls="tip-problem-4u" onclick="toggleCellTip(event, 'tip-problem-wrap')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
-                4U Criteria
+                4U + BLAC Criteria
               </button>
               <div class="cell-tip-panel" id="tip-problem-4u" role="dialog" aria-labelledby="tip-problem-head" hidden onclick="event.stopPropagation()">
                 <button type="button" class="cell-tip-close" aria-label="Close" onclick="closeCellTips()">✕</button>
-                <div class="cell-tip-head" id="tip-problem-head">The 4U Qualifying Criteria</div>
+                <div class="cell-tip-head" id="tip-problem-head">4U and BLAC Frameworks</div>
+                <div class="cell-tip-subhead">The 4U Qualifying Criteria</div>
                 <p class="cell-tip-intro">The 4U framework helps entrepreneurs qualify a problem by determining if it meets four specific characteristics:</p>
                 <dl class="cell-tip-items">
                   <div class="cell-tip-item">
@@ -920,15 +1022,29 @@
                     <dd>This identifies a &ldquo;whitespace&rdquo; in the market where there is a conspicuous absence of valid solutions or only inadequate workarounds.</dd>
                   </div>
                 </dl>
+                <div class="cell-tip-section">
+                  <div class="cell-tip-subhead">The BLAC and White Framework</div>
+                  <p class="cell-tip-intro">Once a problem is identified using the 4Us, it is further qualified to see if it addresses a &ldquo;WHITE&rdquo; space in the market&mdash;an open area of opportunity. The BLAC components categorize the nature of the need:</p>
+                  <dl class="cell-tip-items">
+                    <div class="cell-tip-item">
+                      <dt>Blatant and Critical</dt>
+                      <dd>These problems are acute, acknowledged by the customer, and stand in the way of business, making them the ideal target for B2B startups.</dd>
+                    </div>
+                    <div class="cell-tip-item">
+                      <dt>Latent and Aspirational</dt>
+                      <dd>Latent problems are unacknowledged and require &ldquo;missionary selling,&rdquo; while aspirational problems are optional. While difficult for B2B, many successful B2C products, like Facebook, are built on exposing these latent aspirational needs.</dd>
+                    </div>
+                  </dl>
+                </div>
               </div>
             </div>
           </div>
-          <div class="cell-hint">Top 3 problems your customers face today</div>
+          <div class="cell-hint">Top 3-5 problems your customers face today</div>
         </div>
       </div>
       <div class="cell-body">
         <div class="cell-view empty" id="view-problem">Add content…</div>
-        <textarea class="cell-textarea" id="ta-problem" placeholder="List your customers&#39; top 3 problems
+        <textarea class="cell-textarea" id="ta-problem" placeholder="List your customers&#39; top 3-5 problems
 
 Also note how they solve these today (existing alternatives)" style="height: 298px;"></textarea>
       </div>
@@ -948,7 +1064,7 @@ Also note how they solve these today (existing alternatives)" style="height: 298
       </div>
       <div class="cell-body">
         <div class="cell-view empty" id="view-solution">Add content…</div>
-        <textarea class="cell-textarea" id="ta-solution" placeholder="Top 3 features or capabilities that address each problem"></textarea>
+        <textarea class="cell-textarea" id="ta-solution" placeholder="Top 3-5 features or capabilities that address each problem"></textarea>
       </div>
       <div class="cell-actions">
         <button class="btn btn-sm" id="btn-solution" onclick="toggleEdit(&#39;solution&#39;)">Edit</button>
@@ -1162,7 +1278,7 @@ Your content here..."></textarea>
 
 ## 2. Problem
 
-&gt; Top 3 problems your customers face. Also note existing alternatives — how do they solve this today?
+&gt; Top 3-5 problems your customers face. Also note existing alternatives — how do they solve this today?
 
 [Your content here]
 
@@ -1289,6 +1405,8 @@ Your content here..."></textarea>
 <div class="toast success" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script src="firebase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
@@ -1302,6 +1420,191 @@ let canvasList = [];
 let saveTimer = null;
 let cloudReady = false;
 let switchingCanvas = false;
+let readonlyMode = false;
+let routeShareToken = null;
+let activeShareToken = null;
+
+function generateShareToken() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+function isShareToken(s) {
+  if (!s || typeof s !== 'string') return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s)
+    || /^[a-zA-Z0-9_-]{20,36}$/.test(s);
+}
+
+function parseShareTokenFromUrl() {
+  const params = new URLSearchParams(location.search);
+  const q = params.get('share');
+  if (q && isShareToken(q)) return q;
+  const hash = location.hash.replace(/^#\/?/, '').trim();
+  if (hash && isShareToken(hash)) return hash;
+  const parts = location.pathname.split('/').filter(Boolean);
+  if (parts.length >= 2) {
+    const last = parts[parts.length - 1];
+    const prev = parts[parts.length - 2];
+    if (/\.html$/i.test(prev) && isShareToken(last)) return last;
+  }
+  if (parts.length === 1 && isShareToken(parts[0]) && !/\.html$/i.test(parts[0])) return parts[0];
+  return null;
+}
+
+function getLeanCanvasBasePath() {
+  const parts = location.pathname.split('/').filter(Boolean);
+  if (parts.length >= 2 && /\.html$/i.test(parts[parts.length - 2]) && isShareToken(parts[parts.length - 1])) {
+    parts.pop();
+  }
+  return '/' + parts.join('/');
+}
+
+function buildShareUrl(shareToken) {
+  const url = new URL(location.origin + getLeanCanvasBasePath());
+  url.searchParams.set('share', shareToken);
+  url.hash = '';
+  return url.toString();
+}
+
+function clearShareFromBrowserUrl() {
+  const url = new URL(location.origin + getLeanCanvasBasePath());
+  url.search = '';
+  url.hash = '';
+  const next = url.toString();
+  if (location.href !== next) history.replaceState(null, '', next);
+}
+
+function normalizeShareUrlInAddressBar(shareToken) {
+  if (!shareToken) return;
+  const next = buildShareUrl(shareToken);
+  if (location.href !== next) history.replaceState({ shareToken }, '', next);
+}
+
+function updateBrowserUrl(shareToken) {
+  if (!shareToken || !readonlyMode) return;
+  activeShareToken = shareToken;
+  normalizeShareUrlInAddressBar(shareToken);
+}
+
+function publicCanvasRef(shareToken) {
+  return db.collection('publicCanvases').doc(shareToken);
+}
+
+async function syncPublicCanvas(uid, canvasId, shareToken) {
+  if (!uid || !canvasId || !shareToken) return;
+  await publicCanvasRef(shareToken).set({
+    ownerUid: uid,
+    canvasId,
+    title: getCanvasTitle(),
+    cells: getAllCells(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  }, { merge: true });
+}
+
+function syncShareFailureMessage(err) {
+  if (err && err.code === 'permission-denied') {
+    return 'Share not published — deploy Firestore rules';
+  }
+  return 'Share not published';
+}
+
+async function publishShareCanvas(uid, canvasId, opts = {}) {
+  try {
+    const shareToken = await ensureShareToken(uid, canvasId);
+    await syncPublicCanvas(uid, canvasId, shareToken);
+    activeShareToken = shareToken;
+    return { ok: true, shareToken };
+  } catch (e) {
+    console.warn('Share publish failed', e);
+    const entry = canvasList.find(c => c.id === canvasId);
+    if (entry && entry.shareToken) activeShareToken = entry.shareToken;
+    return { ok: false, error: e };
+  }
+}
+
+async function ensureShareToken(uid, canvasId) {
+  const ref = canvasRef(uid, canvasId);
+  const snap = await ref.get();
+  const data = snap.exists ? snap.data() : {};
+  let token = data.shareToken;
+  if (!token || !isShareToken(token)) {
+    token = generateShareToken();
+    await ref.set({ shareToken: token }, { merge: true });
+  }
+  const entry = canvasList.find(c => c.id === canvasId);
+  if (entry) entry.shareToken = token;
+  return token;
+}
+
+function setReadonlyChrome(on) {
+  document.body.classList.toggle('readonly-mode', on);
+  document.getElementById('readonly-banner').hidden = !on;
+  const titleEl = document.getElementById('canvas-title');
+  if (titleEl) titleEl.readOnly = on;
+}
+
+function showShareLoadError() {
+  document.body.classList.remove('auth-pending');
+  document.getElementById('sign-in-empty').hidden = true;
+  document.getElementById('app-content').hidden = true;
+  document.getElementById('share-load-error').hidden = false;
+}
+
+async function loadPublicCanvas(shareToken) {
+  const snap = await publicCanvasRef(shareToken).get();
+  if (!snap.exists) {
+    showShareLoadError();
+    return false;
+  }
+  const data = snap.data();
+  routeShareToken = shareToken;
+  activeShareToken = shareToken;
+  readonlyMode = true;
+  activeCanvasId = data.canvasId || null;
+  applyCanvasData(data);
+  document.body.classList.remove('auth-pending');
+  document.getElementById('share-load-error').hidden = true;
+  document.getElementById('sign-in-empty').hidden = true;
+  document.getElementById('app-content').hidden = false;
+  setReadonlyChrome(true);
+  setCanvasSwitcherVisible(false);
+  document.title = getCanvasTitle() + ' · Lean Canvas (read-only)';
+  normalizeShareUrlInAddressBar(shareToken);
+  return true;
+}
+
+function copyShareLink() {
+  const token = activeShareToken || routeShareToken;
+  if (!token) {
+    showToast('Save the canvas first to get a share link', 'success');
+    return;
+  }
+  const url = buildShareUrl(token);
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('Share link copied', 'success');
+  }).catch(() => {
+    prompt('Copy this link:', url);
+  });
+}
+
+async function tryUpgradeReadonlyIfOwner(user) {
+  if (!readonlyMode || !routeShareToken || !user) return false;
+  const snap = await publicCanvasRef(routeShareToken).get();
+  if (!snap.exists || snap.data().ownerUid !== user.uid) return false;
+  readonlyMode = false;
+  routeShareToken = null;
+  setReadonlyChrome(false);
+  activeCanvasId = snap.data().canvasId;
+  sessionStorage.setItem(activeCanvasStorageKey(user.uid), activeCanvasId);
+  await initUserCanvases(user.uid);
+  clearShareFromBrowserUrl();
+  showToast('You can edit this canvas', 'success');
+  return true;
+}
 
 const DEFAULT_CANVAS_TITLE = 'My Business Model';
 const CELLS = ['problem','solution','uvp','advantage','segments','metrics','channels','costs','revenue'];
@@ -1403,6 +1706,7 @@ async function loadUserCanvases(uid) {
     return {
       id: d.id,
       title: data.title || DEFAULT_CANVAS_TITLE,
+      shareToken: data.shareToken || null,
       updatedAt: data.updatedAt || null,
     };
   });
@@ -1419,13 +1723,15 @@ async function ensureActiveCanvas(uid) {
     const ref = canvasesCol(uid).doc();
     activeCanvasId = ref.id;
     const title = DEFAULT_CANVAS_TITLE;
+    const shareToken = generateShareToken();
     await ref.set({
       title,
       cells: getAllCells(),
+      shareToken,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
-    canvasList.push({ id: activeCanvasId, title, updatedAt: null });
+    canvasList.push({ id: activeCanvasId, title, shareToken, updatedAt: null });
   } else {
     const stored = sessionStorage.getItem(activeCanvasStorageKey(uid));
     activeCanvasId = (stored && canvasList.some(c => c.id === stored))
@@ -1464,10 +1770,34 @@ function showToast(message, type) {
 }
 
 function setAuthUi(user) {
-  const signedIn = !!user;
   document.body.classList.remove('auth-pending');
+  if (routeShareToken && !readonlyMode) {
+    document.getElementById('sign-in-empty').hidden = true;
+    document.getElementById('app-content').hidden = true;
+    document.getElementById('share-load-error').hidden = false;
+    return;
+  }
+  if (readonlyMode) {
+    document.getElementById('sign-in-empty').hidden = true;
+    document.getElementById('share-load-error').hidden = true;
+    document.getElementById('app-content').hidden = false;
+    setReadonlyChrome(true);
+    setCanvasSwitcherVisible(false);
+    const nameEl = document.getElementById('user-menu-name');
+    if (user) {
+      nameEl.textContent = user.displayName || user.email || 'Signed in';
+      nameEl.title = user.email || '';
+    } else {
+      nameEl.textContent = 'Viewing shared canvas';
+      nameEl.title = '';
+    }
+    return;
+  }
+  const signedIn = !!user;
   document.getElementById('app-content').hidden = !signedIn;
   document.getElementById('sign-in-empty').hidden = signedIn;
+  document.getElementById('share-load-error').hidden = true;
+  setReadonlyChrome(false);
   setCanvasSwitcherVisible(signedIn);
   const nameEl = document.getElementById('user-menu-name');
   if (signedIn) {
@@ -1712,7 +2042,11 @@ async function initUserCanvases(uid) {
   try {
     await ensureActiveCanvas(uid);
     renderCanvasSelect();
-    await loadCanvasById(uid, activeCanvasId);
+    const loaded = await loadCanvasById(uid, activeCanvasId);
+    if (loaded) {
+      const pub = await publishShareCanvas(uid, activeCanvasId);
+      if (!pub.ok) setSyncStatus(syncShareFailureMessage(pub.error), 'warn');
+    }
   } catch (e) {
     cloudReady = false;
     setSyncStatus('Load failed', 'err');
@@ -1721,7 +2055,7 @@ async function initUserCanvases(uid) {
 }
 
 async function onCanvasSelectChange() {
-  if (!currentUser || switchingCanvas) return;
+  if (!currentUser || switchingCanvas || readonlyMode) return;
   const id = document.getElementById('canvas-select').value;
   if (!id || id === activeCanvasId) return;
 
@@ -1732,33 +2066,41 @@ async function onCanvasSelectChange() {
     activeCanvasId = id;
     sessionStorage.setItem(activeCanvasStorageKey(currentUser.uid), id);
     const loaded = await loadCanvasById(currentUser.uid, id);
-    if (loaded) showToast('Loaded "' + getCanvasTitle() + '"', 'success');
+    if (loaded) {
+      await publishShareCanvas(currentUser.uid, id);
+      showToast('Loaded "' + getCanvasTitle() + '"', 'success');
+    }
   } finally {
     switchingCanvas = false;
   }
 }
 
 async function createNewCanvas() {
-  if (!currentUser) return;
+  if (!currentUser || readonlyMode) return;
   switchingCanvas = true;
   cloudReady = false;
   try {
     await flushCloudSave();
     const ref = canvasesCol(currentUser.uid).doc();
     const title = uniqueCanvasTitle(DEFAULT_CANVAS_TITLE);
+    const shareToken = generateShareToken();
     await ref.set({
       title,
       cells: {},
+      shareToken,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
     activeCanvasId = ref.id;
     sessionStorage.setItem(activeCanvasStorageKey(currentUser.uid), ref.id);
-    canvasList.unshift({ id: ref.id, title, updatedAt: null });
+    canvasList.unshift({ id: ref.id, title, shareToken, updatedAt: null });
     applyCanvasData({ title, cells: {} });
     renderCanvasSelect();
     cloudReady = true;
     setSyncStatus('New model created', 'ok');
+    const pub = await publishShareCanvas(currentUser.uid, ref.id);
+    if (pub.ok) showToast('Share link ready — use Copy share link', 'success');
+    else showToast(syncShareFailureMessage(pub.error), 'success');
   } catch (e) {
     setSyncStatus('Could not create model', 'err');
     console.error(e);
@@ -1768,29 +2110,34 @@ async function createNewCanvas() {
 }
 
 function scheduleCloudSave() {
-  if (!currentUser || !cloudReady || !activeCanvasId || switchingCanvas) return;
+  if (readonlyMode || !currentUser || !cloudReady || !activeCanvasId || switchingCanvas) return;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => saveCanvasToCloud(currentUser.uid), 800);
 }
 
 async function saveCanvasToCloud(uid, opts = {}) {
-  if (!uid || !activeCanvasId) return;
+  if (!uid || !activeCanvasId || readonlyMode) return;
   if (!opts.silent) setSyncStatus('Saving…', 'warn');
   const title = getCanvasTitle();
   try {
+    const shareToken = await ensureShareToken(uid, activeCanvasId);
     await canvasRef(uid, activeCanvasId).set({
       title,
       cells: getAllCells(),
+      shareToken,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     }, { merge: true });
     const entry = canvasList.find(c => c.id === activeCanvasId);
     if (entry) {
       entry.title = title;
+      entry.shareToken = shareToken;
       canvasList = canvasList.filter(c => c.id !== activeCanvasId);
       canvasList.unshift(entry);
     }
     renderCanvasSelect();
     if (!opts.silent) setSyncStatus('Saved', 'ok');
+    const pub = await publishShareCanvas(uid, activeCanvasId, { skipUrl: opts.silent });
+    if (!pub.ok && !opts.silent) setSyncStatus('Saved · ' + syncShareFailureMessage(pub.error), 'warn');
   } catch (e) {
     setSyncStatus('Save failed', 'err');
     console.error(e);
@@ -1798,6 +2145,14 @@ async function saveCanvasToCloud(uid, opts = {}) {
 }
 
 auth.onAuthStateChanged(async user => {
+  if (readonlyMode) {
+    if (user && await tryUpgradeReadonlyIfOwner(user)) {
+      setAuthUi(user);
+      return;
+    }
+    setAuthUi(user);
+    return;
+  }
   const prevUid = currentUser ? currentUser.uid : null;
   currentUser = user;
   cloudReady = false;
@@ -1805,8 +2160,10 @@ auth.onAuthStateChanged(async user => {
   if (user) {
     if (prevUid && prevUid !== user.uid) applyCanvasData({});
     await initUserCanvases(user.uid);
+    if (!readonlyMode) clearShareFromBrowserUrl();
   } else {
     activeCanvasId = null;
+    activeShareToken = null;
     canvasList = [];
     if (prevUid) sessionStorage.removeItem(activeCanvasStorageKey(prevUid));
     renderCanvasSelect();
@@ -1815,18 +2172,33 @@ auth.onAuthStateChanged(async user => {
   }
 });
 
+function renderCellMarkdown(text) {
+  if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') return null;
+  const html = marked.parse(text, { breaks: true, gfm: true });
+  return DOMPurify.sanitize(html);
+}
+
 function setView(key, text) {
   const view = document.getElementById('view-' + key);
   if (!text) {
     view.textContent = 'Add content…';
     view.classList.add('empty');
+    view.classList.remove('rendered');
   } else {
-    view.textContent = text;
+    const html = renderCellMarkdown(text);
+    if (html !== null) {
+      view.innerHTML = html;
+      view.classList.add('rendered');
+    } else {
+      view.textContent = text;
+      view.classList.remove('rendered');
+    }
     view.classList.remove('empty');
   }
 }
 
 function toggleEdit(key) {
+  if (readonlyMode) return;
   const cell = document.getElementById('cell-' + key);
   const btn  = document.getElementById('btn-' + key);
   const ta   = document.getElementById('ta-' + key);
@@ -1838,6 +2210,8 @@ function toggleEdit(key) {
     btn.classList.remove('btn-save');
     setView(key, getVal(key));
     scheduleCloudSave();
+    const title = (CELL_META[key] && CELL_META[key].title) || key;
+    showToast(title + ' saved', 'success');
   } else {
     cell.classList.add('editing');
     btn.textContent = 'Save';
@@ -1863,7 +2237,7 @@ function generateExport() {
 function generateTemplate() {
   const HINTS = {
     segments:  'Who are your target customers and users? Start with early adopters — who will pay before the product is perfect?',
-    problem:   'Top 3 problems your customers face. Also note existing alternatives — how do they solve this today?',
+    problem:   'Top 3-5 problems your customers face. Also note existing alternatives — how do they solve this today?',
     uvp:       'Single, clear, compelling message. Try an X for Y analogy. What turns an unaware visitor into an interested prospect?',
     solution:  'Outline a possible solution for each problem. Keep it to the minimum viable feature set.',
     channels:  'How do you reach your customers? Early channels are almost always founder-led and outbound.',
@@ -2017,6 +2391,7 @@ function exportFilename() {
 }
 
 document.getElementById('canvas-title').addEventListener('input', () => {
+  if (readonlyMode) return;
   document.title = getCanvasTitle() + ' · Lean Canvas';
   const entry = canvasList.find(c => c.id === activeCanvasId);
   if (entry) {
@@ -2026,8 +2401,22 @@ document.getElementById('canvas-title').addEventListener('input', () => {
   scheduleCloudSave();
 });
 
-CELLS.forEach(key => setView(key, getVal(key)));
-setCanvasTitle(getCanvasTitle());
+async function bootstrap() {
+  const token = parseShareTokenFromUrl();
+  if (token) {
+    routeShareToken = token;
+    try {
+      await loadPublicCanvas(token);
+    } catch (e) {
+      console.error(e);
+      showShareLoadError();
+    }
+    return;
+  }
+  document.body.classList.remove('auth-pending');
+}
+
+bootstrap();
 </script>
 
 

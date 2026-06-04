@@ -19,6 +19,22 @@ Single-page Lean Canvas editor with Firebase Auth and Firestore sync, deployable
    firebase deploy --only firestore:rules
    ```
 
+   Rules must include the `publicCanvases` collection so share links work without sign-in.
+
+## Share links (read-only)
+
+Each canvas gets a stable **share token** (UUID). When you save, a public copy is written to `publicCanvases/{shareToken}` for anonymous read access.
+
+**URL formats** (all open the same canvas):
+
+- **Recommended:** `LeanCanvas.html?share=<share-token>` — works on hard refresh with static servers (Live Server, GitHub Pages).
+- Hash: `LeanCanvas.html#<share-token>`
+- Legacy path `LeanCanvas.html/<share-token>` is still parsed if the server serves the page, but **do not use for new links** — refresh often fails with `ENOTDIR` because `LeanCanvas.html` is a file, not a folder.
+
+Visitors see a **read-only** canvas (no edit, no sign-in required). Owners can use **Sign in to edit** on that page if the canvas is theirs.
+
+Copy a link from the account menu → **Copy share link**.
+
 ## GitHub Pages
 
 Publish `sample.html` (and `firebase-config.js`) from the repo root or `docs/` folder. Both files must be served together so the config script loads.
