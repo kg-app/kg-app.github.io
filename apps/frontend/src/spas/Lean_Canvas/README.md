@@ -21,6 +21,14 @@ Single-page Lean Canvas editor with Firebase Auth and Firestore sync, deployable
 
    Rules must include the `publicCanvases` collection so share links work without sign-in.
 
+## Local development (Live Server)
+
+1. Open the **`Lean_Canvas`** folder in VS Code (so `.vscode/settings.json` applies).
+2. **Go Live** — opens `http://127.0.0.1:5500/` → `index.html` → `LeanCanvas.html`.
+3. Use **`http://127.0.0.1:5500/LeanCanvas.html`** (no trailing slash).  
+   `LeanCanvas.html/` returns **500** on static servers because the host treats it as a folder.
+4. `dev-middleware.js` redirects bad URLs (`LeanCanvas.html/`, legacy `LeanCanvas.html/<uuid>`) when Live Server middleware is enabled. Restart Live Server after pulling changes.
+
 ## Share links (read-only)
 
 Each canvas gets a stable **share token** (UUID). When you save, a public copy is written to `publicCanvases/{shareToken}` for anonymous read access.
