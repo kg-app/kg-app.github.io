@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alpha-Val — Optionality &amp; NPV</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/dm-sans@5.0.18/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/dm-mono@5.0.19/index.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+<style>
+:root{
+  --av-bg-page:#fafaf7; --av-bg-surface:#fff; --av-bg-emph:#fbf7ec; --av-bg-subtle:#f5f2e9;
+  --av-bg-row-alt:#fcfaf3; --av-bg-input:#fffdf7; --av-bg-rail:#0f0d04;
+  --av-line:#e6e0cc; --av-line-strong:#c8b870; --av-line-faint:#efead8;
+  --av-gold-deep:#9a7010; --av-gold:#c4900e; --av-gold-soft:#e5bd55; --av-gold-pale:#f5e8b8;
+  --av-ink:#1a1508; --av-ink-2:#4a3d14; --av-ink-3:#7a6020; --av-ink-mute:#b09040; --av-ink-faint:#c8a84c;
+  --av-sec-pale:#eceef8; --av-sec-soft:#8890cc; --av-sec:#5058a8; --av-sec-deep:#363c80; --av-sec-dark:#222658;
+  --av-green:#2e7d32; --av-green-pale:#e3f0dc; --av-amber:#b87e10; --av-amber-pale:#faedc8;
+  --av-red:#b23b20; --av-red-pale:#f5e2dc; --av-blue:#2a5a8a; --av-blue-pale:#dce6f0;
+  --av-radius-sm:3px; --av-radius-md:4px; --av-radius-lg:6px; --av-radius-pill:10px;
+  --av-font-sans:"DM Sans",-apple-system,sans-serif; --av-font-mono:"DM Mono","SF Mono",monospace;
+  --av-shadow-sm:0 1px 2px rgba(26,21,8,.04); --av-shadow-md:0 2px 8px rgba(26,21,8,.06);
+  /* ColorBrewer Pastel2 (qualitative) — option identity */
+  --optA:#b3e2cd; --optB:#fdcdac; --optC:#cbd5e8;
+  --optA-ink:#2f6e54; --optB-ink:#a05a1e; --optC-ink:#46557e;
+  --optA-line:#7fcaa8; --optB-line:#f2a878; --optC-line:#9aa9d0;
+}
+[data-theme="dark"]{
+  --av-bg-page:#0a0805; --av-bg-surface:#14110a; --av-bg-emph:#1e1808; --av-bg-subtle:#1a150b;
+  --av-bg-row-alt:#18130a; --av-bg-input:#1a150b; --av-bg-rail:#050402;
+  --av-line:#2e2614; --av-line-strong:#6a5418; --av-line-faint:#221c10;
+  --av-gold-deep:#8e6610; --av-gold:#d4a020; --av-gold-soft:#e5bd55; --av-gold-pale:#3a2e10;
+  --av-ink:#f2e6c0; --av-ink-2:#d4be7a; --av-ink-3:#a88b40; --av-ink-mute:#7a6020; --av-ink-faint:#5a4818;
+  --av-sec-pale:#141838; --av-sec-soft:#8890cc; --av-sec:#7880c0; --av-sec-deep:#5058a8; --av-sec-dark:#c4c8e8;
+  --av-green:#6ba86e; --av-green-pale:#1a2a18; --av-amber:#d4a020; --av-amber-pale:#2a2010;
+  --av-red:#d45f40; --av-red-pale:#2a1410; --av-blue:#6090c0; --av-blue-pale:#14202a;
+  /* pastels: dim the fills a touch for dark, keep identity */
+  --optA:#3f6e5a; --optB:#7e5436; --optC:#4a536f;
+  --optA-ink:#a8e0c8; --optB-ink:#f5c79e; --optC-ink:#c2cbe8;
+  --optA-line:#5a8a72; --optB-line:#a0744a; --optC-line:#6a7398;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--av-bg-page);font-family:var(--av-font-sans);color:var(--av-ink);-webkit-font-smoothing:antialiased;line-height:1.45;font-size:13px}
+.mono{font-family:var(--av-font-mono)}
+.mi{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;-webkit-font-smoothing:antialiased;font-variation-settings:'FILL' 0,'wght' 400,'opsz' 20;vertical-align:middle;font-size:18px}
+.mi.s14{font-size:14px} .mi.s16{font-size:16px} .mi.s20{font-size:20px} .mi.s22{font-size:22px} .mi.fill{font-variation-settings:'FILL' 1,'wght' 400,'opsz' 20}
+
+/* ===== APP SHELL ===== */
+.shell{display:flex;height:100vh;overflow:hidden}
+.side{width:152px;flex-shrink:0;background:var(--av-bg-rail);color:#cbb87a;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.side-deco{position:absolute;left:-34px;pointer-events:none;opacity:.45}
+.side-logo{display:flex;align-items:center;gap:8px;padding:15px 14px 16px;position:relative}
+.side-logo .mk{width:20px;height:20px;flex-shrink:0}
+.side-logo .nm{font-size:13px;font-weight:600;color:#e5bd55;letter-spacing:-.01em}
+.side-grp{font-family:var(--av-font-mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#6a5a30;padding:14px 16px 6px}
+.side-item{display:flex;align-items:center;gap:9px;padding:7px 16px;font-size:12px;color:#a89860;cursor:pointer;position:relative}
+.side-item:hover{color:#e5bd55}
+.side-item.on{color:#1a1508;background:#c4900e;font-weight:600}
+.side-item .mi{font-size:16px;opacity:.85}
+.side-item.on .mi{opacity:1}
+.side-foot{margin-top:auto;padding:14px 16px;font-family:var(--av-font-mono);font-size:9px;color:#5a4c28;line-height:1.7}
+
+.col{flex:1;display:flex;flex-direction:column;min-width:0}
+.gtop{height:42px;flex-shrink:0;background:var(--av-bg-rail);color:#a89860;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:12px;position:relative}
+.gtop .ttl{position:absolute;left:50%;transform:translateX(-50%);font-size:11.5px;color:#9a8850}
+.gtop .rt{display:flex;align-items:center;gap:14px;font-family:var(--av-font-mono);font-size:10px;color:#6a5a30}
+.gtop .toggle{display:inline-flex;align-items:center;gap:5px;font-family:var(--av-font-mono);font-size:10px;letter-spacing:.06em;background:#2a2110;border:.5px solid #4a3d14;border-radius:var(--av-radius-md);color:#d4a020;padding:5px 9px;cursor:pointer}
+.gtop .avatar{width:22px;height:22px;border-radius:var(--av-radius-sm);background:#2a2110;border:.5px solid #4a3d14;display:grid;place-items:center;font-size:10px;color:#d4a020;font-family:var(--av-font-mono)}
+
+.phead{flex-shrink:0;background:var(--av-bg-emph);border-bottom:.5px solid var(--av-line);padding:13px 26px 0}
+.pback{font-family:var(--av-font-mono);font-size:11px;color:var(--av-ink-3);cursor:pointer;margin-bottom:7px;display:inline-flex;gap:4px;align-items:center}
+.pback:hover{color:var(--av-ink)}
+.ptop{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.ptitle-row{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.ptitle{font-size:20px;font-weight:600;letter-spacing:-.01em;color:var(--av-ink)}
+.pstatus{display:inline-flex;align-items:center;gap:5px;font-size:11px;background:var(--av-sec-pale);color:var(--av-sec-dark);border:.5px solid var(--av-sec-soft);padding:3px 9px;border-radius:var(--av-radius-pill)}
+.pstatus .mi{font-size:13px}
+.pupd{font-family:var(--av-font-mono);font-size:11px;color:var(--av-ink-mute)}
+.phact{display:flex;align-items:center;gap:8px}
+.icobtn{width:30px;height:30px;display:grid;place-items:center;border:.5px solid var(--av-line);background:var(--av-bg-surface);border-radius:var(--av-radius-sm);color:var(--av-ink-3);cursor:pointer}
+.icobtn:hover{border-color:var(--av-line-strong);color:var(--av-ink)}
+.icobtn.danger{color:var(--av-red)}
+.editbtn{display:inline-flex;align-items:center;gap:6px;background:var(--av-bg-surface);border:.5px solid var(--av-line-strong);border-radius:var(--av-radius-sm);color:var(--av-ink);font-size:12px;font-weight:500;padding:7px 13px;cursor:pointer}
+.editbtn:hover{background:var(--av-bg-subtle)}
+.psub{font-size:12px;color:var(--av-ink-3);margin-top:4px}
+.ptags{display:flex;gap:7px;margin-top:9px}
+.ptag{font-size:11px;color:var(--av-sec-dark);background:transparent;border:.5px solid var(--av-sec-soft);padding:2px 10px;border-radius:var(--av-radius-pill)}
+
+.tabs{display:flex;align-items:center;gap:1px;margin-top:13px;font-size:12.5px;overflow-x:auto}
+.tab{color:var(--av-ink-mute);padding:10px 4px;display:flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer;border-bottom:2px solid transparent}
+.tab.done{color:var(--av-ink-3)}
+.tab:hover{color:var(--av-ink-2)}
+.tab.active{color:var(--av-gold-deep);font-weight:600;border-bottom-color:var(--av-gold)}
+.tab .dot{width:5px;height:5px;border-radius:50%;background:var(--av-gold);display:inline-block}
+.tab.new::after{content:"NEW";font-family:var(--av-font-mono);font-size:7px;letter-spacing:.1em;background:var(--av-sec);color:#fff;padding:2px 4px;border-radius:3px}
+[data-theme="dark"] .tab.new::after{color:var(--av-bg-rail)}
+.tsep{color:var(--av-line-strong);margin:0 6px}
+
+.body{flex:1;overflow-y:auto;padding:20px 26px 70px;background:var(--av-bg-page)}
+.av-scroll{scrollbar-width:thin;scrollbar-color:var(--av-line-strong) transparent}
+.av-scroll::-webkit-scrollbar{width:5px;height:5px}
+.av-scroll::-webkit-scrollbar-thumb{background:var(--av-line-strong);border-radius:2px}
+
+/* sub-nav for optionality screens */
+.subnav{display:flex;align-items:center;gap:2px;margin-bottom:18px;border-bottom:.5px solid var(--av-line);padding-bottom:0}
+.snav{font-family:var(--av-font-sans);font-size:12px;padding:8px 13px;cursor:pointer;color:var(--av-ink-3);border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px;margin-bottom:-.5px}
+.snav .mi{font-size:15px}
+.snav:hover{color:var(--av-ink)}
+.snav.on{color:var(--av-gold-deep);font-weight:600;border-bottom-color:var(--av-gold)}
+
+.eyebrow{font-family:var(--av-font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--av-gold-deep)}
+.card{background:var(--av-bg-surface);border:.5px solid var(--av-line);border-radius:var(--av-radius-md);box-shadow:var(--av-shadow-sm)}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:.5px solid var(--av-line)}
+.card-h .t{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.card-h .s{font-family:var(--av-font-mono);font-size:10px;letter-spacing:.04em;color:var(--av-ink-mute)}
+
+.octx{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.octx-l{display:flex;align-items:baseline;gap:14px}
+.octx .lab{font-family:var(--av-font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--av-gold-deep)}
+.octx .meta{font-family:var(--av-font-mono);font-size:11px;color:var(--av-ink-3)}
+
+/* option swatch dot */
+.optdot{width:9px;height:9px;border-radius:2px;flex-shrink:0;display:inline-block;border:.5px solid rgba(0,0,0,.12)}
+.optdot.A{background:var(--optA)} .optdot.B{background:var(--optB)} .optdot.C{background:var(--optC)}
+
+/* ===== KPIs ===== */
+.kpis{display:flex;gap:10px;margin-bottom:18px}
+.kpi{flex:1;border:.5px solid var(--av-line-strong);border-radius:var(--av-radius-md);padding:12px 14px;background:var(--av-bg-emph)}
+.kpi.win{background:var(--av-ink);border-color:var(--av-ink)}
+.kpi .kl{font-family:var(--av-font-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--av-ink-3);display:flex;align-items:center;gap:6px}
+.kpi.win .kl{color:var(--av-gold-deep)}
+.kpi .kv{font-size:20px;font-weight:600;letter-spacing:-.02em;margin-top:5px}
+.kpi.win .kv{color:var(--av-gold-soft);font-size:22px}
+.kpi .kid{font-family:var(--av-font-mono);font-size:10px;color:var(--av-ink-2);margin-top:2px}
+.kpi.win .kid{color:#cbb87a}
+.kpi .kd{font-family:var(--av-font-mono);font-size:10px;margin-top:3px;color:var(--av-ink-mute)}
+.kpi.win .kd{color:var(--av-gold-deep)}
+
+/* ===== S3 chart ===== */
+.grid{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+.chart-wrap{padding:18px 22px 6px}
+.chart{position:relative;height:330px;margin-left:52px;border-left:.5px solid var(--av-line);border-bottom:.5px solid var(--av-line)}
+.ygrid{position:absolute;left:0;right:0;border-top:.5px dashed var(--av-line-faint);pointer-events:none}
+.ygrid .yl{position:absolute;left:-50px;top:-7px;font-family:var(--av-font-mono);font-size:9px;color:var(--av-ink-mute);width:44px;text-align:right}
+.baseline{position:absolute;left:0;right:0;border-top:1.5px dashed var(--av-sec);z-index:6}
+.baseline .bl-lab{position:absolute;right:4px;top:-15px;font-family:var(--av-font-mono);font-size:9px;color:var(--av-sec-dark);background:var(--av-sec-pale);padding:1px 6px;border-radius:3px}
+.groups{position:absolute;inset:0;display:flex;justify-content:space-around;align-items:flex-end;padding:0 10px}
+.group{display:flex;flex-direction:column;align-items:center;flex:1;height:100%;justify-content:flex-end}
+.bars{display:flex;align-items:flex-end;gap:10px;height:100%;width:100%;justify-content:center}
+.bar{width:46px;position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;cursor:pointer;transition:transform .12s}
+.bar:hover{transform:translateY(-2px)}
+.bar .col-fill{width:100%;border-radius:3px 3px 0 0;transition:height .5s cubic-bezier(.4,0,.2,1);border:.5px solid}
+.bar.A .col-fill{background:var(--optA);border-color:var(--optA-line)}
+.bar.B .col-fill{background:var(--optB);border-color:var(--optB-line)}
+.bar.C .col-fill{background:var(--optC);border-color:var(--optC-line)}
+.bar.is-base .col-fill{outline:1.5px solid var(--av-sec);outline-offset:1px}
+.bar .npv-lab{position:absolute;top:-32px;left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap}
+.bar .npv-lab .v{font-family:var(--av-font-mono);font-size:11px;font-weight:600;color:var(--av-ink);display:block}
+.bar .npv-lab .d{font-family:var(--av-font-mono);font-size:9px;display:block;margin-top:1px}
+.bar .npv-lab .d.up{color:var(--av-green)} .bar .npv-lab .d.dn{color:var(--av-red)} .bar .npv-lab .d.base{color:var(--av-sec-dark)}
+.bar .opt-tag{position:absolute;bottom:-17px;left:50%;transform:translateX(-50%);font-family:var(--av-font-mono);font-size:9px;color:var(--av-ink-mute)}
+.xlabels{display:flex;justify-content:space-around;margin:24px 0 4px 52px;padding:0 10px}
+.xlabels .xl{flex:1;text-align:center;font-size:11px;font-weight:500;color:var(--av-ink-2)}
+.xlabels .xl small{display:block;font-family:var(--av-font-mono);font-size:9px;color:var(--av-ink-mute);font-weight:400;margin-top:2px;text-transform:uppercase;letter-spacing:.06em}
+.legend{display:flex;align-items:center;gap:16px;padding:12px 22px;border-top:.5px solid var(--av-line-faint);flex-wrap:wrap}
+.lg{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--av-ink-2)}
+.lg .sw{width:13px;height:13px;border-radius:3px;border:.5px solid rgba(0,0,0,.12)}
+.lg.A .sw{background:var(--optA)} .lg.B .sw{background:var(--optB)} .lg.C .sw{background:var(--optC)}
+.lg.base .sw{background:transparent;border:1.5px dashed var(--av-sec)}
+
+.tip{position:fixed;z-index:50;background:var(--av-ink);color:var(--av-gold-soft);border-radius:var(--av-radius-md);padding:10px 12px;font-family:var(--av-font-mono);font-size:10.5px;line-height:1.6;box-shadow:0 6px 20px rgba(0,0,0,.25);pointer-events:none;opacity:0;transition:opacity .1s;max-width:230px}
+.tip.show{opacity:1}
+.tip .th{color:#fff;font-weight:600;font-size:11px;margin-bottom:4px}
+.tip .tr{display:flex;justify-content:space-between;gap:14px}
+.tip .tr span:first-child{color:var(--av-ink-mute)}
+
+.inputs{padding:16px 18px}
+.in-row{margin-bottom:16px}
+.in-lab{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--av-font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--av-ink-3);margin-bottom:7px}
+.in-lab .cur{color:var(--av-ink);font-size:12px;font-weight:600;letter-spacing:0}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:var(--av-line-faint);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--av-gold);border:2px solid var(--av-bg-surface);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--av-gold);border:2px solid var(--av-bg-surface);cursor:pointer}
+.in-scale{display:flex;justify-content:space-between;font-family:var(--av-font-mono);font-size:9px;color:var(--av-ink-mute);margin-top:5px}
+.in-reset{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:var(--av-font-mono);font-size:10px;color:var(--av-gold-deep);background:transparent;border:.5px solid var(--av-line);border-radius:var(--av-radius-sm);padding:7px 10px;cursor:pointer;width:100%}
+.in-reset:hover{background:var(--av-bg-emph);border-color:var(--av-line-strong)}
+[data-theme="dark"] .in-reset{color:var(--av-gold)}
+
+.insight{margin-top:18px;background:var(--av-sec-pale);border:.5px solid var(--av-sec-soft);border-radius:var(--av-radius-md);padding:14px 16px}
+.insight .ih{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:600;color:var(--av-sec-dark);margin-bottom:8px;font-family:var(--av-font-mono);letter-spacing:.1em;text-transform:uppercase}
+.insight .ih .mi{font-size:15px;color:var(--av-sec)}
+.insight p{font-size:12px;line-height:1.6;color:var(--av-sec-dark);margin-bottom:9px}
+.insight p:last-child{margin-bottom:0}
+.insight b{font-weight:600}
+
+/* ===== table ===== */
+.tbl-card{margin-top:18px}
+.t{width:100%;border-collapse:collapse;font-size:12px}
+.t th{text-align:right;font-family:var(--av-font-mono);font-size:9px;letter-spacing:.1em;color:var(--av-ink-3);text-transform:uppercase;font-weight:400;padding:11px 12px;border-bottom:.5px solid var(--av-line);background:var(--av-bg-row-alt);white-space:nowrap}
+.t th:first-child,.t th.l{text-align:left}
+.t td{padding:10px 12px;border-bottom:.5px solid var(--av-line-faint);text-align:right;font-family:var(--av-font-mono);white-space:nowrap}
+.t td.l{text-align:left;font-family:var(--av-font-sans)}
+.t tbody tr{cursor:pointer}
+.t tbody tr:hover{background:var(--av-bg-subtle)}
+.t tbody tr.base{background:var(--av-gold-pale)}
+.t tbody tr.base:hover{background:var(--av-gold-pale)}
+.t tbody tr:last-child td{border-bottom:none}
+.scn-id{display:inline-flex;align-items:center;gap:8px;font-family:var(--av-font-mono);font-weight:600;color:var(--av-ink)}
+.tech-name{color:var(--av-ink-2);font-size:11.5px}
+.npv-cell{font-weight:600;color:var(--av-ink);font-size:12.5px}
+.d-up{color:var(--av-green)} .d-dn{color:var(--av-red)}
+.basebadge{font-family:var(--av-font-mono);font-size:9px;letter-spacing:.1em;background:var(--av-sec);color:#fff;padding:2px 7px;border-radius:var(--av-radius-pill)}
+[data-theme="dark"] .basebadge{color:var(--av-bg-rail)}
+.indi{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
+.indi.g{background:var(--av-green)} .indi.a{background:var(--av-amber)} .indi.r{background:var(--av-red)}
+.footnote{font-family:var(--av-font-mono);font-size:10px;color:var(--av-ink-mute);padding:12px 18px;border-top:.5px solid var(--av-line-faint);line-height:1.6}
+
+/* ===== S1 overview ===== */
+.flow-strip{display:flex;align-items:center;gap:0;margin:18px 0;flex-wrap:wrap}
+.flow-node{flex:1;min-width:110px;background:var(--av-bg-surface);border:.5px solid var(--av-line);border-radius:var(--av-radius-md);padding:12px 14px;text-align:center}
+.flow-node .fi{font-size:22px;color:var(--av-gold);display:block;margin-bottom:6px}
+.flow-node .fn{font-size:12px;font-weight:600;color:var(--av-ink)}
+.flow-node .fd{font-family:var(--av-font-mono);font-size:9.5px;color:var(--av-ink-mute);margin-top:3px;letter-spacing:.02em}
+.flow-arrow{color:var(--av-line-strong);padding:0 8px}
+.flow-arrow .mi{font-size:20px}
+.lede{font-size:13px;color:var(--av-ink-2);line-height:1.6;max-width:760px;margin-bottom:6px}
+.struct{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.struct-card{border:.5px solid var(--av-line);border-radius:var(--av-radius-md);padding:14px 16px;background:var(--av-bg-surface)}
+.struct-card .sc-top{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.struct-card .sc-nm{font-size:13px;font-weight:600}
+.struct-card .sc-meta{font-family:var(--av-font-mono);font-size:10.5px;color:var(--av-ink-3);line-height:1.7}
+.struct-card .sc-meta b{color:var(--av-ink);font-weight:600}
+.risk{display:inline-flex;align-items:center;gap:4px;font-family:var(--av-font-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:var(--av-radius-pill)}
+.risk.low{background:var(--av-green-pale);color:var(--av-green)}
+.risk.med{background:var(--av-amber-pale);color:var(--av-amber)}
+.risk.high{background:var(--av-red-pale);color:var(--av-red)}
+.cta{display:inline-flex;align-items:center;gap:7px;background:var(--av-gold);border:none;border-radius:var(--av-radius-sm);color:#fff;font-size:12.5px;font-weight:500;padding:9px 16px;cursor:pointer;margin-top:18px}
+[data-theme="dark"] .cta{color:var(--av-bg-rail)}
+.cta:hover{background:var(--av-gold-deep)}
+
+/* ===== S2 matrix ===== */
+.matrix{display:grid;grid-template-columns:120px 1fr 1fr 1fr;gap:10px;margin-top:6px}
+.mh{padding:12px;border-radius:var(--av-radius-md);text-align:center}
+.mh.corner{background:transparent}
+.mh.opt{border:.5px solid}
+.mh.opt.A{background:var(--optA);border-color:var(--optA-line);color:var(--optA-ink)}
+.mh.opt.B{background:var(--optB);border-color:var(--optB-line);color:var(--optB-ink)}
+.mh.opt.C{background:var(--optC);border-color:var(--optC-line);color:var(--optC-ink)}
+.mh.opt .mo-nm{font-size:12.5px;font-weight:600}
+.mh.opt .mo-meta{font-family:var(--av-font-mono);font-size:10px;margin-top:4px;opacity:.85}
+.mrow-lab{display:flex;flex-direction:column;justify-content:center;padding:10px 8px}
+.mrow-lab .ml-nm{font-size:12px;font-weight:600;color:var(--av-ink)}
+.mrow-lab .ml-tpd{font-family:var(--av-font-mono);font-size:10px;color:var(--av-ink-mute);margin-top:2px}
+.mrow-lab .basebadge{margin-top:6px;align-self:flex-start}
+.mcell{border:.5px solid var(--av-line);border-radius:var(--av-radius-md);padding:13px 14px;background:var(--av-bg-surface);cursor:pointer;transition:all .12s;position:relative}
+.mcell:hover{border-color:var(--av-line-strong);box-shadow:var(--av-shadow-md);transform:translateY(-1px)}
+.mcell.base{background:var(--av-gold-pale);border-color:var(--av-gold)}
+.mcell .mc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.mcell .mc-id{font-family:var(--av-font-mono);font-size:11px;font-weight:600;color:var(--av-ink);display:flex;align-items:center;gap:6px}
+.mcell .mc-npv{font-size:18px;font-weight:600;letter-spacing:-.02em;color:var(--av-ink)}
+.mcell .mc-cap{font-family:var(--av-font-mono);font-size:10px;color:var(--av-ink-3);margin-top:2px}
+.mcell .mc-delta{font-family:var(--av-font-mono);font-size:11px;margin-top:7px;display:flex;align-items:center;gap:5px}
+.mcell .mc-delta.up{color:var(--av-green)} .mcell .mc-delta.dn{color:var(--av-red)} .mcell .mc-delta.base{color:var(--av-sec-dark)}
+
+/* ===== S4/S5/S6 detail ===== */
+.dtabs{display:flex;gap:2px;border-bottom:.5px solid var(--av-line);margin-bottom:16px}
+.dtab{font-size:12.5px;padding:9px 14px;cursor:pointer;color:var(--av-ink-3);border-bottom:2px solid transparent;margin-bottom:-.5px;display:flex;align-items:center;gap:6px}
+.dtab .mi{font-size:15px}
+.dtab:hover{color:var(--av-ink)}
+.dtab.on{color:var(--av-gold-deep);font-weight:600;border-bottom-color:var(--av-gold)}
+.dtab.locked{color:var(--av-ink-faint);cursor:default}
+.dtab.locked:hover{color:var(--av-ink-faint)}
+.scenpick{display:flex;gap:0;border:.5px solid var(--av-line-strong);border-radius:var(--av-radius-sm);overflow:hidden}
+.scenpick button{font-family:var(--av-font-mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;padding:6px 11px;border:none;background:var(--av-bg-surface);color:var(--av-ink-3);cursor:pointer;border-right:.5px solid var(--av-line)}
+.scenpick button:last-child{border-right:none}
+.scenpick button.on{background:var(--av-ink);color:var(--av-gold-soft)}
+.optpick{display:flex;gap:6px}
+.optpick button{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;padding:6px 12px;border:.5px solid var(--av-line);background:var(--av-bg-surface);border-radius:var(--av-radius-sm);cursor:pointer;color:var(--av-ink-2)}
+.optpick button.on{border-color:var(--av-ink);background:var(--av-bg-emph);color:var(--av-ink);font-weight:600}
+
+.two-panel{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
+.eq-t{width:100%;border-collapse:collapse;font-size:12px}
+.eq-t th{text-align:right;font-family:var(--av-font-mono);font-size:9px;letter-spacing:.08em;color:var(--av-ink-3);text-transform:uppercase;font-weight:400;padding:9px 12px;border-bottom:.5px solid var(--av-line);background:var(--av-bg-row-alt)}
+.eq-t th.l{text-align:left}
+.eq-t td{padding:8px 12px;border-bottom:.5px solid var(--av-line-faint);text-align:right;font-family:var(--av-font-mono);color:var(--av-ink)}
+.eq-t td.l{text-align:left;font-family:var(--av-font-sans)}
+.eq-t td.num0{color:var(--av-ink-3)}
+.eq-t .subtot td{background:var(--av-bg-row-alt);font-weight:600;border-top:.5px solid var(--av-line)}
+.eq-t .total td{background:var(--av-bg-emph);font-weight:600;font-size:13.5px;border-top:.5px solid var(--av-line-strong)}
+.capx-card{padding:16px 18px}
+.capx-big{font-size:26px;font-weight:600;letter-spacing:-.02em;margin:4px 0 2px}
+.capx-sub{font-family:var(--av-font-mono);font-size:10px;color:var(--av-ink-3)}
+.pie-wrap{display:flex;align-items:center;gap:16px;margin:18px 0}
+.pie-legend{flex:1;display:flex;flex-direction:column;gap:7px}
+.ple{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--av-ink-2)}
+.ple .sw{width:11px;height:11px;border-radius:2px}
+.ple .pv{margin-left:auto;font-family:var(--av-font-mono);color:var(--av-ink)}
+.accuracy{margin-top:8px}
+.acc-lab{font-family:var(--av-font-mono);font-size:10px;color:var(--av-ink-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
+.acc-bar{position:relative;height:30px;background:var(--av-bg-subtle);border:.5px solid var(--av-line);border-radius:var(--av-radius-sm);overflow:hidden}
+.acc-fill{position:absolute;top:0;bottom:0;background:linear-gradient(90deg,var(--av-gold-pale),var(--av-gold-soft));border-radius:2px}
+.acc-mid{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--av-ink);z-index:2}
+.acc-scale{display:flex;justify-content:space-between;font-family:var(--av-font-mono);font-size:9px;color:var(--av-ink-mute);margin-top:5px}
+.note-sm{font-family:var(--av-font-mono);font-size:10px;color:var(--av-ink-mute);line-height:1.6;margin-top:12px}
+
+/* S6 economics */
+.econ-grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
+.einput{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:11px 0;border-bottom:.5px solid var(--av-line-faint)}
+.einput:last-child{border-bottom:none}
+.einput .el{font-size:12.5px;color:var(--av-ink)}
+.einput .el small{display:block;font-family:var(--av-font-mono);font-size:9.5px;color:var(--av-ink-mute);margin-top:2px}
+.einput .ev{font-family:var(--av-font-mono);font-size:13px;color:var(--av-ink);text-align:right}
+.einput .ev.edit input{width:90px;height:30px;text-align:right;font-family:var(--av-font-mono);font-size:13px;border:.5px solid var(--av-line-strong);border-radius:var(--av-radius-sm);background:var(--av-bg-input);color:var(--av-ink);padding:0 8px}
+.einput .ev.edit input:focus{outline:none;border-color:var(--av-gold)}
+.lockchip{font-family:var(--av-font-mono);font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--av-ink-mute);display:inline-flex;align-items:center;gap:3px}
+.npv-out{padding:18px}
+.npv-out .nl{font-family:var(--av-font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--av-gold-deep)}
+.npv-out .nbig{font-size:34px;font-weight:600;letter-spacing:-.03em;color:var(--av-ink);margin:6px 0 2px}
+.npv-out .ndelta{font-family:var(--av-font-mono);font-size:12px}
+.bridge{margin:18px 0 6px}
+.brow{display:grid;grid-template-columns:120px 1fr 92px;gap:10px;align-items:center;padding:7px 0;font-size:12px}
+.brow .bl{color:var(--av-ink-2);font-family:var(--av-font-mono);font-size:11px}
+.brow .bbar{height:16px;border-radius:2px;position:relative;background:var(--av-bg-subtle)}
+.brow .bbar i{position:absolute;top:0;bottom:0;border-radius:2px}
+.brow .bv{text-align:right;font-family:var(--av-font-mono);font-size:11.5px;color:var(--av-ink)}
+.bf-rev i{background:var(--av-green)} .bf-op i{background:var(--av-red)} .bf-fcf i{background:var(--av-gold)} .bf-cap i{background:var(--av-sec)} .bf-npv i{background:var(--av-ink)}
+.whatif{margin-top:14px;border-top:.5px solid var(--av-line-faint);padding-top:12px}
+.wif{display:flex;align-items:center;justify-content:space-between;font-size:11.5px;padding:5px 0;color:var(--av-ink-2)}
+.wif .wv{font-family:var(--av-font-mono);color:var(--av-ink)}
+.callout{display:flex;gap:9px;background:var(--av-sec-pale);border:.5px solid var(--av-sec-soft);border-radius:var(--av-radius-sm);padding:11px 13px;font-size:11.5px;color:var(--av-sec-dark);line-height:1.55;margin-top:12px}
+.callout .mi{font-size:16px;color:var(--av-sec);flex-shrink:0}
+
+.locked-banner{display:flex;align-items:center;gap:9px;background:var(--av-amber-pale);border:.5px solid var(--av-amber-pale);color:var(--av-amber);padding:9px 13px;border-radius:var(--av-radius-sm);font-size:12px;margin-bottom:14px}
+.locked-banner .mi{font-size:16px}
+
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="side">
+    <div class="side-deco" style="top:210px"><svg width="180" height="180" viewBox="0 0 180 180"><g fill="none" stroke="#1a1508" stroke-width="1"><circle cx="90" cy="90" r="40"/><circle cx="90" cy="90" r="58"/><circle cx="90" cy="90" r="22"/></g></svg></div>
+    <div class="side-deco" style="top:540px"><svg width="180" height="180" viewBox="0 0 180 180"><g fill="none" stroke="#1a1508" stroke-width="1"><circle cx="90" cy="90" r="46"/><circle cx="90" cy="90" r="64"/></g></svg></div>
+    <div class="side-logo">
+      <svg class="mk" viewBox="0 0 24 24" fill="none" stroke="#e5bd55" stroke-width="2"><path d="M4 20 L10 6 L14 16 L17 10 L20 20"/></svg>
+      <span class="nm">Alpha-Val Pro</span>
+    </div>
+    <div class="side-grp">Workspace</div>
+    <div class="side-item"><span class="mi">folder_open</span> Projects</div>
+    <div class="side-grp">FEL Data Vault</div>
+    <div class="side-item"><span class="mi">paid</span> Cost Catalog</div>
+    <div class="side-item"><span class="mi">straighten</span> Sizing Sheets</div>
+    <div class="side-grp">Study</div>
+    <div class="side-item on"><span class="mi">diamond</span> Redrock Copper</div>
+    <div class="side-foot">Copyright 2026, Alpha-Val.<br>All rights reserved.</div>
+  </aside>
+
+  <div class="col">
+    <div class="gtop">
+      <span></span>
+      <span class="ttl">Optionality and Cost Intelligence for Mining Capital Projects</span>
+      <div class="rt">
+        <span>v-alpha-0.854</span>
+        <button class="toggle" onclick="toggleTheme()" id="tgl"><span class="mi s16">dark_mode</span> Dark</button>
+        <span class="avatar">ST</span>
+      </div>
+    </div>
+
+    <div class="phead">
+      <span class="pback"><span class="mi s16">chevron_left</span> All Projects</span>
+      <div class="ptop">
+        <div>
+          <div class="ptitle-row">
+            <span class="ptitle">Redrock Copper Project</span>
+            <span class="pstatus"><span class="mi">trip_origin</span> active</span>
+            <span class="pupd">Updated Jun 8, 2026, 12:41 PM</span>
+          </div>
+          <div class="psub">Porphyry copper sulphide · 0.35% Cu · FEL-1 (Class 5, ±50%)</div>
+          <div class="ptags"><span class="ptag">copper</span><span class="ptag">concentrator</span><span class="ptag">comminution</span><span class="ptag">optionality</span></div>
+        </div>
+        <div class="phact">
+          <button class="icobtn"><span class="mi s16">download</span></button>
+          <button class="icobtn danger"><span class="mi s16">delete</span></button>
+          <button class="editbtn"><span class="mi s16">edit</span> Edit Project</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <span class="tab done">SoW Sources</span><span class="tsep">›</span>
+        <span class="tab done">System Overview</span><span class="tsep">›</span>
+        <span class="tab done">Sized System</span><span class="tsep">›</span>
+        <span class="tab done">PFD</span><span class="tsep">›</span>
+        <span class="tab done">Equipment Costs</span><span class="tsep">›</span>
+        <span class="tab done">Total Installed Costs (TIC)</span><span class="tsep">›</span>
+        <span class="tab active new">Optionality &amp; NPV <span class="dot"></span></span>
+      </div>
+    </div>
+
+    <div class="body av-scroll">
+
+      <!-- sub-nav across the 6 optionality screens -->
+      <div class="subnav" id="subnav">
+        <div class="snav" data-s="S1"><span class="mi">dashboard</span> Overview</div>
+        <div class="snav" data-s="S2"><span class="mi">grid_view</span> Option Matrix</div>
+        <div class="snav on" data-s="S3"><span class="mi">bar_chart</span> NPV Dashboard</div>
+        <div class="snav" data-s="S4"><span class="mi">tune</span> Option Detail</div>
+      </div>
+
+      <!-- ============ S1 OVERVIEW ============ -->
+      <section id="view-S1" class="hidden">
+        <div class="octx"><div class="octx-l"><span class="lab">Optionality Overview</span><span class="meta">FEL-1 base design · 3 technology options · 3 throughput scenarios</span></div></div>
+        <p class="lede">This study evaluates <b>three comminution technologies</b> against <b>three throughput scenarios</b>, generating a 9-scenario NPV matrix from the same FEL-1 base design. Each option runs the full Alpha-Val pipeline — sizing → equipment cost → TIC — then extends into OpEx and revenue to resolve NPV.</p>
+
+        <div class="flow-strip">
+          <div class="flow-node"><span class="mi fi">description</span><div class="fn">Base FEL-1</div><div class="fd">SoW → sized system</div></div>
+          <div class="flow-arrow"><span class="mi">arrow_forward</span></div>
+          <div class="flow-node"><span class="mi fi">account_tree</span><div class="fn">3 Options</div><div class="fd">A · B · C technology</div></div>
+          <div class="flow-arrow"><span class="mi">arrow_forward</span></div>
+          <div class="flow-node"><span class="mi fi">grid_view</span><div class="fn">3 Scenarios</div><div class="fd">throughput scale</div></div>
+          <div class="flow-arrow"><span class="mi">arrow_forward</span></div>
+          <div class="flow-node"><span class="mi fi">payments</span><div class="fn">TIC × 9</div><div class="fd">+ OpEx + revenue</div></div>
+          <div class="flow-arrow"><span class="mi">arrow_forward</span></div>
+          <div class="flow-node"><span class="mi fi">trending_up</span><div class="fn">NPV Matrix</div><div class="fd">best / worst case</div></div>
+        </div>
+
+        <div class="kpis" style="margin-top:18px">
+          <div class="kpi win"><div class="kl"><span class="mi s14">emoji_events</span> Highest NPV</div><div class="kv" id="s1win">$922M</div><div class="kid" id="s1winid">C-S3 · Fine Grind · 20k tpd</div><div class="kd" id="s1windelta">+$284M vs. base</div></div>
+          <div class="kpi"><div class="kl"><span class="mi s14">flag</span> Base case</div><div class="kv" id="s1base">$638M</div><div class="kid">A-S2 · SAG-Ball · 15k tpd</div><div class="kd">CAPEX $245M</div></div>
+          <div class="kpi"><div class="kl"><span class="mi s14">straighten</span> NPV range</div><div class="kv" id="s1range">$383 – 922M</div><div class="kid">spread <span id="s1spread">$539M</span></div><div class="kd">9 scenarios evaluated</div></div>
+        </div>
+
+        <div class="struct">
+          <div class="struct-card">
+            <div class="sc-top"><span class="optdot A"></span><span class="sc-nm">Option A — Conventional SAG-Ball</span></div>
+            <div class="sc-meta">Comminution: <b>SAG + 2 ball mills</b><br>Recovery: <b>85%</b> · OpEx <b>$8.50/t</b><br>Risk: <span class="risk low"><span class="mi s14">verified</span> Low</span></div>
+          </div>
+          <div class="struct-card">
+            <div class="sc-top"><span class="optdot B"></span><span class="sc-nm">Option B — HPGR-Ball Mill</span></div>
+            <div class="sc-meta">Comminution: <b>3-stage crush + 2 HPGR + 1 ball</b><br>Recovery: <b>88%</b> · OpEx <b>$9.20/t</b><br>Risk: <span class="risk med"><span class="mi s14">change_history</span> Medium</span></div>
+          </div>
+          <div class="struct-card">
+            <div class="sc-top"><span class="optdot C"></span><span class="sc-nm">Option C — Fine Grind Enh. Float</span></div>
+            <div class="sc-meta">Comminution: <b>2 ball mills + tower regrind</b><br>Recovery: <b>93%</b> · OpEx <b>$9.80/t</b><br>Risk: <span class="risk high"><span class="mi s14">priority_high</span> Med-High</span></div>
+          </div>
+        </div>
+        <button class="cta" onclick="go('S3')"><span class="mi s16">bar_chart</span> View NPV Dashboard</button>
+      </section>
+
+      <!-- ============ S2 MATRIX ============ -->
+      <section id="view-S2" class="hidden">
+        <div class="octx"><div class="octx-l"><span class="lab">Option Matrix</span><span class="meta">3 technologies × 3 throughputs · click any cell to open detail</span></div>
+          <button class="editbtn" onclick="go('S3')"><span class="mi s16">bar_chart</span> Open NPV Dashboard</button>
+        </div>
+        <div class="matrix" id="matrix"><!-- injected --></div>
+      </section>
+
+      <!-- ============ S3 NPV DASHBOARD ============ -->
+      <section id="view-S3">
+        <div class="octx"><div class="octx-l"><span class="lab">NPV Dashboard</span><span class="meta">9 scenarios · base case A-S2 · live recalculation</span></div></div>
+
+        <div class="kpis">
+          <div class="kpi win"><div class="kl"><span class="mi s14">emoji_events</span> Highest NPV scenario</div><div class="kv" id="kpiWinNpv">$922M</div><div class="kid" id="kpiWinId">C-S3 · Fine Grind · 20k tpd</div><div class="kd" id="kpiWinDelta">+$284M vs. base</div></div>
+          <div class="kpi"><div class="kl"><span class="mi s14">flag</span> Base case</div><div class="kv" id="kpiBaseNpv">$638M</div><div class="kid">A-S2 · SAG-Ball · 15k tpd</div><div class="kd">CAPEX $245M</div></div>
+          <div class="kpi"><div class="kl"><span class="mi s14">straighten</span> NPV range · all options</div><div class="kv" id="kpiRange">$383 – 922M</div><div class="kid">spread <span id="kpiSpread">$539M</span></div><div class="kd">worst <span id="kpiWorstId">B-S1</span></div></div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <div class="card-h"><div class="t"><span class="mi s16">bar_chart</span> NPV by Technology &amp; Throughput</div><div class="s" id="chartBasis">USD · 20-yr · 8.0% disc · Cu $3.80/lb</div></div>
+            <div class="chart-wrap"><div class="chart" id="chart"></div>
+              <div class="xlabels">
+                <div class="xl">Conservative <small>10,000 tpd</small></div>
+                <div class="xl">Base <small>15,000 tpd</small></div>
+                <div class="xl">Expanded <small>20,000 tpd</small></div>
+              </div>
+            </div>
+            <div class="legend">
+              <div class="lg A"><span class="sw"></span> Option A — Conventional SAG-Ball</div>
+              <div class="lg B"><span class="sw"></span> Option B — HPGR-Ball Mill</div>
+              <div class="lg C"><span class="sw"></span> Option C — Fine Grind Enhanced Float</div>
+              <div class="lg base"><span class="sw"></span> Base case (A-S2)</div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-h"><div class="t"><span class="mi s16">tune</span> Economic Inputs</div><div class="s">live</div></div>
+              <div class="inputs">
+                <div class="in-row"><div class="in-lab"><span>Cu Price</span><span class="cur" id="cuVal">$3.80 / lb</span></div>
+                  <input type="range" id="cu" min="2.80" max="4.80" step="0.05" value="3.80" oninput="recalc()">
+                  <div class="in-scale"><span>$2.80</span><span>$3.80</span><span>$4.80</span></div></div>
+                <div class="in-row"><div class="in-lab"><span>Discount Rate</span><span class="cur" id="drVal">8.0 %</span></div>
+                  <input type="range" id="dr" min="5" max="12" step="0.5" value="8" oninput="recalc()">
+                  <div class="in-scale"><span>5%</span><span>8%</span><span>12%</span></div></div>
+                <button class="in-reset" onclick="resetInputs()"><span class="mi s14">restart_alt</span> Reset to base assumptions</button>
+              </div>
+            </div>
+            <div class="insight">
+              <div class="ih"><span class="mi">lightbulb</span> What the numbers say</div>
+              <p id="ins1"></p><p id="ins2"></p>
+              <p id="ins3"><b>Option B (HPGR) is weakest at all scales</b> — its higher CAPEX is not recovered by the modest recovery gain. Option A remains the de-risked anchor.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card tbl-card">
+          <div class="card-h"><div class="t"><span class="mi s16">table_rows</span> All Scenarios — ranked by NPV</div><div class="s">sorted NPV ↓ · click a row to open detail</div></div>
+          <table class="t"><thead><tr>
+            <th class="l">Scenario</th><th class="l">Technology</th><th>Throughput</th><th>CAPEX</th><th>Recovery</th><th>Revenue/yr</th><th>OpEx/yr</th><th>FCF/yr</th><th>NPV</th><th>Δ Base</th>
+          </tr></thead><tbody id="tbody"></tbody></table>
+          <div class="footnote">NPV = annual FCF × PV annuity factor (20 yr) − CAPEX. Recovery is technology-driven; OpEx and CAPEX scale with throughput. FEL-1 / Class 5 estimate (−30% / +50% on the point estimate). Demonstration figures.</div>
+        </div>
+      </section>
+
+      <!-- ============ S4 / S5 / S6 OPTION DETAIL ============ -->
+      <section id="view-S4" class="hidden">
+        <div class="octx">
+          <div class="octx-l"><span class="lab">Option Detail</span><span class="meta" id="detailCtx">A-S2 · Conventional SAG-Ball · Base · 15,000 tpd</span></div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <div class="optpick" id="optpick">
+              <button data-o="A" class="on"><span class="optdot A"></span> Option A</button>
+              <button data-o="B"><span class="optdot B"></span> Option B</button>
+              <button data-o="C"><span class="optdot C"></span> Option C</button>
+            </div>
+            <div class="scenpick" id="scenpick">
+              <button data-s="S1">Conservative</button>
+              <button data-s="S2" class="on">Base</button>
+              <button data-s="S3">Expanded</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="dtabs">
+          <div class="dtab on" data-d="sizing"><span class="mi">straighten</span> Equipment Sizing</div>
+          <div class="dtab" data-d="econ"><span class="mi">trending_up</span> Economics &amp; NPV</div>
+          <div class="dtab locked"><span class="mi s14">lock</span> PFD</div>
+          <div class="dtab locked"><span class="mi s14">lock</span> Layout</div>
+          <div class="dtab locked"><span class="mi s14">lock</span> SLD</div>
+        </div>
+
+        <!-- S5 sizing -->
+        <div id="detail-sizing">
+          <div class="two-panel">
+            <div class="card">
+              <div class="card-h"><div class="t"><span class="mi s16">straighten</span> <span id="eqTitle">Equipment List — Option A</span></div><div class="s" id="eqCount">17 items · sized at 15,000 tpd</div></div>
+              <table class="eq-t"><thead><tr><th class="l">#</th><th class="l">Equipment</th><th class="l">Size / Spec</th><th>Installed $M</th></tr></thead><tbody id="eqBody"></tbody></table>
+            </div>
+            <div>
+              <div class="card">
+                <div class="card-h"><div class="t"><span class="mi s16">payments</span> CAPEX Summary</div></div>
+                <div class="capx-card">
+                  <div class="capx-sub">Total Installed CAPEX</div>
+                  <div class="capx-big" id="capxBig">$245M</div>
+                  <div class="capx-sub" id="capxBasis">Lang factor 1.37× · FEL-1 deterministic sizing</div>
+                  <div class="pie-wrap">
+                    <svg width="92" height="92" viewBox="0 0 36 36" id="capxPie"></svg>
+                    <div class="pie-legend">
+                      <div class="ple"><span class="sw" style="background:var(--av-gold)"></span> Equipment supply <span class="pv">45%</span></div>
+                      <div class="ple"><span class="sw" style="background:var(--av-sec)"></span> Civil / structural <span class="pv">20%</span></div>
+                      <div class="ple"><span class="sw" style="background:var(--av-amber)"></span> E &amp; I <span class="pv">20%</span></div>
+                      <div class="ple"><span class="sw" style="background:var(--av-line-strong)"></span> Other indirect <span class="pv">15%</span></div>
+                    </div>
+                  </div>
+                  <div class="accuracy">
+                    <div class="acc-lab">Study accuracy · FEL-1 Class 5 (−30% / +50%)</div>
+                    <div class="acc-bar"><div class="acc-fill" id="accFill"></div><div class="acc-mid" id="accMid"></div></div>
+                    <div class="acc-scale"><span id="accLo">$172M</span><span id="accPt">point $245M</span><span id="accHi">$368M</span></div>
+                  </div>
+                  <div class="note-sm">CAPEX derived from deterministic sizing against the Alpha-Val cost catalog. Accuracy consistent with FEL-1 study standards.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S6 economics -->
+        <div id="detail-econ" class="hidden">
+          <div class="econ-grid">
+            <div class="card">
+              <div class="card-h"><div class="t"><span class="mi s16">edit_note</span> Economic Inputs</div><div class="s">edit Cu price · OpEx · discount rate</div></div>
+              <div style="padding:6px 18px 14px">
+                <div class="einput"><div class="el">Cu Price <small>commodity assumption</small></div><div class="ev edit"><input id="e_cu" value="3.80" oninput="recalcDetail()"></div></div>
+                <div class="einput"><div class="el">Ore Grade <small>project parameter</small></div><div class="ev">0.35% <span class="lockchip"><span class="mi s14">lock</span></span></div></div>
+                <div class="einput"><div class="el">Throughput <small>set by scenario</small></div><div class="ev" id="e_tpd">15,000 tpd <span class="lockchip"><span class="mi s14">lock</span></span></div></div>
+                <div class="einput"><div class="el">Cu Recovery <small>technology-driven</small></div><div class="ev" id="e_rec">85% <span class="lockchip"><span class="mi s14">lock</span></span></div></div>
+                <div class="einput"><div class="el">OpEx <small>$/t milled</small></div><div class="ev edit"><input id="e_op" value="8.50" oninput="recalcDetail()"></div></div>
+                <div class="einput"><div class="el">Discount Rate <small>annual</small></div><div class="ev edit"><input id="e_dr" value="8.0" oninput="recalcDetail()"></div></div>
+                <div class="einput"><div class="el">Project Life <small>years</small></div><div class="ev">20 <span class="lockchip"><span class="mi s14">lock</span></span></div></div>
+                <div class="einput"><div class="el">CAPEX <small>from sizing</small></div><div class="ev" id="e_capx">$245M <span class="lockchip"><span class="mi s14">lock</span></span></div></div>
+              </div>
+              <div class="callout" style="margin:0 18px 16px"><span class="mi">info</span> Recovery is determined by the comminution technology. To explore a different recovery, switch between Options A, B and C above.</div>
+            </div>
+
+            <div>
+              <div class="card">
+                <div class="card-h"><div class="t"><span class="mi s16">trending_up</span> NPV Output</div><div class="s">live</div></div>
+                <div class="npv-out">
+                  <div class="nl">Net Present Value</div>
+                  <div class="nbig" id="d_npv">$638M</div>
+                  <div class="ndelta" id="d_delta"><span class="basebadge">BASE</span></div>
+
+                  <div class="bridge" id="bridge"><!-- injected --></div>
+
+                  <div class="whatif">
+                    <div class="wif"><span>If Cu rises to $4.50/lb</span><span class="wv" id="wif_up">$792M (+$154M)</span></div>
+                    <div class="wif"><span>If Cu falls to $3.00/lb</span><span class="wv" id="wif_dn">$449M (−$189M)</span></div>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;margin-top:12px">
+                <div class="kpi" style="flex:1"><div class="kl">Annual Cu</div><div class="kv" id="d_prod" style="font-size:16px">16,288 t</div></div>
+                <div class="kpi" style="flex:1"><div class="kl">Annual FCF</div><div class="kv" id="d_fcf" style="font-size:16px">$89.9M</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+/* ===== MODEL ===== */
+const GRADE=0.0035, LB=2204.6, LIFE=20;
+const OPT={
+  A:{name:'Conventional SAG-Ball', rec:0.85, opex:8.50, risk:'Low'},
+  B:{name:'HPGR-Ball Mill',         rec:0.88, opex:9.20, risk:'Medium'},
+  C:{name:'Fine Grind Enhanced Float', rec:0.93, opex:9.80, risk:'Medium-High'},
+};
+const CAPEX={A:{S1:185,S2:245,S3:310}, B:{S1:212,S2:280,S3:352}, C:{S1:198,S2:260,S3:330}};
+const TPD={S1:10000,S2:15000,S3:20000};
+const SCEN={S1:'Conservative',S2:'Base',S3:'Expanded'};
+const ORDER=['A','B','C'], SCN=['S1','S2','S3'];
+const LANG=1.37;
+
+/* equipment lists (S2 spec); sizes annotated per scenario */
+/* [name, spec, installed $M at S2/15k] — from PRD §5 */
+const EQUIP={
+ A:[["Primary Gyratory Crusher","54×74 in",12.8],["Coarse Ore Stockpile (conical)","15,000 t live",3.3],["Reclaim Apron Feeder","1,500 mm × 9 m ×2",2.4],["Belt Conveyor — Crushed Ore","1,200 mm, 450 m",4.7],["SAG Mill","36 ft × 18 ft, 18 MW",38.5],["Ball Mill #1","22 ft × 36 ft, 11 MW",25.4],["Ball Mill #2","22 ft × 36 ft, 11 MW",25.4],["Cyclone Cluster #1","26 in, 12-unit",1.8],["Cyclone Cluster #2","26 in, 8-unit",1.4],["Rougher Flotation Bank","300 m³, 6-cell",17.2],["Scavenger Flotation Bank","300 m³, 4-cell",11.4],["Cleaner Flotation Bank","100 m³, 4-cell",7.4],["Recleaner Flotation Column","3.5 m ⌀, 12 m ×2",6.3],["Concentrate Thickener","30 m ⌀",6.1],["Tailings Thickener","60 m ⌀",10.9],["Concentrate Filter Press","200 m²",7.2],["Slurry Pump — Tailings","500 kW ×2",1.4]],
+ B:[["Primary Jaw Crusher","54×74 in",10.5],["Secondary Cone Crusher #1","7 ft std, 600 kW",6.8],["Secondary Cone Crusher #2","7 ft std, 600 kW",6.8],["Fine Ore Screen","3.6 m × 7.2 m, 2-deck",2.1],["HPGR Unit #1","2.0×1.8 m rolls, 4 MW",18.5],["HPGR Unit #2","2.0×1.8 m rolls, 4 MW",18.5],["Product Screen","3.0 m × 6.0 m, 2-deck",1.8],["Belt Conveyor — HPGR Feed","1,200 mm, 300 m",3.6],["Ball Mill (single)","26 ft × 40 ft, 16 MW",32.4],["Cyclone Cluster","26 in, 12-unit",1.8],["Rougher Flotation Bank","300 m³, 6-cell",17.2],["Scavenger Flotation Bank","300 m³, 4-cell",11.4],["Cleaner Flotation Bank","100 m³, 4-cell",7.4],["Recleaner Flotation Column","3.5 m ⌀ ×2",6.3],["Concentrate Thickener","30 m ⌀",6.1],["Tailings Thickener","60 m ⌀",10.9],["Concentrate Filter Press","200 m²",7.2]],
+ C:[["Primary Gyratory Crusher","54×74 in",12.8],["Secondary Cone Crusher","7 ft std head",6.8],["Tertiary Cone Crusher","7 ft short head",5.9],["Screening Plant","3.6 m × 7.2 m, 3-deck ×2",5.2],["Ball Mill #1 (primary)","24 ft × 36 ft, 13 MW",28.5],["Ball Mill #2 (primary)","24 ft × 36 ft, 13 MW",28.5],["Cyclone Cluster — Primary","26 in, 10-unit",1.5],["Tower Mill / IsaMill (regrind)","6 MW total",14.8],["Cyclone Cluster — Regrind","20 in, 8-unit",1.1],["Rougher Flotation Bank","300 m³, 6-cell",17.2],["Scavenger Flotation Bank","300 m³, 4-cell",11.4],["Cleaner Flotation Bank","100 m³, 4-cell",7.4],["Cleaner-Scavenger Bank","100 m³, 2-cell",3.7],["Recleaner Flotation Column","3.5 m ⌀ ×3",9.4],["Concentrate Thickener","30 m ⌀",6.1],["Tailings Thickener","60 m ⌀",10.9],["Concentrate Filter Press","200 m²",7.2]],
+};
+/* per-scenario throughput->cost scale (six-tenths rule, n=0.6) and size annotation */
+const SIZE_NOTE={S1:"sized at 10,000 tpd · mills 1 step down, flotation −35%",S2:"sized at 15,000 tpd",S3:"sized at 20,000 tpd · mills 1 step up, +1 ball mill / +flotation"};
+function costScale(s){ // relative to S2=15k, six-tenths exponent
+  return Math.pow(TPD[s]/TPD.S2, 0.6);
+}
+
+function pvaf(r){return (1-Math.pow(1+r,-LIFE))/r;}
+function row(o,s,price,rate){
+  const t=TPD[s],rec=OPT[o].rec,opx=OPT[o].opex,cx=CAPEX[o][s];
+  const prod=t*365*GRADE*rec, rev=prod*LB*price/1e6, ope=t*365*opx/1e6, fcf=rev-ope, npv=fcf*pvaf(rate)-cx;
+  return {id:`${o}-${s}`,o,s,scen:SCEN[s],t,cx,rec,prod,rev,ope,fcf,npv};
+}
+function compute(price,rate){const r=[];for(const o of ORDER)for(const s of SCN)r.push(row(o,s,price,rate));return r;}
+const fmt0=n=>'$'+Math.round(n)+'M';
+const fmtSign=n=>(n>=0?'+':'−')+'$'+Math.abs(Math.round(n))+'M';
+const fmt1=n=>'$'+n.toFixed(1)+'M';
+
+/* ===== S3 dashboard ===== */
+let curRows=[];
+function recalc(){
+  const price=parseFloat(document.getElementById('cu').value);
+  const rate=parseFloat(document.getElementById('dr').value)/100;
+  document.getElementById('cuVal').textContent='$'+price.toFixed(2)+' / lb';
+  document.getElementById('drVal').textContent=(rate*100).toFixed(1)+' %';
+  document.getElementById('chartBasis').textContent=`USD · 20-yr · ${(rate*100).toFixed(1)}% disc · Cu $${price.toFixed(2)}/lb`;
+  curRows=compute(price,rate);
+  const base=curRows.find(r=>r.id==='A-S2').npv;
+  const sorted=[...curRows].sort((a,b)=>b.npv-a.npv), best=sorted[0], worst=sorted[sorted.length-1];
+  setKpis(base,best,worst,sorted);
+  const scaleA=curRows.find(r=>r.id==='A-S3').npv-curRows.find(r=>r.id==='A-S1').npv;
+  const cBase=curRows.find(r=>r.id==='C-S2').npv-base;
+  document.getElementById('ins1').innerHTML=`<b>Scale moves NPV most:</b> 10k → 20k tpd adds <b>~${fmt0(scaleA)}</b> across every technology.`;
+  document.getElementById('ins2').innerHTML=`<b>Option C (Fine Grind) leads at every scale</b> — ${fmtSign(cBase)} over base despite the highest OpEx; the higher recovery more than pays for it.`;
+  drawChart(base,best.npv); drawTable(base);
+  // mirror to S1 kpis
+  document.getElementById('s1win').textContent=fmt0(best.npv);
+  document.getElementById('s1winid').textContent=`${best.id} · ${OPT[best.o].name.split(' ')[0]} · ${best.t/1000}k tpd`;
+  document.getElementById('s1windelta').textContent=fmtSign(best.npv-base)+' vs. base';
+  document.getElementById('s1base').textContent=fmt0(base);
+  document.getElementById('s1range').textContent=`$${Math.round(worst.npv)} – ${Math.round(best.npv)}M`;
+  document.getElementById('s1spread').textContent=fmt0(best.npv-worst.npv);
+  drawMatrix(base);
+}
+function setKpis(base,best,worst,sorted){
+  document.getElementById('kpiWinNpv').textContent=fmt0(best.npv);
+  document.getElementById('kpiWinId').textContent=`${best.id} · ${OPT[best.o].name.split(' ')[0]} · ${best.t/1000}k tpd`;
+  document.getElementById('kpiWinDelta').textContent=fmtSign(best.npv-base)+' vs. base';
+  document.getElementById('kpiBaseNpv').textContent=fmt0(base);
+  document.getElementById('kpiRange').textContent=`$${Math.round(worst.npv)} – ${Math.round(best.npv)}M`;
+  document.getElementById('kpiSpread').textContent=fmt0(best.npv-worst.npv);
+  document.getElementById('kpiWorstId').textContent=worst.id;
+}
+function drawChart(base,hi){
+  const chart=document.getElementById('chart'); chart.innerHTML=''; const H=330;
+  const yMax=Math.ceil(hi/100)*100+50, scale=v=>v/yMax*H;
+  for(let v=0;v<=yMax;v+=200){const g=document.createElement('div');g.className='ygrid';g.style.bottom=scale(v)+'px';g.innerHTML=`<span class="yl">$${v}M</span>`;chart.appendChild(g);}
+  const bl=document.createElement('div');bl.className='baseline';bl.style.bottom=scale(base)+'px';bl.innerHTML=`<span class="bl-lab">Base ${fmt0(base)}</span>`;chart.appendChild(bl);
+  const groups=document.createElement('div');groups.className='groups';
+  for(const s of SCN){const grp=document.createElement('div');grp.className='group';const bars=document.createElement('div');bars.className='bars';
+    for(const o of ORDER){const r=curRows.find(x=>x.o===o&&x.s===s),d=r.npv-base;
+      const bar=document.createElement('div');bar.className='bar '+o+(r.id==='A-S2'?' is-base':'');
+      const dcls=r.id==='A-S2'?'base':(d>=0?'up':'dn'),dtxt=r.id==='A-S2'?'BASE':fmtSign(d);
+      bar.innerHTML=`<div class="npv-lab"><span class="v">${fmt0(r.npv)}</span><span class="d ${dcls}">${dtxt}</span></div><div class="col-fill" style="height:${scale(r.npv)}px"></div><span class="opt-tag">${o}</span>`;
+      bar.addEventListener('mousemove',e=>showTip(e,r,base));bar.addEventListener('mouseleave',hideTip);
+      bar.addEventListener('click',()=>openDetail(o,s));
+      bars.appendChild(bar);}
+    grp.appendChild(bars);groups.appendChild(grp);}
+  chart.appendChild(groups);
+}
+function drawTable(base){
+  const tb=document.getElementById('tbody');tb.innerHTML='';
+  for(const r of [...curRows].sort((a,b)=>b.npv-a.npv)){
+    const d=r.npv-base,isBase=r.id==='A-S2',ind=isBase?'a':(d>0?'g':'r');
+    const tr=document.createElement('tr');if(isBase)tr.className='base';
+    tr.innerHTML=`<td class="l"><span class="scn-id"><span class="optdot ${r.o}"></span>${r.id}</span></td><td class="l"><span class="tech-name">${OPT[r.o].name}</span></td><td>${r.t/1000}k tpd</td><td>${fmt0(r.cx)}</td><td>${(r.rec*100).toFixed(0)}%</td><td>${fmt1(r.rev)}</td><td>${fmt1(r.ope)}</td><td>${fmt1(r.fcf)}</td><td class="npv-cell"><span class="indi ${ind}"></span>${fmt0(r.npv)}</td><td class="${isBase?'':(d>0?'d-up':'d-dn')}">${isBase?'<span class="basebadge">BASE</span>':fmtSign(d)}</td>`;
+    tr.addEventListener('click',()=>openDetail(r.o,r.s));
+    tb.appendChild(tr);
+  }
+}
+const tip=document.getElementById('tip');
+function showTip(e,r,base){const d=r.npv-base;
+  tip.innerHTML=`<div class="th">${r.id} · ${OPT[r.o].name}</div><div class="tr"><span>Scenario</span><span>${r.scen} · ${r.t/1000}k tpd</span></div><div class="tr"><span>Recovery</span><span>${(r.rec*100).toFixed(0)}%</span></div><div class="tr"><span>CAPEX</span><span>${fmt0(r.cx)}</span></div><div class="tr"><span>FCF/yr</span><span>${fmt1(r.fcf)}</span></div><div class="tr"><span>NPV</span><span style="color:#fff">${fmt0(r.npv)}</span></div><div class="tr"><span>Δ base</span><span style="color:${d>=0?'#6ba86e':'#d45f40'}">${r.id==='A-S2'?'BASE':fmtSign(d)}</span></div>`;
+  tip.classList.add('show');let x=e.clientX+14,y=e.clientY+14;if(x+240>innerWidth)x=e.clientX-240;tip.style.left=x+'px';tip.style.top=y+'px';}
+function hideTip(){tip.classList.remove('show');}
+function resetInputs(){document.getElementById('cu').value=3.80;document.getElementById('dr').value=8;recalc();}
+
+/* ===== S2 matrix ===== */
+function drawMatrix(base){
+  const m=document.getElementById('matrix');m.innerHTML='';
+  m.appendChild(el('div','mh corner',''));
+  for(const o of ORDER){m.appendChild(el('div','mh opt '+o,`<div class="mo-nm">Option ${o}</div><div class="mo-meta">${OPT[o].name}<br>Rec ${(OPT[o].rec*100).toFixed(0)}% · ${OPT[o].risk}</div>`));}
+  for(const s of SCN){
+    const lab=el('div','mrow-lab',`<div class="ml-nm">${SCEN[s]}</div><div class="ml-tpd">${(TPD[s]/1000)}k tpd</div>${s==='S2'?'<span class="basebadge">BASE ROW</span>':''}`);
+    m.appendChild(lab);
+    for(const o of ORDER){const r=curRows.find(x=>x.o===o&&x.s===s),d=r.npv-base,isBase=r.id==='A-S2';
+      const dcls=isBase?'base':(d>=0?'up':'dn'),ar=isBase?'':(d>=0?'arrow_upward':'arrow_downward');
+      const cell=el('div','mcell'+(isBase?' base':''),`<div class="mc-top"><span class="mc-id"><span class="optdot ${o}"></span>${r.id}</span></div><div class="mc-npv">${fmt0(r.npv)}</div><div class="mc-cap">CAPEX ${fmt0(r.cx)} · Rec ${(r.rec*100).toFixed(0)}%</div><div class="mc-delta ${dcls}">${isBase?'<span class="basebadge">BASE</span>':`<span class="mi s14">${ar}</span>${fmtSign(d)}`}</div>`);
+      cell.addEventListener('click',()=>openDetail(o,s));
+      m.appendChild(cell);
+    }
+  }
+}
+function el(t,c,h){const e=document.createElement(t);e.className=c;e.innerHTML=h;return e;}
+
+/* ===== S4/5/6 detail ===== */
+let dOpt='A', dScn='S2';
+function openDetail(o,s){dOpt=o;dScn=s;go('S4');syncDetail();}
+function syncDetail(){
+  document.querySelectorAll('#optpick button').forEach(b=>b.classList.toggle('on',b.dataset.o===dOpt));
+  document.querySelectorAll('#scenpick button').forEach(b=>b.classList.toggle('on',b.dataset.s===dScn));
+  const r=row(dOpt,dScn,3.80,0.08);
+  document.getElementById('detailCtx').textContent=`${r.id} · ${OPT[dOpt].name} · ${SCEN[dScn]} · ${r.t.toLocaleString()} tpd`;
+  // sizing
+  document.getElementById('eqTitle').textContent=`Equipment List — Option ${dOpt}`;
+  document.getElementById('eqCount').textContent=`${EQUIP[dOpt].length} items · ${SIZE_NOTE[dScn]}`;
+  const eb=document.getElementById('eqBody');eb.innerHTML='';
+  const sc=costScale(dScn);
+  let sub=0;
+  EQUIP[dOpt].forEach((it,i)=>{
+    const c=it[2]*sc; sub+=c;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="l num0">${i+1}</td><td class="l">${it[0]}</td><td class="l" style="font-family:var(--av-font-mono);color:var(--av-ink-3);font-size:11px">${it[1]}</td><td>${c.toFixed(1)}</td>`;
+    eb.appendChild(tr);
+  });
+  const cx=CAPEX[dOpt][dScn];
+  // reconcile: show installed via Lang on the actual subtotal, then the catalog-anchored total
+  const subEl=document.createElement('tr');subEl.className='subtot';subEl.innerHTML=`<td></td><td class="l">Subtotal — Direct Equipment</td><td></td><td>$${sub.toFixed(0)}M</td>`;eb.appendChild(subEl);
+  const lang=document.createElement('tr');lang.innerHTML=`<td></td><td class="l" style="color:var(--av-ink-3)">Lang Factor (installed · civil · structural · E&I)</td><td class="l" style="color:var(--av-ink-3);font-family:var(--av-font-mono)">×${LANG}</td><td style="color:var(--av-ink-3)">$${(sub*LANG).toFixed(0)}M</td>`;eb.appendChild(lang);
+  const tot=document.createElement('tr');tot.className='total';tot.innerHTML=`<td></td><td class="l">Total Installed CAPEX</td><td></td><td>${fmt0(cx)}</td>`;eb.appendChild(tot);
+  document.getElementById('capxBig').textContent=fmt0(cx);
+  document.getElementById('accLo').textContent=fmt0(cx*0.7);
+  document.getElementById('accPt').textContent='point '+fmt0(cx);
+  document.getElementById('accHi').textContent=fmt0(cx*1.5);
+  // accuracy bar: low=70%, high=150% of point => point sits at (1-.7)/(1.5-.7)=37.5%
+  document.getElementById('accFill').style.left='0%';
+  document.getElementById('accFill').style.width='100%';
+  document.getElementById('accMid').style.left=((1-0.7)/(1.5-0.7)*100)+'%';
+  drawPie();
+  // econ
+  document.getElementById('e_cu').value='3.80';
+  document.getElementById('e_op').value=OPT[dOpt].opex.toFixed(2);
+  document.getElementById('e_dr').value='8.0';
+  document.getElementById('e_tpd').innerHTML=`${r.t.toLocaleString()} tpd <span class="lockchip"><span class="mi s14">lock</span></span>`;
+  document.getElementById('e_rec').innerHTML=`${(OPT[dOpt].rec*100).toFixed(0)}% <span class="lockchip"><span class="mi s14">lock</span></span>`;
+  document.getElementById('e_capx').innerHTML=`${fmt0(cx)} <span class="lockchip"><span class="mi s14">lock</span></span>`;
+  recalcDetail();
+}
+function drawPie(){
+  const svg=document.getElementById('capxPie');svg.innerHTML='';
+  const segs=[[45,'var(--av-gold)'],[20,'var(--av-sec)'],[20,'var(--av-amber)'],[15,'var(--av-line-strong)']];
+  let acc=0;const R=15.9,C=2*Math.PI*R;
+  segs.forEach(([p,col])=>{
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx','18');c.setAttribute('cy','18');c.setAttribute('r',R);
+    c.setAttribute('fill','none');c.setAttribute('stroke',col);c.setAttribute('stroke-width','4');
+    c.setAttribute('stroke-dasharray',`${p/100*C} ${C}`);
+    c.setAttribute('stroke-dashoffset',`${-acc/100*C}`);
+    c.setAttribute('transform','rotate(-90 18 18)');
+    svg.appendChild(c);acc+=p;
+  });
+}
+function recalcDetail(){
+  const price=parseFloat(document.getElementById('e_cu').value)||3.80;
+  const opx=parseFloat(document.getElementById('e_op').value)||OPT[dOpt].opex;
+  const rate=(parseFloat(document.getElementById('e_dr').value)||8)/100;
+  const t=TPD[dScn],rec=OPT[dOpt].rec,cx=CAPEX[dOpt][dScn];
+  const prod=t*365*GRADE*rec,rev=prod*LB*price/1e6,ope=t*365*opx/1e6,fcf=rev-ope,npv=fcf*pvaf(rate)-cx;
+  const base=row('A','S2',3.80,0.08).npv;
+  document.getElementById('d_npv').textContent=fmt0(npv);
+  const d=npv-base,isBase=(dOpt==='A'&&dScn==='S2');
+  document.getElementById('d_delta').innerHTML=isBase&&Math.abs(d)<1?'<span class="basebadge">BASE</span>':`<span style="color:${d>=0?'var(--av-green)':'var(--av-red)'}">${fmtSign(d)} vs. base case</span>`;
+  document.getElementById('d_prod').textContent=Math.round(prod).toLocaleString()+' t';
+  document.getElementById('d_fcf').textContent=fmt1(fcf);
+  // bridge
+  const fpv=fcf*pvaf(rate);
+  const maxv=Math.max(rev,ope,fcf,cx,Math.abs(npv),fpv);
+  const W=v=>Math.max(2,Math.abs(v)/maxv*100);
+  document.getElementById('bridge').innerHTML=`
+    ${brow('Revenue/yr','bf-rev',rev,W(rev),fmt1(rev))}
+    ${brow('− OpEx/yr','bf-op',ope,W(ope),'−'+fmt1(ope))}
+    ${brow('= FCF/yr','bf-fcf',fcf,W(fcf),fmt1(fcf))}
+    ${brow('× PV factor','bf-fcf',fpv,W(fpv),'×'+pvaf(rate).toFixed(2))}
+    ${brow('− CAPEX','bf-cap',cx,W(cx),'−'+fmt0(cx))}
+    ${brow('= NPV','bf-npv',npv,W(npv),fmt0(npv))}`;
+  // what-if
+  const up=(prod*LB*4.50/1e6-ope)*pvaf(rate)-cx, dn=(prod*LB*3.00/1e6-ope)*pvaf(rate)-cx;
+  document.getElementById('wif_up').textContent=`${fmt0(up)} (${fmtSign(up-npv)})`;
+  document.getElementById('wif_dn').textContent=`${fmt0(dn)} (${fmtSign(dn-npv)})`;
+}
+function brow(lab,cls,val,w,txt){return `<div class="brow"><span class="bl">${lab}</span><div class="bbar ${cls}"><i style="width:${w}%"></i></div><span class="bv">${txt}</span></div>`;}
+
+/* detail tab + picker wiring */
+document.querySelectorAll('#optpick button').forEach(b=>b.onclick=()=>{dOpt=b.dataset.o;syncDetail();});
+document.querySelectorAll('#scenpick button').forEach(b=>b.onclick=()=>{dScn=b.dataset.s;syncDetail();});
+document.querySelectorAll('.dtab[data-d]').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.dtab[data-d]').forEach(x=>x.classList.remove('on'));t.classList.add('on');
+  const sz=t.dataset.d==='sizing';
+  document.getElementById('detail-sizing').classList.toggle('hidden',!sz);
+  document.getElementById('detail-econ').classList.toggle('hidden',sz);
+});
+
+/* ===== nav ===== */
+function go(s){
+  document.querySelectorAll('#subnav .snav').forEach(n=>n.classList.toggle('on',n.dataset.s===s||(s==='S4'&&n.dataset.s==='S4')));
+  ['S1','S2','S3','S4'].forEach(v=>document.getElementById('view-'+v).classList.toggle('hidden',v!==s));
+  document.querySelector('.body').scrollTo(0,0);
+}
+document.querySelectorAll('#subnav .snav').forEach(n=>n.onclick=()=>{const s=n.dataset.s;go(s);if(s==='S4')syncDetail();});
+
+function toggleTheme(){const h=document.documentElement,d=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',d?'light':'dark');
+  document.getElementById('tgl').innerHTML=d?'<span class="mi s16">dark_mode</span> Dark':'<span class="mi s16">light_mode</span> Light';}
+
+/* init */
+recalc(); syncDetail(); go('S3');
+</script>
+</body>
+</html>

@@ -376,6 +376,17 @@
     color: #fff;
   }
   .btn-sm { padding: 5px 11px; font-size: 0.75rem; border-radius: 8px; }
+  .btn-danger {
+    color: #b91c1c;
+    border-color: rgba(220, 38, 38, 0.35);
+    background: #fff;
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: #fef2f2;
+    border-color: rgba(220, 38, 38, 0.5);
+    color: #991b1b;
+  }
+  .toolbar-btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .btn-save {
     background: var(--secondary);
     color: #fff;
@@ -802,6 +813,47 @@
     padding: 14px 20px; border-top: 1px solid var(--line);
     display: flex; gap: 8px; justify-content: flex-end;
   }
+  .delete-challenge {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .delete-challenge label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ink-2);
+    line-height: 1.45;
+  }
+  .delete-challenge label strong { color: #b91c1c; font-weight: 700; }
+  .delete-challenge input {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.875rem;
+    color: var(--ink);
+    background: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .delete-challenge input:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.12);
+  }
+  .delete-warning {
+    font-size: 0.8125rem;
+    color: var(--ink-2);
+    line-height: 1.55;
+    margin-bottom: 14px;
+  }
+  .delete-warning strong { color: var(--ink); }
+  .modal-note.danger {
+    background: #fef2f2;
+    border-left-color: #dc2626;
+    color: #991b1b;
+  }
 
   /* SIGN-IN EMPTY STATE */
   body.auth-pending #app-content,
@@ -891,12 +943,14 @@
   .toast {
     position: fixed;
     top: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-10px);
+    right: 24px;
+    left: auto;
+    transform: translateY(-10px);
     z-index: 200;
     display: flex;
     align-items: center;
     gap: 8px;
+    max-width: min(360px, calc(100vw - 48px));
     padding: 10px 16px;
     background: var(--bg-surface);
     border: 1px solid var(--line);
@@ -912,7 +966,7 @@
   .toast[hidden] { display: none !important; }
   .toast.show {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateY(0);
   }
   .toast.success { border-color: #a5d6a7; }
   .toast.success::before {
@@ -1122,7 +1176,10 @@
       </div>
       <div class="canvas-toolbar" id="canvas-toolbar" hidden>
         <div class="toolbar-field">
-          <button type="button" class="btn btn-primary btn-sm" onclick="createNewCanvas()">+ New</button>
+          <div class="toolbar-btn-row">
+            <button type="button" class="btn btn-primary btn-sm" onclick="createNewCanvas()">+ New</button>
+            <button type="button" class="btn btn-sm btn-danger" id="delete-canvas-btn" onclick="openDeleteCanvasModal()">Delete</button>
+          </div>
           <span class="toolbar-field-hint" aria-hidden="true">&nbsp;</span>
         </div>
         <div class="toolbar-field">
@@ -1461,8 +1518,8 @@ Your content here..."></textarea>
       <button class="modal-close" onclick="closeModal(&#39;template-modal&#39;)">✕</button>
     </div>
     <div class="modal-body">
-      <div class="modal-note">Each section is a plain text block. Replace placeholder lines with your content. One idea per line works well.</div>
-      <pre id="template-output"># Lean Canvas
+      <div class="modal-note">Includes an LLM prompt at the top (HTML comment) for copy/download — it is stripped on import and never shown in the canvas.</div>
+      <pre id="template-output"># My Business Model
 
 &gt; Date: 2026-06-02  |  Author: [Your name]
 
@@ -1553,6 +1610,30 @@ Your content here..."></textarea>
 </div>
 
 <!-- AUTH MODAL -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal" style="width:min(440px,95vw)">
+    <div class="modal-head">
+      <div>
+        <h2>Delete canvas</h2>
+        <div class="hint">This cannot be undone</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('delete-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-note danger">This canvas and its shared link will be permanently deleted from your account.</div>
+      <p class="delete-warning" id="delete-warning-text">You are about to permanently delete <strong>My Business Model</strong>. All section content will be lost.</p>
+      <div class="delete-challenge">
+        <label for="delete-confirm-input">Type <strong>DELETE</strong> to confirm</label>
+        <input type="text" id="delete-confirm-input" autocomplete="off" spellcheck="false" placeholder="DELETE" oninput="updateDeleteConfirmState()">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" type="button" onclick="closeModal('delete-modal')">Cancel</button>
+      <button class="btn btn-danger" type="button" id="delete-confirm-btn" disabled onclick="confirmDeleteCanvas()">Delete permanently</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="auth-modal">
   <div class="modal" style="width:min(400px,95vw)">
     <div class="modal-head">
@@ -1827,6 +1908,43 @@ async function tryUpgradeReadonlyIfOwner(user) {
 
 const DEFAULT_CANVAS_TITLE = 'My Business Model';
 const CANVAS_TITLE_MAX_LEN = 40;
+const DELETE_CANVAS_CHALLENGE = 'DELETE';
+
+const TEMPLATE_LLM_PROMPT = `* Analyze the problem description and create a populated Lean Canvas single-page business model; ask any questions to clarify missing or uncertain information.
+* Do not generate a visual or graphic representation of the business model, only populate the template below with the content.
+* For each problem statement in the section Problem (#2), the problem statements must accompany an analysis based on the 4U+BLAC framework; include the analyses as sub-bullets for each problem statement. The framework is as follows:
+
+4U and BLAC Frameworks
+
+The 4U Qualifying Criteria
+
+The 4U framework helps entrepreneurs qualify a problem by determining if it meets four specific characteristics:
+
+Unworkable
+This applies when current processes break down operationally, causing delays, errors, or risks. A problem is unworkable if it disrupts workflows across teams or if existing "workarounds" are fragile and unsustainable.
+
+Unavoidable
+This evaluates if fixing the problem is a mandate, often driven by regulation, safety standards, or governance. Find champions among those held responsible for the dire consequences of avoiding these issues.
+
+Urgent
+For B2B, this means the problem is a top priority that has the attention of the C-suite. In B2C, urgency is measured by what consumers would forfeit (such as food or shelter) to solve the problem.
+
+Underserved
+This identifies a "whitespace" in the market where there is a conspicuous absence of valid solutions or only inadequate workarounds.
+
+The BLAC and White Framework
+
+Once a problem is identified using the 4Us, it is further qualified to see if it addresses a "WHITE" space in the market—an open area of opportunity. The BLAC components categorize the nature of the need:
+
+Blatant and Critical
+These problems are acute, acknowledged by the customer, and stand in the way of business, making them the ideal target for B2B startups.
+
+Latent and Aspirational
+Latent problems are unacknowledged and require "missionary selling," while aspirational problems are optional. While difficult for B2B, many successful B2C products, like Facebook, are built on exposing these latent aspirational needs.`;
+
+function stripTemplateImportMetadata(raw) {
+  return raw.replace(/<!--\s*lean-canvas-llm-prompt[\s\S]*?-->/gi, '').trim();
+}
 
 function clampCanvasTitle(text) {
   const t = (text || '').trim();
@@ -2334,6 +2452,103 @@ async function createNewCanvas() {
   }
 }
 
+function openDeleteCanvasModal() {
+  if (!currentUser || readonlyMode || !activeCanvasId) return;
+  const title = getCanvasTitle();
+  document.getElementById('delete-warning-text').innerHTML =
+    'You are about to permanently delete <strong>' + escapeHtml(title) + '</strong>. All section content will be lost.';
+  const input = document.getElementById('delete-confirm-input');
+  input.value = '';
+  updateDeleteConfirmState();
+  openModal('delete-modal');
+  setTimeout(() => input.focus(), 0);
+}
+
+function updateDeleteConfirmState() {
+  const input = document.getElementById('delete-confirm-input');
+  const btn = document.getElementById('delete-confirm-btn');
+  if (!input || !btn) return;
+  btn.disabled = input.value.trim() !== DELETE_CANVAS_CHALLENGE;
+}
+
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function confirmDeleteCanvas() {
+  if (!currentUser || readonlyMode || !activeCanvasId) return;
+  const input = document.getElementById('delete-confirm-input');
+  if (input.value.trim() !== DELETE_CANVAS_CHALLENGE) return;
+
+  const uid = currentUser.uid;
+  const canvasId = activeCanvasId;
+  const entry = canvasList.find(c => c.id === canvasId);
+  const shareToken = entry && entry.shareToken;
+  const deletedTitle = getCanvasTitle();
+
+  switchingCanvas = true;
+  cloudReady = false;
+  const btn = document.getElementById('delete-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = 'Deleting…';
+
+  try {
+    await canvasRef(uid, canvasId).delete();
+    if (shareToken) {
+      try {
+        await publicCanvasRef(shareToken).delete();
+      } catch (e) {
+        console.warn('Public share delete failed', e);
+      }
+    }
+
+    canvasList = canvasList.filter(c => c.id !== canvasId);
+    activeShareToken = null;
+
+    if (!canvasList.length) {
+      const ref = canvasesCol(uid).doc();
+      const title = DEFAULT_CANVAS_TITLE;
+      const newShareToken = generateShareToken();
+      await ref.set({
+        title,
+        cells: {},
+        shareToken: newShareToken,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      activeCanvasId = ref.id;
+      canvasList.push({ id: ref.id, title, shareToken: newShareToken, updatedAt: null });
+      applyCanvasData({ title, cells: {} });
+    } else {
+      activeCanvasId = canvasList[0].id;
+      sessionStorage.setItem(activeCanvasStorageKey(uid), activeCanvasId);
+      await loadCanvasById(uid, activeCanvasId);
+      await publishShareCanvas(uid, activeCanvasId);
+    }
+
+    sessionStorage.setItem(activeCanvasStorageKey(uid), activeCanvasId);
+    renderCanvasSelect();
+    clearShareFromBrowserUrl();
+    cloudReady = true;
+    setSyncStatus('Canvas deleted', 'ok');
+    showToast('Deleted "' + deletedTitle + '"', 'success');
+    closeModal('delete-modal');
+  } catch (e) {
+    cloudReady = true;
+    setSyncStatus('Delete failed', 'err');
+    console.error(e);
+    showToast('Could not delete canvas', 'success');
+  } finally {
+    switchingCanvas = false;
+    btn.textContent = 'Delete permanently';
+    updateDeleteConfirmState();
+  }
+}
+
 function scheduleCloudSave() {
   if (readonlyMode || !currentUser || !cloudReady || !activeCanvasId || switchingCanvas) return;
   clearTimeout(saveTimer);
@@ -2471,7 +2686,8 @@ function generateTemplate() {
     metrics:   'Key numbers that tell you the business is working. Focus on leading indicators, not vanity metrics.',
     advantage: 'Something that cannot easily be bought or copied. Fill this last and be ruthlessly honest.',
   };
-  let md = '# ' + DEFAULT_CANVAS_TITLE + '\n\n';
+  let md = '<!-- lean-canvas-llm-prompt\n' + TEMPLATE_LLM_PROMPT + '\n-->\n\n';
+  md += '# ' + DEFAULT_CANVAS_TITLE + '\n\n';
   md += '> Lean Canvas · Date: ' + new Date().toLocaleDateString('en-CA') + '  |  Author: [Your name]\n\n';
   md += '> Instructions: Fill in each section below, then paste into Import Markdown. One idea per line works well.\n\n---\n\n';
   ORDER.forEach(key => {
@@ -2499,7 +2715,7 @@ function importMarkdown() {
   const raw = document.getElementById('import-textarea').value.trim();
   if (!raw) { showImportStatus('Nothing to import — paste your markdown first.', 'warn'); return; }
 
-  const lines = raw.split('\n');
+  const lines = stripTemplateImportMetadata(raw).split('\n');
   let currentKey = null;
   const blocks = {};
   let gotTitle = false;
@@ -2523,6 +2739,7 @@ function importMarkdown() {
       continue;
     }
     if (line.match(/^---+$/) || line.match(/^#[^#]/) || line.match(/^>\s/)) continue;
+    if (line.trim() === '[Your content here]') continue;
     if (currentKey && line.trim() && line.trim() !== '*(empty)*') {
       blocks[currentKey].push(line.trim());
     }
@@ -2589,7 +2806,7 @@ function downloadText(text, filename) {
   a.click();
 }
 
-['import-modal','template-modal','save-modal','auth-modal'].forEach(id => {
+['import-modal','template-modal','save-modal','auth-modal','delete-modal'].forEach(id => {
   document.getElementById(id).addEventListener('click', e => {
     if (e.target === e.currentTarget) closeModal(id);
   });
@@ -2599,7 +2816,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeUserMenu();
     closeCellTips();
-    ['import-modal','template-modal','save-modal','auth-modal'].forEach(closeModal);
+    ['import-modal','template-modal','save-modal','auth-modal','delete-modal'].forEach(closeModal);
   }
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
     CELLS.forEach(key => {
