@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alpha-Val — Optionality (tree)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/dm-sans@5.0.18/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/dm-mono@5.0.19/index.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+<style>
+:root{
+  --av-bg-page:#fafaf7; --av-bg-surface:#fff; --av-bg-emph:#fbf7ec; --av-bg-subtle:#f5f2e9;
+  --av-bg-row-alt:#fcfaf3; --av-bg-input:#fffdf7; --av-bg-rail:#0f0d04; --av-bg-rail-2:#1a150b;
+  --av-line:#e6e0cc; --av-line-strong:#c8b870; --av-line-faint:#efead8;
+  --av-gold-deep:#9a7010; --av-gold:#c4900e; --av-gold-soft:#e5bd55; --av-gold-pale:#f5e8b8;
+  --av-ink:#1a1508; --av-ink-2:#4a3d14; --av-ink-3:#7a6020; --av-ink-mute:#b09040; --av-ink-faint:#c8a84c;
+  --av-sec-pale:#eceef8; --av-sec-soft:#8890cc; --av-sec:#5058a8; --av-sec-deep:#363c80; --av-sec-dark:#222658;
+  --av-green:#2e7d32; --av-green-pale:#e3f0dc; --av-amber:#b87e10; --av-amber-pale:#faedc8;
+  --av-red:#b23b20; --av-red-pale:#f5e2dc;
+  --av-radius-sm:3px; --av-radius-md:4px; --av-radius-lg:6px; --av-radius-pill:10px;
+  --av-font-sans:"DM Sans",-apple-system,sans-serif; --av-font-mono:"DM Mono","SF Mono",monospace;
+  --av-shadow-sm:0 1px 2px rgba(26,21,8,.04); --av-shadow-md:0 2px 8px rgba(26,21,8,.06); --av-shadow-lg:0 4px 16px rgba(26,21,8,.10);
+  /* Pastel2 — option identity */
+  --optA:#b3e2cd; --optB:#fdcdac; --optC:#cbd5e8; --optD:#f4cae4; --optE:#e6f5c9; --optF:#fff2ae;
+  --optA-ink:#2f6e54; --optB-ink:#a05a1e; --optC-ink:#46557e;
+}
+[data-theme="dark"]{
+  --av-bg-page:#0a0805; --av-bg-surface:#14110a; --av-bg-emph:#1e1808; --av-bg-subtle:#1a150b;
+  --av-bg-row-alt:#18130a; --av-bg-input:#1a150b; --av-bg-rail:#050402; --av-bg-rail-2:#0e0b04;
+  --av-line:#2e2614; --av-line-strong:#6a5418; --av-line-faint:#221c10;
+  --av-gold-deep:#8e6610; --av-gold:#d4a020; --av-gold-soft:#e5bd55; --av-gold-pale:#3a2e10;
+  --av-ink:#f2e6c0; --av-ink-2:#d4be7a; --av-ink-3:#a88b40; --av-ink-mute:#7a6020; --av-ink-faint:#5a4818;
+  --av-sec-pale:#141838; --av-sec-soft:#8890cc; --av-sec:#7880c0; --av-sec-deep:#5058a8; --av-sec-dark:#c4c8e8;
+  --av-green:#6ba86e; --av-green-pale:#1a2a18; --av-amber:#d4a020; --av-amber-pale:#2a2010;
+  --av-red:#d45f40; --av-red-pale:#2a1410;
+  --optA:#3f6e5a; --optB:#7e5436; --optC:#4a536f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--av-bg-page);font-family:var(--av-font-sans);color:var(--av-ink);-webkit-font-smoothing:antialiased;line-height:1.45;font-size:13px}
+.mono{font-family:var(--av-font-mono)}
+.mi{font-family:'Material Symbols Rounded';font-weight:400;line-height:1;letter-spacing:normal;white-space:nowrap;font-variation-settings:'FILL' 0,'wght' 400,'opsz' 20;vertical-align:middle;font-size:18px;user-select:none}
+.mi.s12{font-size:12px} .mi.s14{font-size:14px} .mi.s16{font-size:16px} .mi.s20{font-size:20px} .mi.fill{font-variation-settings:'FILL' 1,'wght' 400,'opsz' 20}
+
+/* ===== APP SHELL ===== */
+.shell{display:flex;height:100vh;overflow:hidden}
+.side{width:152px;flex-shrink:0;background:var(--av-bg-rail);color:#cbb87a;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.side-deco{position:absolute;left:-34px;pointer-events:none;opacity:.45}
+.side-logo{display:flex;align-items:center;gap:8px;padding:15px 14px 16px}
+.side-logo .mk{width:22px;height:auto;display:block;flex-shrink:0;image-rendering:auto}
+.side-logo .nm{font-size:13px;font-weight:600;color:#e5bd55;letter-spacing:-.01em}
+.side-grp{font-family:var(--av-font-mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#6a5a30;padding:14px 16px 6px}
+.side-item{display:flex;align-items:center;gap:9px;padding:7px 16px;font-size:12px;color:#a89860;cursor:pointer}
+.side-item:hover{color:#e5bd55}
+.side-item.on{color:#1a1508;background:#c4900e;font-weight:600}
+.side-item .mi{font-size:16px}
+.side-foot{margin-top:auto;padding:14px 16px;font-family:var(--av-font-mono);font-size:9px;color:#5a4c28;line-height:1.7}
+
+.col{flex:1;display:flex;flex-direction:column;min-width:0}
+.gtop{height:42px;flex-shrink:0;background:var(--av-bg-rail);color:#a89860;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:12px;position:relative}
+.gtop .ttl{position:absolute;left:50%;transform:translateX(-50%);font-size:11.5px;color:#9a8850}
+.gtop .rt{display:flex;align-items:center;gap:14px;font-family:var(--av-font-mono);font-size:10px;color:#6a5a30}
+.gtop .toggle{display:inline-flex;align-items:center;gap:5px;font-family:var(--av-font-mono);font-size:10px;background:#2a2110;border:.5px solid #4a3d14;border-radius:var(--av-radius-md);color:#d4a020;padding:5px 9px;cursor:pointer}
+.gtop .avatar{width:22px;height:22px;border-radius:var(--av-radius-sm);background:#2a2110;border:.5px solid #4a3d14;display:grid;place-items:center;font-size:10px;color:#d4a020;font-family:var(--av-font-mono)}
+
+/* project header */
+.phead{flex-shrink:0;background:var(--av-bg-emph);border-bottom:.5px solid var(--av-line);padding:13px 26px 14px}
+.pback{font-family:var(--av-font-mono);font-size:11px;color:var(--av-ink-3);cursor:pointer;margin-bottom:7px;display:inline-flex;gap:4px;align-items:center}
+.pback:hover{color:var(--av-ink)}
+.ptop{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.ptitle-row{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.ptitle{font-size:20px;font-weight:600;letter-spacing:-.01em;color:var(--av-ink)}
+.pstatus{display:inline-flex;align-items:center;gap:5px;font-size:11px;background:var(--av-sec-pale);color:var(--av-sec-dark);border:.5px solid var(--av-sec-soft);padding:3px 9px;border-radius:var(--av-radius-pill)}
+.pstatus .mi{font-size:13px}
+.pupd{font-family:var(--av-font-mono);font-size:11px;color:var(--av-ink-mute)}
+.phact{display:flex;align-items:center;gap:8px}
+.icobtn{width:30px;height:30px;display:grid;place-items:center;border:.5px solid var(--av-line);background:var(--av-bg-surface);border-radius:var(--av-radius-sm);color:var(--av-ink-3);cursor:pointer}
+.icobtn:hover{border-color:var(--av-line-strong);color:var(--av-ink)}
+.icobtn.danger{color:var(--av-red)}
+.editbtn{display:inline-flex;align-items:center;gap:6px;background:var(--av-bg-surface);border:.5px solid var(--av-line-strong);border-radius:var(--av-radius-sm);color:var(--av-ink);font-size:12px;font-weight:500;padding:7px 13px;cursor:pointer}
+.editbtn:hover{background:var(--av-bg-subtle)}
+.summary-btn{display:inline-flex;align-items:center;gap:6px;background:var(--av-sec);border:.5px solid var(--av-sec);border-radius:var(--av-radius-sm);color:#fff;font-size:12px;font-weight:500;padding:7px 13px;cursor:pointer}
+[data-theme="dark"] .summary-btn{color:var(--av-bg-rail)}
+.summary-btn:hover{background:var(--av-sec-deep)}
+.summary-btn.on{background:var(--av-sec-deep);box-shadow:inset 0 0 0 1px var(--av-sec-pale)}
+.psub{font-size:12px;color:var(--av-ink-3);margin-top:4px}
+.ptags{display:flex;gap:7px;margin-top:9px}
+.ptag{font-size:11px;color:var(--av-sec-dark);background:transparent;border:.5px solid var(--av-sec-soft);padding:2px 10px;border-radius:var(--av-radius-pill)}
+
+/* ===== work area: tree rail + content ===== */
+.work{flex:1;display:flex;overflow:hidden;min-height:0}
+.tree{width:248px;flex-shrink:0;background:var(--av-bg-surface);border-right:.5px solid var(--av-line);display:flex;flex-direction:column;transition:width .2s}
+.tree.collapsed{width:48px}
+.tree-h{display:flex;align-items:center;justify-content:space-between;padding:13px 14px 11px;border-bottom:.5px solid var(--av-line);background:var(--av-bg-emph)}
+.tree-h .ttl{font-family:var(--av-font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--av-gold-deep);display:flex;align-items:center;gap:7px}
+.tree.collapsed .tree-h .ttl-text{display:none}
+.tree-collapse{cursor:pointer;color:var(--av-ink-3);width:22px;height:22px;display:grid;place-items:center;border-radius:var(--av-radius-sm)}
+.tree-collapse:hover{background:var(--av-bg-subtle);color:var(--av-ink)}
+.tree-body{flex:1;overflow-y:auto;padding:6px 0 12px}
+.tree.collapsed .tree-body{display:none}
+.tree-foot{padding:10px 12px;border-top:.5px solid var(--av-line-faint);background:var(--av-bg-row-alt)}
+.tree.collapsed .tree-foot{display:none}
+
+.tnode{position:relative;display:flex;align-items:center;gap:5px;padding:6px 10px 6px 0;cursor:pointer;border-left:2px solid transparent;font-size:12.5px;color:var(--av-ink-2)}
+.tnode:hover{background:var(--av-bg-subtle)}
+.tnode:hover .tnode-menu{opacity:1}
+.tnode.on{background:var(--av-bg-emph);border-left-color:var(--av-gold);color:var(--av-ink);font-weight:600}
+.tnode.base{}
+.tnode.base .tnode-ic{color:var(--av-sec)}
+.tnode-twist{width:14px;height:14px;display:grid;place-items:center;color:var(--av-ink-mute);flex-shrink:0;cursor:pointer}
+.tnode-twist .mi{font-size:14px;transition:transform .15s}
+.tnode.collapsed .tnode-twist .mi{transform:rotate(-90deg)}
+.tnode-twist.empty{visibility:hidden}
+.tnode-ic{width:16px;flex-shrink:0;color:var(--av-ink-mute);display:grid;place-items:center}
+.tnode-ic .mi{font-size:15px}
+.tnode-nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tnode-npv{font-family:var(--av-font-mono);font-size:10.5px;color:var(--av-ink-3);flex-shrink:0;padding-left:6px}
+.tnode.on .tnode-npv{color:var(--av-ink)}
+.tnode-menu{opacity:0;width:20px;height:20px;display:grid;place-items:center;border-radius:var(--av-radius-sm);color:var(--av-ink-3);cursor:pointer;transition:opacity .1s}
+.tnode.on .tnode-menu{opacity:.6}
+.tnode-menu:hover{background:var(--av-bg-subtle);color:var(--av-ink);opacity:1!important}
+.tnode-frozen{font-size:10px;color:var(--av-sec)}
+.tnode-pad-0{padding-left:8px}
+.tnode-pad-1{padding-left:24px}
+.tnode-pad-2{padding-left:40px}
+.tnode-pad-3{padding-left:56px}
+
+/* tree connector lines */
+.tnode-pad-1::before,.tnode-pad-2::before,.tnode-pad-3::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;border-left:.5px dashed var(--av-line);}
+.tnode-pad-1::before{left:16px}
+.tnode-pad-2::before{left:32px}
+.tnode-pad-3::before{left:48px}
+
+.tree-add{display:flex;align-items:center;gap:6px;padding:5px 10px 5px 24px;cursor:pointer;color:var(--av-gold-deep);font-size:11.5px;font-style:normal}
+[data-theme="dark"] .tree-add{color:var(--av-gold)}
+.tree-add.lvl2{padding-left:40px} .tree-add.lvl3{padding-left:56px}
+.tree-add:hover{background:var(--av-bg-subtle)}
+.tree-add .mi{font-size:14px}
+
+.tree-foot-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:8px 0;background:var(--av-ink);color:var(--av-gold-soft);border:none;border-radius:var(--av-radius-sm);font-size:12px;font-weight:500;cursor:pointer}
+.tree-foot-btn .mi{font-size:14px}
+
+.tree-section-h{font-family:var(--av-font-mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--av-ink-mute);padding:10px 14px 5px;display:flex;align-items:center;gap:6px}
+.tree-section-h .mi{font-size:12px;color:var(--av-sec)}
+
+/* ===== content pane ===== */
+.pane{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.crumb-bar{flex-shrink:0;background:var(--av-bg-surface);border-bottom:.5px solid var(--av-line);padding:11px 24px}
+.crumb-top{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--av-ink-3);margin-bottom:8px;flex-wrap:wrap}
+.crumb-top .opt-id{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--av-ink);font-size:13.5px}
+.crumb-top .opt-id .mi{color:var(--av-gold);font-size:16px}
+.crumb-top .opt-frozen .mi{color:var(--av-sec)}
+.crumb-top .badge{font-family:var(--av-font-mono);font-size:9.5px;letter-spacing:.08em;padding:2px 7px;border-radius:var(--av-radius-pill);background:var(--av-bg-subtle);color:var(--av-ink-3)}
+.crumb-top .badge.frozen{background:var(--av-sec-pale);color:var(--av-sec-dark);border:.5px solid var(--av-sec-soft)}
+.crumb-top .badge.draft{background:var(--av-amber-pale);color:var(--av-amber);border:.5px solid var(--av-amber-pale)}
+.crumb-top .badge.ready{background:var(--av-green-pale);color:var(--av-green);border:.5px solid var(--av-green-pale)}
+.crumb-top .path{color:var(--av-ink-mute);font-family:var(--av-font-mono);font-size:10.5px;letter-spacing:.04em}
+.crumb-top .path .seg{color:var(--av-ink-3)}
+.crumb-top .path .sep{color:var(--av-line-strong);margin:0 4px}
+.crumb-actions{display:flex;align-items:center;gap:6px;margin-left:auto}
+
+/* breadcrumb pipeline */
+.crumb{display:flex;align-items:center;gap:0;flex-wrap:wrap;font-size:12.5px}
+.crumb-step{display:inline-flex;align-items:center;gap:6px;padding:6px 11px 6px 10px;border-radius:var(--av-radius-sm);cursor:pointer;color:var(--av-ink-mute);position:relative;transition:color .12s}
+.crumb-step .mi{font-size:15px;opacity:.8}
+.crumb-step.done{color:var(--av-ink-3)}
+.crumb-step.done .mi{opacity:.9}
+.crumb-step:hover{color:var(--av-ink)}
+.crumb-step.on{color:var(--av-gold-deep);font-weight:600;background:var(--av-bg-emph)}
+.crumb-step.on .mi{opacity:1}
+.crumb-step.locked{color:var(--av-ink-faint);cursor:default}
+.crumb-step.locked:hover{color:var(--av-ink-faint)}
+.crumb-sep{color:var(--av-line-strong);font-size:13px;margin:0 2px}
+.crumb-step .stnum{font-family:var(--av-font-mono);font-size:9.5px;color:var(--av-ink-mute);background:var(--av-bg-subtle);width:16px;height:16px;display:grid;place-items:center;border-radius:50%}
+.crumb-step.on .stnum{background:var(--av-gold);color:#fff}
+[data-theme="dark"] .crumb-step.on .stnum{color:var(--av-bg-rail)}
+
+/* body */
+.body{flex:1;overflow-y:auto;padding:22px 26px 60px;background:var(--av-bg-page)}
+.av-scroll{scrollbar-width:thin;scrollbar-color:var(--av-line-strong) transparent}
+.av-scroll::-webkit-scrollbar{width:5px;height:5px}
+.av-scroll::-webkit-scrollbar-thumb{background:var(--av-line-strong);border-radius:2px}
+
+.card{background:var(--av-bg-surface);border:.5px solid var(--av-line);border-radius:var(--av-radius-md);box-shadow:var(--av-shadow-sm)}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:.5px solid var(--av-line)}
+.card-h .t{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.card-h .s{font-family:var(--av-font-mono);font-size:10px;letter-spacing:.04em;color:var(--av-ink-mute)}
+
+.eyebrow{font-family:var(--av-font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--av-gold-deep)}
+.meta{font-family:var(--av-font-mono);font-size:11px;color:var(--av-ink-3)}
+
+/* empty / staged states */
+.state-card{background:var(--av-bg-surface);border:.5px solid var(--av-line);border-radius:var(--av-radius-md);padding:32px 36px;text-align:center;max-width:640px;margin:24px auto}
+.state-card .si{font-size:36px;color:var(--av-gold);margin-bottom:8px}
+.state-card h2{font-size:18px;font-weight:600;margin-bottom:8px}
+.state-card p{color:var(--av-ink-2);font-size:13px;line-height:1.6;margin-bottom:18px}
+.state-card .cta{display:inline-flex;align-items:center;gap:7px;background:var(--av-gold);border:none;border-radius:var(--av-radius-sm);color:#fff;font-size:13px;font-weight:500;padding:10px 18px;cursor:pointer}
+[data-theme="dark"] .state-card .cta{color:var(--av-bg-rail)}
+.state-card .cta:hover{background:var(--av-gold-deep)}
+
+/* generic content placeholders */
+.placeholder-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px}
+.placeholder{background:var(--av-bg-surface);border:.5px solid var(--av-line);border-radius:var(--av-radius-md);padding:18px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between}
+.placeholder .pl-lab{font-family:var(--av-font-mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--av-ink-3)}
+.placeholder .pl-v{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-top:7px}
+.placeholder .pl-sub{font-family:var(--av-font-mono);font-size:10.5px;color:var(--av-ink-mute);margin-top:2px}
+
+/* context menu */
+.cmenu{position:fixed;z-index:200;background:var(--av-bg-surface);border:.5px solid var(--av-line-strong);border-radius:var(--av-radius-md);box-shadow:var(--av-shadow-lg);padding:4px;min-width:170px;font-size:12.5px;display:none}
+.cmenu.open{display:block}
+.cmenu .mitem{display:flex;align-items:center;gap:9px;padding:7px 10px;cursor:pointer;border-radius:var(--av-radius-sm);color:var(--av-ink)}
+.cmenu .mitem:hover{background:var(--av-bg-emph)}
+.cmenu .mitem.danger{color:var(--av-red)}
+.cmenu .mitem.danger:hover{background:var(--av-red-pale)}
+.cmenu .mitem .mi{font-size:15px;color:var(--av-ink-3)}
+.cmenu .mitem.danger .mi{color:var(--av-red)}
+.cmenu .msep{height:.5px;background:var(--av-line);margin:4px 0}
+
+/* freeze CTA card on base case before freeze */
+.banner-freeze{display:flex;align-items:center;gap:12px;background:var(--av-amber-pale);border:.5px solid var(--av-amber-pale);color:var(--av-amber);padding:12px 16px;border-radius:var(--av-radius-md);margin-bottom:20px}
+.banner-freeze .mi{font-size:20px}
+.banner-freeze .tx{flex:1;font-size:12.5px;color:var(--av-ink-2);line-height:1.5}
+.banner-freeze .tx b{color:var(--av-ink);font-weight:600}
+.banner-freeze button{display:inline-flex;align-items:center;gap:6px;background:var(--av-sec);border:none;border-radius:var(--av-radius-sm);color:#fff;font-size:12px;font-weight:500;padding:8px 14px;cursor:pointer}
+[data-theme="dark"] .banner-freeze button{color:var(--av-bg-rail)}
+
+/* NPV Summary modal-pane */
+.summary-pane{padding:22px 26px 60px}
+.npv-bar-chart{position:relative;height:300px;margin:18px 56px 30px;border-left:.5px solid var(--av-line);border-bottom:.5px solid var(--av-line)}
+.npv-bar{position:absolute;bottom:0;border-radius:3px 3px 0 0;border:.5px solid rgba(0,0,0,.1)}
+.npv-bar-lab{position:absolute;top:-26px;left:50%;transform:translateX(-50%);font-family:var(--av-font-mono);font-size:10.5px;font-weight:600;color:var(--av-ink);white-space:nowrap}
+.npv-bar-id{position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);font-family:var(--av-font-sans);font-size:13px;font-weight:600;color:var(--av-ink);white-space:nowrap;letter-spacing:-.01em}
+.npv-bar-id small{display:block;font-family:var(--av-font-mono);font-size:9px;color:var(--av-ink-mute);font-weight:400;margin-top:2px;letter-spacing:.04em;text-transform:uppercase}
+.npv-y{position:absolute;left:-50px;font-family:var(--av-font-mono);font-size:9px;color:var(--av-ink-mute);width:44px;text-align:right}
+.npv-baseline{position:absolute;left:0;right:0;border-top:1.5px dashed var(--av-sec);z-index:5}
+.npv-baseline-lab{position:absolute;right:4px;top:-15px;font-family:var(--av-font-mono);font-size:9px;color:var(--av-sec-dark);background:var(--av-sec-pale);padding:1px 6px;border-radius:3px}
+
+.t{width:100%;border-collapse:collapse;font-size:12px}
+.t th{text-align:right;font-family:var(--av-font-mono);font-size:9px;letter-spacing:.1em;color:var(--av-ink-3);text-transform:uppercase;font-weight:400;padding:11px 12px;border-bottom:.5px solid var(--av-line);background:var(--av-bg-row-alt);white-space:nowrap}
+.t th.l,.t th:first-child{text-align:left}
+.t td{padding:10px 12px;border-bottom:.5px solid var(--av-line-faint);text-align:right;font-family:var(--av-font-mono);white-space:nowrap}
+.t td.l{text-align:left;font-family:var(--av-font-sans)}
+.t tbody tr.base{background:var(--av-gold-pale)}
+.basebadge{font-family:var(--av-font-mono);font-size:9px;letter-spacing:.1em;background:var(--av-sec);color:#fff;padding:2px 7px;border-radius:var(--av-radius-pill)}
+[data-theme="dark"] .basebadge{color:var(--av-bg-rail)}
+.d-up{color:var(--av-green)} .d-dn{color:var(--av-red)}
+
+/* dialog */
+.dlg-back{position:fixed;inset:0;background:rgba(26,21,8,.4);display:none;align-items:center;justify-content:center;z-index:300}
+.dlg-back.open{display:flex}
+.dlg{background:var(--av-bg-surface);border:.5px solid var(--av-line-strong);border-radius:var(--av-radius-lg);box-shadow:var(--av-shadow-lg);min-width:380px;max-width:520px;overflow:hidden}
+.dlg-h{padding:14px 18px;border-bottom:.5px solid var(--av-line);font-weight:600;display:flex;align-items:center;gap:8px}
+.dlg-h .mi{color:var(--av-red)}
+.dlg-b{padding:16px 18px;font-size:12.5px;color:var(--av-ink-2);line-height:1.6}
+.dlg-b b{color:var(--av-ink)}
+.dlg-b ul{margin:8px 0 0 18px}
+.dlg-b ul li{margin-bottom:3px}
+.dlg-f{padding:11px 18px;border-top:.5px solid var(--av-line);display:flex;justify-content:flex-end;gap:8px;background:var(--av-bg-emph)}
+.dlg-f button{font-size:12px;padding:7px 14px;border-radius:var(--av-radius-sm);cursor:pointer;border:.5px solid}
+.dlg-f .cancel{background:var(--av-bg-surface);color:var(--av-ink);border-color:var(--av-line-strong)}
+.dlg-f .confirm{background:var(--av-red);color:#fff;border-color:var(--av-red)}
+.dlg-f .confirm:hover{background:#982f18}
+.dlg input.rename{width:100%;padding:8px 11px;border:.5px solid var(--av-line-strong);border-radius:var(--av-radius-sm);background:var(--av-bg-input);font-family:var(--av-font-sans);font-size:13px;color:var(--av-ink);margin-top:10px}
+.dlg input.rename:focus{outline:none;border-color:var(--av-gold)}
+
+.hidden{display:none!important}
+
+.side-study{padding:2px 14px 6px}
+.side-study .ss-nm{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:600;color:#e5bd55;padding:4px 0 4px 2px}
+.side-study .ss-nm .mi{font-size:16px;color:#c4900e}
+.side-study .ss-focus-lab{font-family:var(--av-font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#5a4c28;margin-top:8px;padding-left:2px}
+.side-study .ss-focus{font-size:11.5px;color:#cbb87a;margin-top:3px;padding:4px 8px 4px 2px;line-height:1.35;border-left:2px solid #c4900e;padding-left:8px;margin-left:-8px}
+.side-study .ss-focus.summary{color:#a89860;font-style:italic;border-left-color:#5058a8}
+
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- left dark sidebar -->
+  <aside class="side">
+    <div class="side-deco" style="top:210px"><svg width="180" height="180" viewBox="0 0 180 180"><g fill="none" stroke="#1a1508" stroke-width="1"><circle cx="90" cy="90" r="40"/><circle cx="90" cy="90" r="58"/><circle cx="90" cy="90" r="22"/></g></svg></div>
+    <div class="side-deco" style="top:540px"><svg width="180" height="180" viewBox="0 0 180 180"><g fill="none" stroke="#1a1508" stroke-width="1"><circle cx="90" cy="90" r="46"/><circle cx="90" cy="90" r="64"/></g></svg></div>
+    <div class="side-logo"><img class="mk" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABQCAYAAADm4nCVAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAX+ElEQVR42u1dd3xc1ZX+zr3vzWgkjSTLsiwXjMFyk2wTkNkEQpCVBCfUFBgFCCwJhDUtSzGQQIDRgB06hGKICayzoYUZSiC03QRksbtUi2bLcgdccFcbacp7996zf7wZN9yR7dHv5/unRiPfe7572nfOPQb6+OJoSALAkzePOfPtmaMWfPqfh6kPHxsZf+GOMfcBBA5DAKBc3T/1beFDUj30i7ePvH70UJ4uSSOVNiwkqLjAh8Wr/Q/VXTbvUmYIIphcPIPoq8KPRkOS6qFfurPql0ccztONdk0ibQxIkDLgzm5HHVaevOSv08f+mAgmmtGUgwD0wgqHIUKhmHnklgmHDSlzZzhpV7uKSBAJgCFApDUI0KaiWP0GAIVaYnwQgF5aDdUgInBlaer35YUmkHKJhdjGnAqSySQoGFBH33XVhJEUgQmHc++8oi/efqqHvu+6b1T1D5hQV1IbEKyvOjeCZqOLg0IeWuYcAwCTUHsQgK+7Jk3yhDhyQOL80iJIZdhsP5JgGBD8BBQFnDHelw+aoF4AoEmjpsYu8runpV0FYtrhGYgBAwaxb2iunkf0OfND4McmJ0cWBMSIlAMG7TiUZoAAQiKZHAAAk9aX80EAvs7tz9jwIWXON4rzSRjP/Ow4l8mIW/js1EEN6B0EAAAOi6OkZNAmEe/ABBGYABTk2ysBYPaAdTmXeFp9Sv7rmxgAgn51SFbCu87zGW4ytfqgBvTGCnk33iKU8C6sOXvyJ0cT2rr8yw76gF6ifwCgvccdCAaYd+KAGSyIZGccekWn/SEANORgNmz1MQAIAJcW+VeDzBFEMFlN8PxBJu4hCClZ5PsE2hJo/c19c5cwg3KRkOtbGhALEQA4adlFBFiS7GCAZFGBkMWFwioOWlZhvmVJS4pkSsYNC92Zkq8D0LNn1+YkGdenNCAbxSQcWmJZzO1xs0ITrVdKdNg+3/LutLvGSYqV8W699PO41X38SJ4d38hPAMCk2U3mIABfc63PONGEwGwi6/qOFD446arFZ2zvd5tmHP5i2rU+OHPaok+Yw4IocrAe8LWDoPqYAYCWj4re+2KdXj/uUHP63+4YedtXLNX0UdMGlvpOW7lBXsgMQkMkp51a3wqDoiFJ9TH98p2j7z5yRPqqeMLCmo3ylVWJgvBaiPbxeR1XHjlSXvb+Qv7tSVMX3R6NQtbXQx8EoLcAYBAaQA0dtUV1Y9Z+WFmWPixtCF09ZAQxDxvklwtW0h+O+dX8KxvDtVZdpEnl8nn6HBtKBG4AELmvqeOfnwZOXtkReC+dBgoCLJipZ/Yn5nfH/Kr1SmaIukiTxsG1b9bm6hbTE+Hxxz8ZqTz1kvOqKgBkOyH6hjb31cUM4jAEfcVHQOb83vt4N8q2vouiIchoFDJzowjIXRA2ay7h5qsmn9Ina8IA+IEbxo+fGf7G9wFwS1WY6+uhicB3Xzk0b9rlh0/e+rC5saJRyEgE5s6pEwqenl5z/aBSta5PAcAANVSHqKamxh43WD1zeMApB4CG6vnZm4+uHl3QL5h3LAA0NCBnyLfGcK1VXw89646jKw4t0090xTvfv/CGN9/vUwDMbqyVVB/T08+O3z+igsd+4TitAICW2CZ2evigoVZ5ka4EACFyAwBu9MLhp+4YN2FIoOclUvrhKbct/mc4XGv1GSqiMVxr1dU1qRdvHXvOmEPURevaUm7HOl8SABoAIAxCBCzTbYUFJVQJQDJDZzTjgAExZ2aNTXVN7t/vmvCD4gI1yzLirMk3zm/K5ih9QgOiIci6SJN6NDxx3PAK/UdXO6yNSKYpf+O2piYQNPl5EsN+/sPKggNtLjkKOXFKs/vitDGXlQRTr8WTOOfYS+c1zZxZY2cTxJwHIByGCEXBl4SqCqsHdzxbkOcWKAXSWvY8EzWJTHKG6mrPB0gZKPLbVP6tEenCTLh6YAIFBqge+u2Hx95cORwPrGzvOfnkq+a/OXNmjT1lSrPbZzLhSZNqBRFM6Hjz6NAyM7o7pR2fLaDZdHy6dm5PpizMLS21BABGq7J+QWJZZJcCQKx+/54xGg3JSASGKCTeeWT0XwaX4cbP49bks3676rXGxlprS+HnPABZu//CHROuPnyQ+llHt1ISQgoiCMFrAcYzz3gx/6TMd4IBLg7mExUKqxwAWqr2X9LjRToxfe65R/f/aNYnrw8ro3Nfe9895+SL5/1jzswau67uq7xUzgIQjXp2/883jq4bXdFzWyLlKhghGYAQhGTC6gaAEEJbfc8YGphvAcXFqf5bArPPhZ+JdO6b+i9VU7/f+dbA/uL7//ep+deL71zy5JyZNfbEbW5+TgPgtZ/D3H7NkYPHDddPWZYRjoIAgQjMBAYLWgNs0eszKcsMyYHSYjD5B3k/qd0/YWZdk5o1fdT3ao9obyovoqo5C/3n1zcsenxnws9VAMhrP2d8c3jimfKgqUimjBHYsgeUwEat2TpJaAIA+P2J/kSAD2II9rEKZCMdqmtSz9869vx/GaZfKS80ZW987F532jWfzOLGWmtnws9JABobayXVQ//X/WPuGTHQPa6zRyspSG7JAhkmJB250RN8xlk3ZDoeDA3UzMjzpcu9T5r2eaTz2n3VDeMOTT9WVAD/B4t9kXMjy27jxlqL6nZdi8gpALJO9+lpVb8YVa6viHdrBSKLt752pAygYK8BgEnVmWarBg+ePNtXYpQBkzXIi6J6vxUlGkIm0qmxmmaMf2xsRSKcZzPeWUAzfvSb1oZGT/i7VYvImUw4GoWsq29ST9xcM75qaPzhtFJaMcltuw9ZgJQySCUTGwAghpiXCkRggBob3DFAaQ2/7S/dF1lwNoO9+Ozj+p1bu/GvQ/o5kw0JLFkXeLj++nmXMYckUUzv7r+bExqQcbocvry2ZPSg+HOFeU5e2gXRNq3nDECAyHEBRmADAIRaNudaoVB7vpQIppUB2K2orKz0EWW7FHtP+LdfPnH0+d9ve2tQSXKyAaPlc+uF714671KOQoJiZk9AzwUAKJts1VaufaqinzuyJ8lK0Pb3JglIK+F8tpriWcvTEPYEPGpgYSkJLnZcAUkoPeWbVmlvZcNZQu3p6Ud954QjO98qDnSPI7awqiPwt1OuWRhiBiEEQ3uocQccgMbGWllX16RevafqlspB6sSOHu0SCWsHYQeTNKS1SSxapzuyPFD1fA+ACu7u7xPkU4rYtin/kBIuy/zOXmsAA8QcklTXpJ66ddw51UO7/pkvnQG2kFjWhrfP/I/g2cwwDQ1evXpP//4BBSDrdJ+/dXxo5CDnhnjCUczC2uElIrBFAkRof/xvAzuzPFA2FxtQTkG/X5OG0YV+pkOHin7AZp5oryMdiumX7h57w1HDU49bcIVtS1rR5mt5obX0xFXvvZtsaABFInvn7A8YANFoSNZFmtSMq4+ccHhF6s/auEYpIXf14kVIQkpZXUCTzha1B2R4IMuW5bYlQGDlswV8Aodu+fnecTr/Zr1x/4Q/TRjm3OKmleP3kdXR7Vv87JvuSQ888H6XuQlib4V/wAAIhyFCLTH+7dnH9asZmXgumO/mpx2CFLxTQRHAggBtuA2bngBsVhetxGBLChgDSAlI4YzYm2Qsy+mEL/hW6dszm14bNbT7V50JN53vg93eIzc0Lgmecn9s2fJoFJIiXy/MPRAAeE43AvODY9ufHNzfqYz3sJYEscsuDWImQQA76+HFoFvREP2LVVCS8WIlGPgtUenlArv/MGNOhqu//rzx3/rB0RvnDO3vfK+tQzl5UvjakjI974viH1592weLotFQr3Tc7fc8gBtrJdU1qVf/MOaOURXpEzfGjZJim2RrxxYIAoCj7fUeD1RLW2a6DBqU9dVaA5ZtRnufxMyucgJmEGIQVN/s/nX6qB+PGZqcVexXJZ1dcH0+WAll4eNl4icXTv+wuTFca9XVx3ql426/akAmQ1Qv3VN97ugKc01Hj6OIaC8ugb3Vm69NT480Dc6EnMJRDJ80I84+eVg/op1HotFoSBKBqR76lXuqbhw/XL+QL92SjgS0ZUEQ+cWHi+UFF05f9HpvtzvuNwCi0ZCsq2tST0Sqvz2iLP2Y66a1MkLu6WaVAVJJdyseCCHv6VGebUoMM8AkHGU4mE8lJ0zM97QgvF37Ro2Nnr2/YPLk0qaHRsbGHeLczEqZpEvGZxn259nyg+W49oLpC2fN2aKU2KcA4DBEfX1M33v5EcOrDnGf81mu7SiQ2CLTZQYzs2ZAMbP23hptc2+ZSGtCymD91r45Y50sXWrMpp/p4gKisgBOIAJmT9p6TkT21tfVNan/iIz/zpT6z989rFyf0dXjKjYkpDA6GPBbHy/HH869bvGdu6KVc9YHhMMQaAD//L3Kom+O7f57v0Ie2NUNLTIMJzMxkzZ5Nsk8vyUFAcpoxBPMxFszQSyYHEXo5sB6AFifIeKIwEOHhvIs+qTEmDQyVQPhKkZJgXsmM24JLuqmxnCt5TGnTdrja37of+Ohz68dEEg35Acc0RFnRSQtJqVKCnx2y0qO/vTqJVc2NsKaWNe8T7qs9ykADBCqQURh/HPG008PK9Pj2uJaCeHZfTbQPp+RAb8t17aLtuUb8FZBXqBFI33kgKA6SStlTGYWBDMgCZR2jU7F1UYAiMViYPaSsZ8e11pEUCXGY2KICJRIaTO4TFY90TDq0olTmmds2lgE+Ou06lOHDVgybUgpTYgn05xICiOILMNGFQel9dlq660fPqj+lRkCwG6Ta7kEAGFTxBP94+iB5qT2uFJEZDGDCcYUB6XsiNsdyzfKe2e3FPzp9480b3KuL9898u5xQ+yrupKuJiIJgIUgcl2dtq2etgyDajI0A48ZTgU+H9tGb07lmIkcZUzVUPXAi7ePGNXeKZrLBtiD+gXSP+5f6HzLtjQ6u40GhCQi0saYYCGsFeutZU+8XXA6LW1ONzRARCL7rq9onwEwZ2aN5TUkjb2+erAzpavHdUHCNszGlhB5fr/8fAO9/PFS+4rL72pZCnivX5rbl4mafs2GGuzr3vm1OqOsSAxLumwYICkYyrUTr75SkASWAwRUhzxxl/itUksKv4JiyjyhJwK5CuT3aRxxuPXvSgGWlQI00J1yTNolCMoUe9iYvDymDfG89o8Wuyc+8nTzhv3xumafOOHGTCkudtv488YMcacnUkppJovZqGCARFpb6bnL/b+uvXjRqZff1bK0MVxrMYOoPqYnTml2Zw+oJcyf77TF8YzfLwAYQwBLIWBgOl78ZFQ82wzaUpVpR0Gywm8TCLRVZkoEaE3o6lEq5Tgq3qNVV0prBgmPcWUwg20L7CifWfi5DP36ns8WZXs597WP7HUANlW1fn/E5FGDkrPY1TqtIQVY9wva1rpuf8unS33H/OiaeQ8yQ4TDEHWRJrUlk7jemwlB7Un9WjxtILx9shAAARuAmDGZLuksyxAsSpfYFm834CcCCGQxkwWQRdhc4mQQpGBt+Wy5dI118bm3tL6R7XDYHxFir5qgaDQk6+pj6s83frNmTEX7C37LRTJNsKXhwvw867MNInr303lTXmz6pKMxXGsRbf+QoRAMAH5nif1p5SCnszQgi1PKKEECysgNABjVW18eUr5BHg2h9uD9A4FYq6Kgbc373H/vj69t+dPu1nJzTgM8exnTd1xdPWL88LaXi/LT+ck0tN/H0rL9Yu5y65bjL1r4s5eaPunI9nruUCzkUQMzHl+wUWtabPsyeS4RtAcAZmcZzowKBGzRn2D2KFZhNqokaFlfrPW9cuLUeVP3pJabUwCEwxA/q4e+6JzDy7872nm5NOhWxHvIKconK61lYu6K4JmnTG29iaOQhkH1sV3a1iztA0eLRVIIgIhBQMpJtW2P4RTSHbgH8RkMsykMCGvlRv+iv3+c/3NmwmzvNf1+7Sa1ekP4DQCWnjOh4BeT3OcHlKTGdHQh1a9I5K3rsFfMWSnPuDjy0fvcCIvqsNuqPXu2R7Q5jlji+VUDZomU62nApnaUSd4IAmZd4bVs0a6mCMEYcL6P0JWwupuX4qe3P9LcWdMOGYnt//fEXwuATEGEiZj+8eCol4aU6G93xjnZv1gGlrfJt5/90DrznodbVjSG98KuZgScTIsvtCZ4dQAByXmrt6Mt5PdZxYbVLhWLAbYFaUO21brad95ld7S0HMj3xF/HBBFiIUEEvDmj6skxFea7nT1OKlhkBZau8T170QN5k+95uGVFtsdzT//4+mpvOpbr4Iu0yyBAuoqRSCU9H+DR0ORFTwwBU6Y380A73LIgqIICaS380m4463ctz8/cBwTb/tAA8nj9mHpjRvWDIwakzuzpSTsF/ry8+Susu068ovUaIs887W0s3dKSGc7kYk3CgfFLstIuwMKrBVTP9yJOAnDssd8ulIKLjGHwjgaZEQOGVXHQsheu9j132tXzI42Znk4cwLVXGrCpqHLPmLuGl6cuTTlKKRGwWlf5Lz3xigXXMEMYs/eFamDzq5fPVssNyuUe2wI5Gs6KNqsDAFqqPHsCACdVmiISIqjN9q8/EYON0IUBy1q1wW75n6byXzBDTJrUtM84nn0GQObNk3rzoQlTRw7SU9nVSKZ9zsI1/tNOmtryUGMjLCLw3rRobBuKAsCL74xtN6A22xJwlU6t6u7u2AIkAoBA/3WlluCAMbzdJixtiAM2qD0hEnNXWKFIrKk7Vp81Xwd2iT0V/sQpze7TkTFXDS5O3uWTLtp6fMvfXpx3/OnXzHvFU2moXrpVzAyaPz/makMbfDYggPZXV8kOAIhEvJkRAFBeKEsCPiYG+CutjABsAc1SirnL7fMvnNbS2hiutepjuTFBZbcByPI7r93/jbMmjHDvLsxTWNlhvfc/8wPHXnLb3OYsBdHrjCrAmrHWJwlJZXUveX3JpnYUVHsjzAJ5Vn+fTWD+KvAC7BYWSqv1C3HneQ2tz+xPmqHXnHDWWT163cgzh5X0PF6aT1iwJvDCQ43VP4/FYsksBdHbm5vdAAHAMPMaSxIMsB6AylwcM7tlXeZhXnqglIRtNc8Y1v2KpL3kS+u/f/TbhddlzpFTE1TE7gr/6elHf2/iaPNUcT7Ljz+zH6i7pPWnzz4bS4Yz5cZ9srtJ3usWpfxrhCRYrNcC+Eo7SpGfSiVt3ZVpGKYgn+TqdrH8Hx8GzmGGORCZ7tfSgKxZ+ePvxh5/1GEdL1qC6KPP/VecenXLfZlKEe/TUZCZZMxRei2YkEiIOPDVdhRNPIiIN3VqGQb7LeZE2nbnLbfrb5318fojTwzJSCSWc/ODxE6FH2lSj04/Ztyxo53/BkN8sMR/xqlXt9zHjbW9Euns9tJ6tWICaNt2FC9ZEyTKmTdX+KUw2u+z5dIvA5ddcEvre9lON+Tg2q4GZOayqYduPnb0pBFtTY4SG1+fk3f65ffOfXd/0rXZonuKA2vSaRcgd/WWmpFdts392bAX8bNRJYW2NXe5Nesn1819JBeSrT3SgGhmKF74vEPHHH9Y+wfxFFY98Cq+c/m9c9/dK07n66xYDACwOtHT3p3ScBW1b/W5VzcAMwYYGDCTKc4X1mfrxUdXP/qzizgKmUm2cnZZ2wq/vj6m/+uhE8rLA8vfdVz838m/Kzh99ermxL6KdHa2QlEYEJDq9G1s7zaQeXL9ljyRZwJrLZ9cVeQogs+vxLpuf/x/58kzW+dHnFgMsr4enMsAiG2FH502ckhZ4MuPu9LmuaPObz1xzZrmRDTkFVv29+aySdWCJZWdacds7Grv6slEQZvmrV18dltQgEtAxhD8csHqvPOun7Fg0Zs5lGztEoBsNevBqcMPLQ/K5o1xd2btRYsv4CjkTTdBHOiDPPJy3HG1WJHv24IHyqxhA5xiKY0vGLDEojVi+rk3zHsh15KtnZqgaMi7+Uue+0n5khXLnu9R6tqTpy74C28uzx1IFWZv6nmT6nGqPtvYRZv/K5JMP1B5SXF+WXFHwYIv+c1Tpy66KReTrZ1qQH0spl+9r3Loki+WPOy6aurJU1v+skWkc8DtZ5Zw6+jxL0zmuYksDxTLPDsakNc2Ym2n7Gheps9iBudisrVTDbjl19Uj1rT7/02r+A0XTlvcut8jnd1caZ3/djwVSALLMpRDCEAMG3XQt+4L95fX3L1s3aHLQzISi/WtYa2/v7b2l9OvO25A1hHn6j7PmXpCQTgc3k7iWGNnQtE+OYvz/wFwecV5o+k/qwAAAABJRU5ErkJggg==" alt="Alpha-Val"><span class="nm">Alpha-Val Pro</span></div>
+    <div class="side-grp">Workspace</div>
+    <div class="side-item"><span class="mi">folder_open</span> Projects</div>
+    <div class="side-grp">FEL Data Vault</div>
+    <div class="side-item"><span class="mi">paid</span> Cost Catalog</div>
+    <div class="side-item"><span class="mi">straighten</span> Sizing Sheets</div>
+    <div class="side-grp">Study</div>
+    <div class="side-study">
+      <div class="ss-nm"><span class="mi">diamond</span> Redrock Copper</div>
+      <div class="ss-focus-lab">In focus</div>
+      <div class="ss-focus" id="sideFocus">Option 1b · 20k tpd</div>
+    </div>
+    <div class="side-foot">Copyright 2026, Alpha-Val.<br>All rights reserved.</div>
+  </aside>
+
+  <div class="col">
+
+    <div class="gtop">
+      <span></span>
+      <span class="ttl">Optionality and Cost Intelligence for Mining Capital Projects</span>
+      <div class="rt">
+        <span>v-alpha-0.860</span>
+        <button class="toggle" onclick="toggleTheme()" id="tgl"><span class="mi s16">dark_mode</span> Dark</button>
+        <span class="avatar">ST</span>
+      </div>
+    </div>
+
+    <div class="phead">
+      <span class="pback"><span class="mi s16">chevron_left</span> All Projects</span>
+      <div class="ptop">
+        <div>
+          <div class="ptitle-row">
+            <span class="ptitle">Redrock Copper Project</span>
+            <span class="pstatus"><span class="mi">trip_origin</span> active</span>
+            <span class="pupd">Updated Jun 8, 2026, 4:18 PM</span>
+          </div>
+          <div class="psub">Porphyry copper sulphide · 0.35% Cu · FEL-1 (Class 5, ±50%)</div>
+          <div class="ptags"><span class="ptag">copper</span><span class="ptag">concentrator</span><span class="ptag">comminution</span><span class="ptag">optionality</span></div>
+        </div>
+        <div class="phact">
+          <button class="icobtn"><span class="mi s16">download</span></button>
+          <button class="icobtn danger"><span class="mi s16">delete</span></button>
+          <button class="editbtn"><span class="mi s16">edit</span> Edit Project</button>
+          <button class="summary-btn" id="summaryBtn" onclick="toggleSummary()"><span class="mi s16">monitoring</span> NPV Summary</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORK AREA: tree rail + content -->
+    <div class="work">
+
+      <!-- TREE RAIL -->
+      <aside class="tree" id="tree">
+        <div class="tree-h">
+          <span class="ttl"><span class="mi s14">account_tree</span> <span class="ttl-text">Design Tree</span></span>
+          <span class="tree-collapse" onclick="toggleTree()"><span class="mi s16" id="treeChev">chevron_left</span></span>
+        </div>
+        <div class="tree-body" id="treeBody"><!-- injected --></div>
+        <div class="tree-foot">
+          <button class="tree-foot-btn" onclick="addOption(null)"><span class="mi">add</span> Add Option</button>
+        </div>
+      </aside>
+
+      <!-- CONTENT PANE -->
+      <main class="pane">
+        <!-- crumb bar -->
+        <div class="crumb-bar" id="crumbBar">
+          <div class="crumb-top" id="crumbTop"><!-- option id, path, badges, actions --></div>
+          <div class="crumb" id="crumb"><!-- pipeline breadcrumb --></div>
+        </div>
+        <div class="body av-scroll" id="bodyMain"><!-- pipeline content --></div>
+        <div class="summary-pane av-scroll hidden" id="summaryPane"><!-- summary view --></div>
+      </main>
+
+    </div>
+  </div>
+</div>
+
+<!-- context menu -->
+<div class="cmenu" id="cmenu">
+  <div class="mitem" data-act="rename"><span class="mi">edit</span> Rename</div>
+  <div class="mitem" data-act="duplicate"><span class="mi">content_copy</span> Duplicate as sibling</div>
+  <div class="mitem" data-act="addsub"><span class="mi">add_circle</span> Add sub-option</div>
+  <div class="msep"></div>
+  <div class="mitem danger" data-act="delete"><span class="mi">delete</span> Delete…</div>
+</div>
+
+<!-- dialogs -->
+<div class="dlg-back" id="dlgBack">
+  <div class="dlg" id="dlg"></div>
+</div>
+
+<script>
+/* ===================== MODEL ===================== */
+const STAGES=[
+  {id:'sized',  nm:'Sized System',  mi:'straighten'},
+  {id:'pfd',    nm:'PFD',           mi:'account_tree'},
+  {id:'costs',  nm:'Equipment Costs',mi:'paid'},
+  {id:'tic',    nm:'TIC',           mi:'calculate'},
+  {id:'econ',   nm:'Econ & NPV',    mi:'trending_up'},
+];
+
+function updateSideFocus(){
+  const el=document.getElementById('sideFocus'); if(!el) return;
+  if(showSummary){ el.textContent='NPV Summary · all options'; el.classList.add('summary'); return; }
+  el.classList.remove('summary');
+  const path=pathTo(selectedId);
+  const n = path? path[path.length-1] : null;
+  el.textContent = n ? n.name : '—';
+}
+/* tree of nodes. type: 'base' | 'option'. children: [] */
+let tree = {
+  id:'base', type:'base', name:'SoW Sources', frozen:true, status:'ready',
+  npv:638, capex:245, tech:'Conventional SAG-Ball', tpd:15000, rec:0.85,
+  children:[
+    {id:'o1', type:'option', name:'Option 1 — Conventional', status:'ready', npv:638, capex:245, tech:'Conventional SAG-Ball', tpd:15000, rec:0.85, children:[
+      {id:'o1a', type:'option', name:'Option 1a · 15k tpd', status:'ready', npv:638, capex:245, tech:'Conventional SAG-Ball', tpd:15000, rec:0.85, children:[]},
+      {id:'o1b', type:'option', name:'Option 1b · 20k tpd', status:'ready', npv:867, capex:310, tech:'Conventional SAG-Ball', tpd:20000, rec:0.85, children:[
+        {id:'o1b1', type:'option', name:'Option 1b1 · +CIM', status:'draft', npv:null, capex:325, tech:'SAG-Ball + CIM', tpd:20000, rec:0.86, children:[]},
+      ]},
+    ]},
+    {id:'o2', type:'option', name:'Option 2 — HPGR', status:'ready', npv:612, capex:280, tech:'HPGR-Ball Mill', tpd:15000, rec:0.88, children:[
+      {id:'o2a', type:'option', name:'Option 2a · 15k tpd', status:'ready', npv:612, capex:280, tech:'HPGR-Ball Mill', tpd:15000, rec:0.88, children:[]},
+    ]},
+    {id:'o3', type:'option', name:'Option 3 — Fine Grind', status:'draft', npv:679, capex:260, tech:'Fine Grind Enh. Float', tpd:15000, rec:0.93, children:[]},
+  ]
+};
+
+let selectedId='o1b'; // start showing a populated option
+let collapsedNodes=new Set();
+let showSummary=false;
+let activeStage='econ';
+
+/* ===================== TREE RENDER ===================== */
+function findNode(id, root=tree){
+  if(root.id===id) return {node:root, parent:null};
+  for(const c of (root.children||[])){
+    if(c.id===id) return {node:c, parent:root};
+    const f=findNode(id, c); if(f) return f;
+  }
+  return null;
+}
+function pathTo(id, root=tree, path=[]){
+  if(root.id===id) return [...path, root];
+  for(const c of (root.children||[])){
+    const p=pathTo(id, c, [...path, root]);
+    if(p) return p;
+  }
+  return null;
+}
+function allLeaves(root=tree, out=[]){
+  if((root.children||[]).length===0 && root.type==='option') out.push(root);
+  for(const c of (root.children||[])) allLeaves(c, out);
+  return out;
+}
+function allOptionNodes(root=tree, out=[]){
+  if(root.type==='option') out.push(root);
+  for(const c of (root.children||[])) allOptionNodes(c, out);
+  return out;
+}
+
+function renderTree(){
+  const b=document.getElementById('treeBody'); b.innerHTML='';
+  // base node first
+  b.appendChild(treeNode(tree, 0, true));
+  // section header for options
+  const sh=document.createElement('div'); sh.className='tree-section-h';
+  sh.innerHTML='<span class="mi">account_tree</span> Options';
+  b.appendChild(sh);
+  for(const c of tree.children){ renderBranch(c, 0, b); }
+  if(tree.children.length===0){
+    const a=document.createElement('div'); a.className='tree-add';
+    a.innerHTML='<span class="mi">add</span> Add first option';
+    a.onclick=()=>addOption(null);
+    b.appendChild(a);
+  }
+}
+function renderBranch(node, depth, container){
+  container.appendChild(treeNode(node, depth, false));
+  if(!collapsedNodes.has(node.id)){
+    for(const c of (node.children||[])) renderBranch(c, depth+1, container);
+    // add-sub-option link at end of each parent's children
+    if(node.type==='option' && depth<2){
+      const a=document.createElement('div'); a.className='tree-add lvl'+(depth+2);
+      a.innerHTML='<span class="mi">add</span> Add sub-option';
+      a.onclick=(e)=>{e.stopPropagation();addOption(node.id);};
+      container.appendChild(a);
+    }
+  }
+}
+function treeNode(node, depth, isBase){
+  const el=document.createElement('div');
+  el.className=`tnode tnode-pad-${depth}${selectedId===node.id?' on':''}${collapsedNodes.has(node.id)?' collapsed':''}${isBase?' base':''}`;
+  el.dataset.id=node.id;
+  const hasKids=(node.children||[]).length>0;
+  el.innerHTML=`
+    <span class="tnode-twist ${hasKids?'':'empty'}" data-twist="${node.id}"><span class="mi">expand_more</span></span>
+    <span class="tnode-ic"><span class="mi">${isBase?'inventory':'science'}</span></span>
+    <span class="tnode-nm">${node.name}</span>
+    ${node.frozen?'<span class="tnode-frozen mi s12">ac_unit</span>':''}
+    <span class="tnode-npv">${node.npv!==null&&node.npv!==undefined?'$'+node.npv+'M':'—'}</span>
+    ${isBase?'':'<span class="tnode-menu" data-menu="'+node.id+'"><span class="mi s14">more_vert</span></span>'}
+  `;
+  el.onclick=(e)=>{
+    if(e.target.closest('[data-twist]')){collapsedNodes.has(node.id)?collapsedNodes.delete(node.id):collapsedNodes.add(node.id);renderTree();return;}
+    if(e.target.closest('[data-menu]')){openMenu(e, node.id);return;}
+    select(node.id);
+  };
+  el.oncontextmenu=(e)=>{if(!isBase){e.preventDefault();openMenu(e, node.id);}};
+  return el;
+}
+
+/* ===================== SELECT / RENDER PANE ===================== */
+function select(id){
+  selectedId=id; showSummary=false;
+  updateSideFocus();
+  document.getElementById('summaryPane').classList.add('hidden');
+  document.getElementById('bodyMain').classList.remove('hidden');
+  document.getElementById('crumbBar').classList.remove('hidden');
+  document.getElementById('summaryBtn').classList.remove('on');
+  // default to econ when re-selecting, unless current stage applies
+  activeStage = activeStage || 'econ';
+  renderTree(); renderCrumb(); renderBody();
+}
+function toggleSummary(){
+  showSummary=!showSummary;
+  updateSideFocus(true);
+  document.getElementById('summaryPane').classList.toggle('hidden', !showSummary);
+  document.getElementById('bodyMain').classList.toggle('hidden', showSummary);
+  document.getElementById('crumbBar').classList.toggle('hidden', showSummary);
+  document.getElementById('summaryBtn').classList.toggle('on', showSummary);
+  if(showSummary) renderSummary();
+}
+
+function renderCrumb(){
+  const path=pathTo(selectedId); if(!path) return;
+  const node=path[path.length-1];
+  const top=document.getElementById('crumbTop');
+  const pathSegs=path.map((n,i)=>`<span class="seg">${n.name.split('—')[0].trim()}</span>${i<path.length-1?'<span class="sep">›</span>':''}`).join('');
+  const isBase=node.type==='base';
+  const statusBadge = node.frozen?'<span class="badge frozen"><span class="mi s12" style="vertical-align:-2px">ac_unit</span> Frozen</span>'
+                    : node.status==='ready'?'<span class="badge ready"><span class="mi s12" style="vertical-align:-2px">check_circle</span> Ready</span>'
+                    : '<span class="badge draft"><span class="mi s12" style="vertical-align:-2px">edit</span> Draft</span>';
+  top.innerHTML=`
+    <span class="opt-id ${node.frozen?'opt-frozen':''}"><span class="mi">${isBase?'inventory':'science'}</span> ${node.name}</span>
+    ${statusBadge}
+    <span class="path">${pathSegs}</span>
+    <span class="crumb-actions">
+      ${isBase && !node.frozen ? '<button class="editbtn" onclick="freezeBase()"><span class="mi s14">ac_unit</span> Freeze Base Case</button>':''}
+      ${!isBase ? `
+        <button class="editbtn" onclick="renameNode('${node.id}')"><span class="mi s14">edit</span> Rename</button>
+        <button class="editbtn" onclick="duplicateNode('${node.id}')"><span class="mi s14">content_copy</span> Duplicate</button>
+        <button class="editbtn" onclick="addOption('${node.id}')"><span class="mi s14">add</span> Sub-option</button>
+        <button class="icobtn danger" onclick="deleteNode('${node.id}')" title="Delete"><span class="mi s16">delete</span></button>
+      `:''}
+    </span>
+  `;
+  // breadcrumb pipeline
+  const c=document.getElementById('crumb');
+  const stages = isBase ? [{id:'sow',nm:'SoW Sources',mi:'description'}, ...STAGES] : STAGES;
+  c.innerHTML=stages.map((s,i)=>`
+    <div class="crumb-step ${s.id===activeStage?'on':'done'}" data-stage="${s.id}">
+      <span class="stnum">${i+1}</span><span class="mi">${s.mi}</span>${s.nm}
+    </div>${i<stages.length-1?'<span class="crumb-sep mi">chevron_right</span>':''}
+  `).join('');
+  c.querySelectorAll('.crumb-step').forEach(el=>el.onclick=()=>{activeStage=el.dataset.stage;renderCrumb();renderBody();});
+}
+
+function renderBody(){
+  const body=document.getElementById('bodyMain'); body.innerHTML='';
+  const path=pathTo(selectedId); const node=path[path.length-1];
+  const isBase=node.type==='base';
+  // intentionally lightweight content; full screens live in the suite mock — this view focuses on navigation
+  if(activeStage==='econ'){
+    body.innerHTML = econSummary(node);
+  } else if(activeStage==='sow' && isBase){
+    body.innerHTML = stagePlaceholder('SoW Sources', 'Source document(s), extraction graph, system overview, and frozen-snapshot controls live here.', 'description');
+  } else if(activeStage==='sized'){
+    body.innerHTML = stagePlaceholder('Sized System', `Schema-driven sizing sheets for ${node.tech}. Throughput ${node.tpd?.toLocaleString()||'—'} tpd. Frozen materials inherited from base case.`, 'straighten');
+  } else if(activeStage==='pfd'){
+    body.innerHTML = stagePlaceholder('Process Flow Diagram', 'Interactive PFD — elkjs layout, equipment symbols, stream flows.', 'account_tree');
+  } else if(activeStage==='costs'){
+    body.innerHTML = stagePlaceholder('Equipment Costs', `Per-line catalog match for ${node.tech}. TEC computed from selected catalog cards.`, 'paid');
+  } else if(activeStage==='tic'){
+    body.innerHTML = stagePlaceholder('Total Installed Costs', `Class-5 estimate. Point CAPEX <b>$${node.capex}M</b>. Lang factor and basis adjustments visible on full screen.`, 'calculate');
+  }
+}
+
+function stagePlaceholder(t, desc, ic){
+  return `<div class="card" style="padding:24px 28px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:8px"><span class="mi" style="font-size:22px;color:var(--av-gold)">${ic}</span><span style="font-size:16px;font-weight:600">${t}</span></div><p style="color:var(--av-ink-2);max-width:680px;line-height:1.6">${desc}</p><div class="placeholder-grid"><div class="placeholder"><div class="pl-lab">Stage placeholder</div><div class="pl-v">—</div><div class="pl-sub">existing AV pipeline screen renders here</div></div></div></div>`;
+}
+
+function econSummary(node){
+  if(node.status==='draft' && node.npv===null){
+    return `<div class="state-card"><div class="si mi">science</div><h2>Draft option — not yet run</h2><p><b>${node.name}</b> inherits frozen base-case material properties and ${node.tech}. Run the pipeline (Sized → PFD → Costs → TIC) to compute NPV.</p><button class="cta"><span class="mi s16">play_arrow</span> Run Full Pipeline</button></div>`;
+  }
+  const base = findNode('o1').node; const d = node.npv - base.npv;
+  const dcls = d>0?'d-up':(d<0?'d-dn':'');
+  const dtxt = node.id===base.id ? '<span class="basebadge">BASE</span>' : (d>=0?'+':'−')+'$'+Math.abs(d)+'M';
+  return `
+    <div class="card" style="padding:22px 26px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:18px;flex-wrap:wrap">
+        <div>
+          <div class="eyebrow">Net Present Value</div>
+          <div style="font-size:38px;font-weight:600;letter-spacing:-.03em;margin-top:4px">$${node.npv}M</div>
+          <div class="meta" style="margin-top:6px">${node.tech} · ${node.tpd?.toLocaleString()} tpd · Recovery ${(node.rec*100).toFixed(0)}%</div>
+        </div>
+        <div style="text-align:right">
+          <div class="eyebrow">vs. Option 1 (current base)</div>
+          <div style="font-size:24px;font-weight:600;margin-top:4px" class="${dcls}">${dtxt}</div>
+        </div>
+      </div>
+      <div class="placeholder-grid" style="margin-top:22px">
+        <div class="placeholder"><div class="pl-lab">Total Installed CAPEX</div><div class="pl-v">$${node.capex}M</div><div class="pl-sub">from sizing → costs → TIC</div></div>
+        <div class="placeholder"><div class="pl-lab">Annual FCF</div><div class="pl-v">$${Math.round((node.tpd*365*0.0035*node.rec*2204.6*3.80/1e6)-(node.tpd*365*8.5/1e6))}M</div><div class="pl-sub">revenue − OpEx, base assumptions</div></div>
+        <div class="placeholder"><div class="pl-lab">Cu Recovery</div><div class="pl-v">${(node.rec*100).toFixed(0)}%</div><div class="pl-sub">technology-driven</div></div>
+      </div>
+      <p class="meta" style="margin-top:18px;line-height:1.6;max-width:680px">Full editable inputs, NPV bridge, and what-if rows render here in the production view. This screen verifies navigation; the detailed Econ &amp; NPV pane is implemented in the dashboard suite.</p>
+    </div>`;
+}
+
+/* ===================== NPV SUMMARY ===================== */
+function renderSummary(){
+  const pane=document.getElementById('summaryPane');
+  const leaves=allOptionNodes().filter(n=>n.npv!==null);
+  const base=findNode('o1').node;
+  const sorted=[...leaves].sort((a,b)=>b.npv-a.npv);
+  const hi=sorted[0].npv, lo=sorted[sorted.length-1].npv;
+  pane.innerHTML=`
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px">
+      <div><div class="eyebrow">NPV Summary</div><div style="font-size:20px;font-weight:600;margin-top:2px">All options ranked</div></div>
+      <div class="meta">${leaves.length} options computed · base case Option 1 · ${sorted.filter(n=>n.npv===null).length} drafts excluded</div>
+    </div>
+
+    <div class="placeholder-grid" style="margin-bottom:18px">
+      <div class="placeholder" style="background:var(--av-ink);color:var(--av-gold-soft);border-color:var(--av-ink)">
+        <div class="pl-lab" style="color:var(--av-gold-deep)">Highest NPV</div>
+        <div class="pl-v" style="color:var(--av-gold-soft)">$${hi}M</div>
+        <div class="pl-sub" style="color:var(--av-gold-deep)">${sorted[0].name}</div>
+      </div>
+      <div class="placeholder">
+        <div class="pl-lab">Base case</div>
+        <div class="pl-v">$${base.npv}M</div>
+        <div class="pl-sub">${base.name}</div>
+      </div>
+      <div class="placeholder">
+        <div class="pl-lab">NPV range</div>
+        <div class="pl-v">$${lo}–${hi}M</div>
+        <div class="pl-sub">spread $${hi-lo}M across ${leaves.length} options</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><div class="t"><span class="mi s16">bar_chart</span> NPV by Option</div><div class="s">baseline at Option 1 · click a bar to open</div></div>
+      <div style="padding:34px 18px 38px">
+        <div class="npv-bar-chart" id="npvChart"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <div class="card-h"><div class="t"><span class="mi s16">table_rows</span> All options</div></div>
+      <table class="t"><thead><tr>
+        <th class="l">Option</th><th class="l">Technology</th><th>Throughput</th><th>CAPEX</th><th>Recovery</th><th>NPV</th><th>Δ Base</th><th class="l">Status</th>
+      </tr></thead><tbody id="sumBody"></tbody></table>
+    </div>
+  `;
+  // draw chart
+  const chart=document.getElementById('npvChart'); chart.innerHTML='';
+  const yMax=Math.ceil(hi/100)*100+50, H=300, scale=v=>v/yMax*H;
+  for(let v=0;v<=yMax;v+=200){
+    const g=document.createElement('div'); g.style.position='absolute'; g.style.left='0'; g.style.right='0'; g.style.bottom=scale(v)+'px'; g.style.borderTop='.5px dashed var(--av-line-faint)';
+    g.innerHTML=`<span class="npv-y" style="bottom:-7px">$${v}M</span>`; chart.appendChild(g);
+  }
+  const bl=document.createElement('div'); bl.className='npv-baseline'; bl.style.bottom=scale(base.npv)+'px';
+  bl.innerHTML=`<span class="npv-baseline-lab">Base $${base.npv}M</span>`; chart.appendChild(bl);
+  const W=Math.max(40, (chart.clientWidth-40)/leaves.length - 14);
+  sorted.forEach((n,i)=>{
+    const bar=document.createElement('div'); bar.className='npv-bar';
+    bar.style.background='var(--av-gold-pale)';
+    bar.style.borderColor='var(--av-gold-soft)';
+    bar.style.borderWidth='1px';
+    bar.style.width=W+'px';
+    bar.style.height=scale(n.npv)+'px';
+    bar.style.left=(20+i*(W+14))+'px';
+    if(n.id===base.id){bar.style.outline='1.5px solid var(--av-sec)';bar.style.outlineOffset='1px';}
+    const d=n.npv-base.npv;
+    bar.innerHTML=`<div class="npv-bar-lab">$${n.npv}M${n.id===base.id?'<br><span style="color:var(--av-sec-dark);font-size:9px">BASE</span>':'<br><span style="font-size:9px;color:'+(d>=0?'var(--av-green)':'var(--av-red)')+'">'+(d>=0?'+':'−')+'$'+Math.abs(d)+'M</span>'}</div><div class="npv-bar-id">${n.name.replace(/^Option /,'').split(' ·')[0].split(' —')[0]}<small>Option</small></div>`;
+    bar.style.cursor='pointer';
+    bar.onclick=()=>{toggleSummary();select(n.id);};
+    chart.appendChild(bar);
+  });
+  // table
+  const tb=document.getElementById('sumBody');
+  for(const n of sorted){
+    const d=n.npv-base.npv, isBase=n.id===base.id;
+    const tr=document.createElement('tr'); if(isBase) tr.className='base';
+    tr.style.cursor='pointer';
+    tr.innerHTML=`<td class="l" style="font-family:var(--av-font-mono);font-weight:600">${n.name}</td><td class="l">${n.tech}</td><td>${n.tpd?.toLocaleString()} tpd</td><td>$${n.capex}M</td><td>${(n.rec*100).toFixed(0)}%</td><td style="font-weight:600">$${n.npv}M</td><td class="${isBase?'':(d>0?'d-up':'d-dn')}">${isBase?'<span class="basebadge">BASE</span>':(d>=0?'+':'−')+'$'+Math.abs(d)+'M'}</td><td class="l"><span class="badge ${n.status==='ready'?'ready':'draft'}" style="font-family:var(--av-font-mono);font-size:9px;letter-spacing:.08em;padding:2px 7px;border-radius:var(--av-radius-pill);background:${n.status==='ready'?'var(--av-green-pale)':'var(--av-amber-pale)'};color:${n.status==='ready'?'var(--av-green)':'var(--av-amber)'}">${n.status}</span></td>`;
+    tr.onclick=()=>{toggleSummary();select(n.id);};
+    tb.appendChild(tr);
+  }
+}
+
+/* ===================== CONTEXT MENU + ACTIONS ===================== */
+let menuTargetId=null;
+function openMenu(e, id){
+  e.preventDefault?.(); e.stopPropagation?.();
+  menuTargetId=id;
+  const m=document.getElementById('cmenu');
+  m.classList.add('open');
+  let x=e.clientX, y=e.clientY;
+  if(x+200>innerWidth)x=innerWidth-200;
+  if(y+180>innerHeight)y=innerHeight-180;
+  m.style.left=x+'px'; m.style.top=y+'px';
+}
+document.getElementById('cmenu').addEventListener('click', e=>{
+  const act=e.target.closest('.mitem')?.dataset.act; if(!act) return;
+  closeMenu();
+  if(act==='rename') renameNode(menuTargetId);
+  if(act==='duplicate') duplicateNode(menuTargetId);
+  if(act==='addsub') addOption(menuTargetId);
+  if(act==='delete') deleteNode(menuTargetId);
+});
+function closeMenu(){document.getElementById('cmenu').classList.remove('open');}
+document.addEventListener('click', e=>{if(!e.target.closest('#cmenu')&&!e.target.closest('[data-menu]'))closeMenu();});
+
+let idSeq=100;
+function newId(){return 'n'+(idSeq++);}
+
+function addOption(parentId){
+  const parent = parentId ? findNode(parentId).node : tree;
+  const isSub = parentId !== null;
+  const sibs = parent.children||[];
+  const n = sibs.length+1;
+  const name = isSub
+    ? `${parent.name.split(' ')[0]} ${parent.name.split(' ')[1]||''}${String.fromCharCode(97+sibs.length)}`.trim()
+    : `Option ${n}`;
+  const node = {id:newId(), type:'option', name, status:'draft', npv:null, capex:null, tech:'Inherits base', tpd:15000, rec:0.85, children:[]};
+  (parent.children=parent.children||[]).push(node);
+  selectedId=node.id; activeStage='sized';
+  renderTree(); renderCrumb(); renderBody();
+}
+function duplicateNode(id){
+  const {node, parent} = findNode(id);
+  if(!parent) return;
+  const copy = JSON.parse(JSON.stringify(node));
+  function reid(n){n.id=newId(); (n.children||[]).forEach(reid);}
+  reid(copy);
+  copy.name = node.name + ' (copy)';
+  copy.status = 'draft'; // copy needs re-run before it's ready
+  const idx = parent.children.indexOf(node);
+  parent.children.splice(idx+1, 0, copy);
+  selectedId=copy.id; renderTree(); renderCrumb(); renderBody();
+}
+function renameNode(id){
+  const node=findNode(id).node;
+  showDialog({
+    title:'Rename option',
+    icon:'edit',
+    body:`<input class="rename" id="renameInp" value="${node.name.replace(/"/g,'&quot;')}">`,
+    confirmText:'Save',
+    confirmClass:'',
+    onConfirm:()=>{const v=document.getElementById('renameInp').value.trim(); if(v) node.name=v; renderTree();renderCrumb();}
+  });
+  setTimeout(()=>{const i=document.getElementById('renameInp');i?.focus();i?.select();},20);
+}
+function deleteNode(id){
+  const {node, parent} = findNode(id);
+  if(!parent) return;
+  const descendants=[]; (function collect(n){for(const c of (n.children||[])){descendants.push(c);collect(c);}})(node);
+  const list = descendants.length ? `<ul>${descendants.map(d=>`<li>${d.name}</li>`).join('')}</ul>` : '';
+  showDialog({
+    title:'Delete option',
+    icon:'warning',
+    body:`Delete <b>${node.name}</b>${descendants.length?` and its ${descendants.length} sub-option${descendants.length>1?'s':''}`:''}? This cannot be undone.${list}`,
+    confirmText:'Delete',
+    confirmClass:'confirm',
+    onConfirm:()=>{
+      const idx=parent.children.indexOf(node); parent.children.splice(idx,1);
+      if(selectedId===id || descendants.some(d=>d.id===selectedId)){
+        // fall back to first option or base
+        const first=tree.children[0]; selectedId=first?first.id:tree.id;
+      }
+      renderTree(); renderCrumb(); renderBody();
+    }
+  });
+}
+function freezeBase(){ tree.frozen=true; renderTree(); renderCrumb(); }
+
+/* ===================== DIALOG ===================== */
+function showDialog({title,icon,body,confirmText,confirmClass,onConfirm}){
+  const dlg=document.getElementById('dlg');
+  dlg.innerHTML=`
+    <div class="dlg-h"><span class="mi">${icon}</span> ${title}</div>
+    <div class="dlg-b">${body}</div>
+    <div class="dlg-f"><button class="cancel" id="dlgCancel">Cancel</button><button class="${confirmClass||'editbtn'}" id="dlgOk" style="${!confirmClass?'background:var(--av-ink);color:var(--av-gold-soft);border-color:var(--av-ink)':''}">${confirmText}</button></div>
+  `;
+  document.getElementById('dlgBack').classList.add('open');
+  document.getElementById('dlgCancel').onclick=()=>document.getElementById('dlgBack').classList.remove('open');
+  document.getElementById('dlgOk').onclick=()=>{onConfirm?.(); document.getElementById('dlgBack').classList.remove('open');};
+}
+
+/* ===================== TREE COLLAPSE ===================== */
+function toggleTree(){
+  const t=document.getElementById('tree'); t.classList.toggle('collapsed');
+  document.getElementById('treeChev').textContent=t.classList.contains('collapsed')?'chevron_right':'chevron_left';
+}
+function toggleTheme(){
+  const h=document.documentElement,d=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',d?'light':'dark');
+  document.getElementById('tgl').innerHTML=d?'<span class="mi s16">dark_mode</span> Dark':'<span class="mi s16">light_mode</span> Light';
+}
+
+/* init */
+renderTree(); renderCrumb(); renderBody(); updateSideFocus();
+</script>
+</body>
+</html>
