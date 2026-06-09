@@ -393,7 +393,7 @@ function updateSideFocus(){
 }
 /* tree of nodes. type: 'base' | 'option'. children: [] */
 let tree = {
-  id:'base', type:'base', name:'SoW Sources', frozen:true, status:'ready',
+  id:'base', type:'base', name:'Base Case', frozen:true, status:'ready',
   npv:638, capex:245, tech:'Conventional SAG-Ball', tpd:15000, rec:0.85,
   children:[
     {id:'o1', type:'option', name:'Option 1 — Conventional', status:'ready', npv:638, capex:245, tech:'Conventional SAG-Ball', tpd:15000, rec:0.85, children:[
@@ -409,7 +409,7 @@ let tree = {
   ]
 };
 
-let selectedId='o1b'; // start showing a populated option
+let selectedId='base'; // start showing a populated option
 let collapsedNodes=new Set();
 let showSummary=false;
 let activeStage='econ';
