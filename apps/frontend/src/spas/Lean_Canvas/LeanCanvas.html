@@ -212,7 +212,16 @@
     align-items: flex-end;
     flex-shrink: 0;
     margin-left: auto;
+    gap: 10px;
   }
+  .canvas-markdown-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-bottom: calc(0.6875rem + 5px);
+  }
+  .canvas-markdown-actions[hidden] { display: none !important; }
 
   .readonly-banner {
     display: flex;
@@ -235,6 +244,7 @@
     white-space: nowrap;
   }
   body.readonly-mode .canvas-toolbar,
+  body.readonly-mode .canvas-markdown-actions,
   body.readonly-mode .header-divider,
   body.readonly-mode .toolbar-field-grow,
   body.readonly-mode .cell-actions,
@@ -1038,7 +1048,7 @@
     .toolbar-brand {
       width: 100%;
       padding-bottom: 0;
-      padding-right: 42px;
+      padding-right: 0;
     }
     .toolbar-brand h1 { font-size: 1.2rem; }
     .header-rest {
@@ -1050,11 +1060,20 @@
       margin-top: 10px;
     }
     .header-actions {
-      position: absolute;
-      top: 0;
-      right: 0;
+      position: static;
+      width: 100%;
       margin-left: 0;
+      margin-top: 10px;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
     }
+    .canvas-markdown-actions {
+      padding-bottom: 0;
+      flex: 1 1 auto;
+    }
+    .user-menu { margin-left: auto; }
     #canvas-toolbar {
       flex-direction: column;
       align-items: stretch;
@@ -1192,6 +1211,11 @@
         </div>
       </div>
       <div class="header-actions auth-area">
+        <div class="canvas-markdown-actions" id="canvas-markdown-actions" hidden>
+          <button type="button" class="btn btn-sm" onclick="openImportModal()">Import</button>
+          <button type="button" class="btn btn-sm" onclick="openSaveModal()">Export</button>
+          <button type="button" class="btn btn-sm" onclick="openEditMarkdownModal()">Edit Markdown</button>
+        </div>
         <div class="user-menu" id="user-menu">
           <button type="button" class="user-menu-trigger" id="user-menu-trigger" aria-label="Account menu" aria-expanded="false" aria-controls="user-menu-panel" onclick="toggleUserMenu(event)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
@@ -1205,8 +1229,6 @@
               <span class="sync-status" id="sync-status" title="Cloud sync">Local only</span>
             </div>
           <button type="button" class="user-menu-item edit-only" role="menuitem" onclick="menuAction(openTemplateModal)">Template</button>
-          <button type="button" class="user-menu-item edit-only" role="menuitem" onclick="menuAction(openImportModal)">Import</button>
-          <button type="button" class="user-menu-item edit-only" role="menuitem" onclick="menuAction(openSaveModal)">Export</button>
           <button type="button" class="user-menu-item" role="menuitem" onclick="menuAction(copyShareLink)">Copy share link</button>
           <div class="user-menu-divider edit-only"></div>
           <button type="button" class="user-menu-item danger edit-only" role="menuitem" onclick="menuAction(signOutUser)">Sign out</button>
@@ -1685,6 +1707,28 @@ Your content here..."></textarea>
   </div>
 </div>
 
+<!-- EDIT MARKDOWN MODAL -->
+<div class="modal-overlay" id="edit-markdown-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2>Edit Markdown</h2>
+        <div class="hint">Edit your canvas as markdown, then apply changes</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('edit-markdown-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-note" id="edit-markdown-status">Edit the markdown below. Click Apply &amp; Update to refresh all canvas sections.</div>
+      <textarea id="edit-markdown-textarea"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" type="button" onclick="closeModal('edit-markdown-modal')">Cancel</button>
+      <button class="btn" type="button" onclick="copyText('edit-markdown-textarea')">Copy</button>
+      <button class="btn btn-primary" type="button" onclick="applyEditMarkdown()">Apply &amp; Update</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast success" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script src="firebase-config.js"></script>
@@ -2020,6 +2064,7 @@ function canvasRef(uid, id) {
 
 function setCanvasSwitcherVisible(visible) {
   document.getElementById('canvas-toolbar').hidden = !visible;
+  document.getElementById('canvas-markdown-actions').hidden = !visible;
 }
 
 function renderCanvasSelect() {
@@ -2711,9 +2756,16 @@ const HEADING_MAP = {
   'unfair advantage': 'advantage',
 };
 
-function importMarkdown() {
-  const raw = document.getElementById('import-textarea').value.trim();
-  if (!raw) { showImportStatus('Nothing to import — paste your markdown first.', 'warn'); return; }
+function importMarkdown(opts) {
+  const options = typeof opts === 'object' && opts !== null ? opts : {};
+  const raw = (options.raw != null
+    ? options.raw
+    : document.getElementById('import-textarea').value).trim();
+  const statusEl = options.statusEl || document.getElementById('import-status');
+  if (!raw) {
+    showMarkdownStatus(statusEl, 'Nothing to import — paste your markdown first.', 'warn');
+    return false;
+  }
 
   const lines = stripTemplateImportMetadata(raw).split('\n');
   let currentKey = null;
@@ -2746,7 +2798,10 @@ function importMarkdown() {
   }
 
   const keys = Object.keys(blocks);
-  if (!keys.length) { showImportStatus('No recognised sections found. Check headings match the template (e.g. "## 1. Customer Segments").', 'error'); return; }
+  if (!keys.length) {
+    showMarkdownStatus(statusEl, 'No recognised sections found. Check headings match the template (e.g. "## 1. Customer Segments").', 'error');
+    return false;
+  }
 
   keys.forEach(key => {
     const text = blocks[key].join('\n');
@@ -2760,27 +2815,54 @@ function importMarkdown() {
     setView(key, text);
   });
 
-  showImportStatus('✓ Imported ' + keys.length + ' section(s): ' + keys.map(k => CELL_META[k].title).join(', '), 'ok');
+  showMarkdownStatus(statusEl, '✓ Updated ' + keys.length + ' section(s): ' + keys.map(k => CELL_META[k].title).join(', '), 'ok');
   scheduleCloudSave();
+  if (options.closeModal) closeModal(options.closeModal);
+  if (options.toastOnSuccess) showToast('Canvas updated from markdown', 'success');
+  return true;
 }
 
-function showImportStatus(msg, type) {
-  const el = document.getElementById('import-status');
+function showMarkdownStatus(el, msg, type) {
+  if (!el) return;
   el.textContent = msg;
   el.style.borderLeftColor = type === 'ok' ? '#14b8a6' : type === 'warn' ? '#7c3aed' : '#dc2626';
   el.style.background = type === 'ok' ? '#ccfbf1' : type === 'warn' ? '#ede9fe' : '#fee2e2';
 }
 
+function showImportStatus(msg, type) {
+  showMarkdownStatus(document.getElementById('import-status'), msg, type);
+}
+
 function openSaveModal() {
+  if (readonlyMode) return;
   document.getElementById('export-output').textContent = generateExport();
   openModal('save-modal');
 }
 function openImportModal() {
+  if (readonlyMode) return;
   const el = document.getElementById('import-status');
   el.textContent = 'Paste the full markdown document and click Import. All existing content will be replaced.';
   el.style.borderLeftColor = '#a78bfa';
   el.style.background = '#ede9fe';
   openModal('import-modal');
+}
+function openEditMarkdownModal() {
+  if (readonlyMode) return;
+  const statusEl = document.getElementById('edit-markdown-status');
+  statusEl.textContent = 'Edit the markdown below. Click Apply & Update to refresh all canvas sections.';
+  statusEl.style.borderLeftColor = '#a78bfa';
+  statusEl.style.background = '#ede9fe';
+  document.getElementById('edit-markdown-textarea').value = generateExport();
+  openModal('edit-markdown-modal');
+}
+function applyEditMarkdown() {
+  if (readonlyMode) return;
+  importMarkdown({
+    raw: document.getElementById('edit-markdown-textarea').value,
+    statusEl: document.getElementById('edit-markdown-status'),
+    closeModal: 'edit-markdown-modal',
+    toastOnSuccess: true,
+  });
 }
 function openTemplateModal() {
   document.getElementById('template-output').textContent = generateTemplate();
@@ -2791,7 +2873,8 @@ function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 function copyText(elId) {
-  const text = document.getElementById(elId).textContent;
+  const el = document.getElementById(elId);
+  const text = el.tagName === 'TEXTAREA' ? el.value : el.textContent;
   navigator.clipboard.writeText(text).then(() => {
     const orig = event.target.textContent;
     event.target.textContent = '✓ Copied';
@@ -2806,7 +2889,7 @@ function downloadText(text, filename) {
   a.click();
 }
 
-['import-modal','template-modal','save-modal','auth-modal','delete-modal'].forEach(id => {
+['import-modal','template-modal','save-modal','auth-modal','delete-modal','edit-markdown-modal'].forEach(id => {
   document.getElementById(id).addEventListener('click', e => {
     if (e.target === e.currentTarget) closeModal(id);
   });
@@ -2816,7 +2899,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeUserMenu();
     closeCellTips();
-    ['import-modal','template-modal','save-modal','auth-modal','delete-modal'].forEach(closeModal);
+    ['import-modal','template-modal','save-modal','auth-modal','delete-modal','edit-markdown-modal'].forEach(closeModal);
   }
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
     CELLS.forEach(key => {
