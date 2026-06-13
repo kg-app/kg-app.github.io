@@ -402,8 +402,8 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 .dtab.soon.on{color:var(--av-ink-2);border-bottom-color:var(--av-ink-mute)}
 .soon-chip{font-family:var(--av-font-mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;background:var(--av-bg-subtle);color:var(--av-ink-mute);padding:1px 5px;border-radius:var(--av-radius-pill);border:.5px solid var(--av-line)}
 .soon-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--av-font-mono);font-size:11px;color:var(--av-ink-3);background:var(--av-bg-subtle);border:.5px solid var(--av-line);padding:6px 12px;border-radius:var(--av-radius-pill)}
-.hov-rot{display:inline-flex;border:.5px solid var(--av-line-strong);border-radius:var(--av-radius-sm);overflow:hidden}
-.hov-rot button{font-family:var(--av-font-mono);font-size:10px;letter-spacing:.04em;padding:5px 10px;border:none;background:var(--av-bg-surface);color:var(--av-ink-3);cursor:pointer;border-right:.5px solid var(--av-line)}
+.hov-rot{display:inline-flex;flex-shrink:0;border:.5px solid var(--av-line-strong);border-radius:var(--av-radius-sm);overflow:hidden}
+.hov-rot button{font-family:var(--av-font-mono);font-size:10px;letter-spacing:.04em;padding:5px 12px;min-width:58px;text-align:center;white-space:nowrap;border:none;background:var(--av-bg-surface);color:var(--av-ink-3);cursor:pointer;border-right:.5px solid var(--av-line)}
 .hov-rot button:last-child{border-right:none}
 .hov-rot button.on{background:var(--av-ink);color:var(--av-gold-soft)}
 .hov-legend{display:flex;align-items:center;gap:16px;padding:11px 18px;border-top:.5px solid var(--av-line-faint);flex-wrap:wrap}
@@ -1187,14 +1187,11 @@ function renderSummaryShell(){
       </div>
     </div>
     <div class="card" style="margin-top:18px" id="hovCard">
-      <div class="card-h"><div class="t"><span class="mi s16">terrain</span> Hill of Value</div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span class="s">NPV vs. Recovery vs. Throughput</span>
-          <div class="hov-rot" id="hovRot">
-            <button data-az="-35" class="on">View A</button>
-            <button data-az="20">View B</button>
-            <button data-az="-70">View C</button>
-          </div>
+      <div class="card-h"><div class="t"><span class="mi s16">terrain</span> Hill of Value <span class="s" style="margin-left:8px;font-weight:400">NPV vs. Recovery vs. Throughput</span></div>
+        <div class="hov-rot" id="hovRot">
+          <button data-az="-35" class="on">View A</button>
+          <button data-az="20">View B</button>
+          <button data-az="-70">View C</button>
         </div></div>
       <div style="padding:8px 12px 14px"><div id="hovChart"></div></div>
       <div class="hov-legend">
@@ -1270,7 +1267,7 @@ let hovAz=-35;
 function drawHillOfValue(price, rate, base){
   const host=document.getElementById('hovChart'); if(!host) return;
   document.getElementById('hovBasis').textContent=`Cu $${price.toFixed(2)}/lb · ${(rate*100).toFixed(1)}% discount`;
-  const W=host.clientWidth||820, Hpx=440;
+  const W=host.clientWidth||820, Hpx=470;
   // domains
   const recMin=0.84, recMax=0.94, tpdMin=10000, tpdMax=20000;
   // npv as function of recovery & throughput at current price/rate, using a representative tech opex/capex curve
@@ -1302,7 +1299,7 @@ function drawHillOfValue(price, rate, base){
 
   // isometric projection
   const az=hovAz*Math.PI/180, el=26*Math.PI/180;
-  const cx=W/2, cy=Hpx*0.60, scale=Math.min(W,920)*0.30, zScale=Hpx*0.46;
+  const cx=W/2, cy=Hpx*0.56, scale=Math.min(W,920)*0.26, zScale=Hpx*0.42;
   function nx(rec){return (rec-recMin)/(recMax-recMin)-0.5;}
   function ny(tpd){return (tpd-tpdMin)/(tpdMax-tpdMin)-0.5;}
   function nz(z){return (z-zMin)/(zMax-zMin);}
@@ -1331,46 +1328,101 @@ function drawHillOfValue(price, rate, base){
     return `rgba(${Math.round(220-20*tb)},${Math.round(180-90*tb)},${Math.round(120-70*tb)},0.6)`;
   }
   let svg=`<svg viewBox="0 0 ${W} ${Hpx}" width="100%" style="display:block">`;
-  // base plane (NPV=base) faint
-  // axes box floor grid
-  // draw quads
+
+  // ---- 3D bounding box corners (rec, tpd, z) ----
+  // floor at zMin, ceiling at zMax
+  const C={
+    // bottom (floor) corners
+    b00:proj(recMin,tpdMin,zMin), b10:proj(recMax,tpdMin,zMin), b11:proj(recMax,tpdMax,zMin), b01:proj(recMin,tpdMax,zMin),
+    // top (ceiling) corners
+    t00:proj(recMin,tpdMin,zMax), t10:proj(recMax,tpdMin,zMax), t11:proj(recMax,tpdMax,zMax), t01:proj(recMin,tpdMax,zMax),
+  };
+  const L=(a,bb,col,w,dash)=>`<line x1="${a[0]}" y1="${a[1]}" x2="${bb[0]}" y2="${bb[1]}" stroke="${col}" stroke-width="${w}" ${dash?`stroke-dasharray="${dash}"`:''}/>`;
+  const axc='var(--av-line-strong)', gridc='var(--av-line)';
+
+  // ---- FLOOR grid (recovery × throughput at zMin) ----
+  for(let i=0;i<NR;i+=2){
+    const rec=recMin+(recMax-recMin)*i/(NR-1);
+    svg+=L(proj(rec,tpdMin,zMin),proj(rec,tpdMax,zMin),gridc,0.5);
+  }
+  for(let j=0;j<NT;j+=2){
+    const tpd=tpdMin+(tpdMax-tpdMin)*j/(NT-1);
+    svg+=L(proj(recMin,tpd,zMin),proj(recMax,tpd,zMin),gridc,0.5);
+  }
+  // ---- BACK WALLS with z gridlines (the two far vertical planes) ----
+  // wall at tpdMax (back-right) and wall at recMin (back-left): pick far edges by projection depth
+  for(let k=0;k<=4;k++){
+    const z=zMin+(zMax-zMin)*k/4;
+    // horizontal gridline on rec wall (tpd=tpdMax)
+    svg+=L(proj(recMin,tpdMax,z),proj(recMax,tpdMax,z),gridc,0.5);
+    // horizontal gridline on tpd wall (rec=recMin)
+    svg+=L(proj(recMin,tpdMin,z),proj(recMin,tpdMax,z),gridc,0.5);
+  }
+  // vertical gridlines up the back walls
+  for(let i=0;i<NR;i+=2){const rec=recMin+(recMax-recMin)*i/(NR-1);svg+=L(proj(rec,tpdMax,zMin),proj(rec,tpdMax,zMax),gridc,0.5);}
+  for(let j=0;j<NT;j+=2){const tpd=tpdMin+(tpdMax-tpdMin)*j/(NT-1);svg+=L(proj(recMin,tpd,zMin),proj(recMin,tpd,zMax),gridc,0.5);}
+
+  // ---- box edges (axes) ----
+  // floor rectangle
+  svg+=L(C.b00,C.b10,axc,1)+L(C.b10,C.b11,axc,1)+L(C.b11,C.b01,axc,1)+L(C.b01,C.b00,axc,1);
+  // vertical risers at back corners
+  svg+=L(C.b00,C.t00,axc,1)+L(C.b01,C.t01,axc,1)+L(C.b10,C.t10,axc,1);
+  // ceiling back edges
+  svg+=L(C.t00,C.t01,axc,0.75,'3 3')+L(C.t00,C.t10,axc,0.75,'3 3');
+
+  // ---- base-NPV reference plane ----
+  const bc=[proj(recMin,tpdMin,base),proj(recMax,tpdMin,base),proj(recMax,tpdMax,base),proj(recMin,tpdMax,base)];
+  svg+=`<polygon points="${bc.map(p=>p.join(',')).join(' ')}" fill="rgba(80,88,168,0.10)" stroke="var(--av-sec)" stroke-width="1" stroke-dasharray="4 3"/>`;
+
+  // ---- SURFACE ----
   for(const q of quads){
     const p=q.pts.map(pt=>pt.join(',')).join(' ');
     svg+=`<polygon points="${p}" fill="${surfColor(q.zmid)}" stroke="rgba(120,100,40,0.18)" stroke-width="0.5"/>`;
   }
-  // base-NPV reference plane outline (4 corners at z=base)
-  const bc=[proj(recMin,tpdMin,base),proj(recMax,tpdMin,base),proj(recMax,tpdMax,base),proj(recMin,tpdMax,base)];
-  svg+=`<polygon points="${bc.map(p=>p.join(',')).join(' ')}" fill="rgba(80,88,168,0.10)" stroke="var(--av-sec)" stroke-width="1" stroke-dasharray="4 3"/>`;
-  // axis ticks: recovery (x) and throughput (y) along the floor at zMin
+
+  // ---- AXIS TICKS + LABELS ----
+  // X axis: Recovery (%), along front-bottom edge (tpd=tpdMin)
   for(let i=0;i<NR;i+=2){
     const rec=recMin+(recMax-recMin)*i/(NR-1);
     const [sx,sy]=proj(rec,tpdMin,zMin);
-    svg+=`<text x="${sx}" y="${sy+14}" font-size="9" fill="var(--av-ink-mute)" text-anchor="middle" font-family="DM Mono">${(rec*100).toFixed(0)}%</text>`;
+    svg+=`<circle cx="${sx}" cy="${sy}" r="1.5" fill="${axc}"/>`;
+    svg+=`<text x="${sx}" y="${sy+14}" font-size="9" fill="var(--av-ink-3)" text-anchor="middle" font-family="DM Mono">${(rec*100).toFixed(0)}%</text>`;
   }
+  // Y axis: Throughput (tpd), along front-right edge (rec=recMax)
   for(let j=0;j<NT;j+=2){
     const tpd=tpdMin+(tpdMax-tpdMin)*j/(NT-1);
-    const [sx,sy]=proj(recMin,tpd,zMin);
-    svg+=`<text x="${sx-16}" y="${sy+4}" font-size="9" fill="var(--av-ink-mute)" text-anchor="end" font-family="DM Mono">${(tpd/1000)}k</text>`;
+    const [sx,sy]=proj(recMax,tpd,zMin);
+    svg+=`<circle cx="${sx}" cy="${sy}" r="1.5" fill="${axc}"/>`;
+    svg+=`<text x="${sx+8}" y="${sy+10}" font-size="9" fill="var(--av-ink-3)" text-anchor="start" font-family="DM Mono">${(tpd/1000)}k</text>`;
   }
-  // z-axis label ticks (NPV) on left
+  // Z axis: NPV ($M), up the back-left riser (rec=recMin, tpd=tpdMin)
   for(let k=0;k<=4;k++){
     const z=zMin+(zMax-zMin)*k/4;
-    const [sx,sy]=proj(recMin,tpdMax,z);
-    svg+=`<text x="${sx-22}" y="${sy+3}" font-size="9" fill="var(--av-ink-mute)" text-anchor="end" font-family="DM Mono">$${Math.round(z)}M</text>`;
+    const [sx,sy]=proj(recMin,tpdMin,z);
+    svg+=`<circle cx="${sx}" cy="${sy}" r="1.5" fill="${axc}"/>`;
+    svg+=`<text x="${sx-8}" y="${sy+3}" font-size="9" fill="var(--av-ink-3)" text-anchor="end" font-family="DM Mono">$${Math.round(z)}M</text>`;
   }
-  // option points: stem + sphere, colored
+
+  // ---- option points: stem + sphere + label ----
   pts.sort((a,b)=>(nx(a.rec)*Math.sin(az)+ny(a.tpd)*Math.cos(az))-(nx(b.rec)*Math.sin(az)+ny(b.tpd)*Math.cos(az)));
   for(const p of pts){
     const [sx,sy]=proj(p.rec,p.tpd,p.z);
     const [fx,fy]=proj(p.rec,p.tpd,zMin);
     const isB=p.n.id==='base';
     const col=isB?'var(--hov-base)':(p.z>=base?'var(--hov-up)':'var(--hov-dn)');
-    svg+=`<line x1="${fx}" y1="${fy}" x2="${sx}" y2="${sy}" stroke="rgba(60,50,20,0.25)" stroke-width="1"/>`;
+    svg+=`<line x1="${fx}" y1="${fy}" x2="${sx}" y2="${sy}" stroke="rgba(60,50,20,0.28)" stroke-width="1" stroke-dasharray="2 2"/>`;
     svg+=`<circle cx="${sx}" cy="${sy}" r="${isB?6:5}" fill="${col}" stroke="#fff" stroke-width="1.2"/>`;
     svg+=`<text x="${sx}" y="${sy-9}" font-size="10" font-weight="600" fill="var(--av-ink)" text-anchor="middle" font-family="DM Sans">${isB?'Base':p.n.short}</text>`;
   }
-  // axis titles
-  svg+=`<text x="${W*0.5}" y="${Hpx-6}" font-size="10" fill="var(--av-ink-3)" text-anchor="middle" font-family="DM Mono">Recovery (%) ↗   ·   Throughput (tpd) ↘</text>`;
+
+  // ---- AXIS TITLES (placed at mid-edges) ----
+  const xMid=proj((recMin+recMax)/2, tpdMin, zMin);
+  const yMid=proj(recMax,(tpdMin+tpdMax)/2, zMin);
+  const zMid=proj(recMin,tpdMin,(zMin+zMax)/2);
+  svg+=`<text x="${xMid[0]}" y="${xMid[1]+30}" font-size="10.5" font-weight="600" fill="var(--av-ink-2)" text-anchor="middle" font-family="DM Sans">Recovery (%)</text>`;
+  svg+=`<text x="${yMid[0]+34}" y="${yMid[1]+26}" font-size="10.5" font-weight="600" fill="var(--av-ink-2)" text-anchor="middle" font-family="DM Sans">Throughput (tpd)</text>`;
+  svg+=`<text x="${zMid[0]-40}" y="${zMid[1]}" font-size="10.5" font-weight="600" fill="var(--av-ink-2)" text-anchor="middle" font-family="DM Sans" transform="rotate(-90 ${zMid[0]-40} ${zMid[1]})">NPV ($M)</text>`;
+
   svg+=`</svg>`;
   host.innerHTML=svg;
 }
