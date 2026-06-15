@@ -1267,7 +1267,7 @@ let hovAz=-35;
 function drawHillOfValue(price, rate, base){
   const host=document.getElementById('hovChart'); if(!host) return;
   document.getElementById('hovBasis').textContent=`Cu $${price.toFixed(2)}/lb · ${(rate*100).toFixed(1)}% discount`;
-  const W=host.clientWidth||820, Hpx=470;
+  const W=host.clientWidth||820, Hpx=430;
   // domains
   const recMin=0.84, recMax=0.94, tpdMin=10000, tpdMax=20000;
   // npv as function of recovery & throughput at current price/rate, using a representative tech opex/capex curve
@@ -1299,7 +1299,7 @@ function drawHillOfValue(price, rate, base){
 
   // isometric projection
   const az=hovAz*Math.PI/180, el=26*Math.PI/180;
-  const cx=W/2, cy=Hpx*0.56, scale=Math.min(W,920)*0.26, zScale=Hpx*0.42;
+  const cx=W/2, cy=Hpx*0.70, scale=Math.min(W,920)*0.30, zScale=Hpx*0.46;
   function nx(rec){return (rec-recMin)/(recMax-recMin)-0.5;}
   function ny(tpd){return (tpd-tpdMin)/(tpdMax-tpdMin)-0.5;}
   function nz(z){return (z-zMin)/(zMax-zMin);}
