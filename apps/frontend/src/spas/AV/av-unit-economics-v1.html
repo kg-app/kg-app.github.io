@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpha-Val · Unit Economics Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --av-bg-page:#fafaf7;--av-bg-surface:#ffffff;--av-bg-emph:#fbf7ec;--av-bg-subtle:#f5f2e9;
+  --av-bg-row-alt:#fcfaf3;--av-bg-input:#fffdf7;--av-bg-rail:#0f0d04;
+  --av-line:#e6e0cc;--av-line-strong:#c8b870;--av-line-faint:#efead8;
+  --av-gold-deep:#9a7010;--av-gold:#c4900e;--av-gold-soft:#e5bd55;--av-gold-pale:#f5e8b8;
+  --av-ink:#1a1508;--av-ink-2:#4a3d14;--av-ink-3:#7a6020;--av-ink-mute:#b09040;
+  --av-sec-pale:#eceef8;--av-sec-soft:#8890cc;--av-sec:#5058a8;--av-sec-deep:#363c80;--av-sec-dark:#222658;
+  --av-green:#2e7d32;--av-green-pale:#e3f0dc;
+  --av-amber:#b87e10;--av-amber-pale:#faedc8;
+  --av-red:#b23b20;--av-red-pale:#f5e2dc;
+  --av-blue:#2a5a8a;--av-blue-pale:#dce6f0;
+  --av-font-sans:"DM Sans",-apple-system,sans-serif;
+  --av-font-mono:"DM Mono",monospace;
+  --av-radius-sm:3px;--av-radius-md:4px;--av-radius-lg:6px;
+  --av-shadow-sm:0 1px 2px rgba(26,21,8,.04);--av-shadow-md:0 2px 8px rgba(26,21,8,.08);
+}
+[data-theme="dark"]{
+  --av-bg-page:#0a0805;--av-bg-surface:#14110a;--av-bg-emph:#1e1808;--av-bg-subtle:#1a150b;
+  --av-bg-row-alt:#18130a;--av-bg-input:#1a150b;--av-bg-rail:#050402;
+  --av-line:#2e2614;--av-line-strong:#6a5418;--av-line-faint:#221c10;
+  --av-gold-deep:#8e6610;--av-gold:#d4a020;--av-gold-soft:#e5bd55;--av-gold-pale:#3a2e10;
+  --av-ink:#f2e6c0;--av-ink-2:#d4be7a;--av-ink-3:#a88b40;--av-ink-mute:#7a6020;
+  --av-sec-pale:#141838;--av-sec-soft:#8890cc;--av-sec:#7880c0;--av-sec-deep:#5058a8;--av-sec-dark:#c4c8e8;
+  --av-green:#6ba86e;--av-green-pale:#1a2a18;
+  --av-amber:#d4a020;--av-amber-pale:#2a2010;
+  --av-red:#d45f40;--av-red-pale:#2a1410;
+  --av-blue:#6090c0;--av-blue-pale:#14202a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--av-bg-page);font-family:var(--av-font-sans);color:var(--av-ink);-webkit-font-smoothing:antialiased;font-size:13px;line-height:1.45;}
+
+/* ── Layout ── */
+.shell{max-width:1320px;margin:0 auto;padding:32px 32px 80px;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;padding-bottom:20px;border-bottom:0.5px solid var(--av-line);}
+.logo-area .wordmark{font-size:14px;font-weight:500;color:var(--av-ink);letter-spacing:-0.01em;}
+.logo-area .sub{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.14em;color:var(--av-gold-deep);text-transform:uppercase;margin-top:2px;}
+.top-bar-right{display:flex;align-items:center;gap:12px;}
+.assumption-badge{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;background:var(--av-amber-pale);color:var(--av-amber);border:0.5px solid var(--av-amber);border-radius:3px;padding:4px 10px;}
+.theme-btn{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;background:none;border:0.5px solid var(--av-line-strong);border-radius:var(--av-radius-sm);padding:5px 12px;color:var(--av-ink-3);cursor:pointer;transition:all .15s;}
+.theme-btn:hover{border-color:var(--av-gold);color:var(--av-gold-deep);}
+
+/* ── Persona tabs ── */
+.persona-tabs{display:flex;gap:0;margin-bottom:28px;border:0.5px solid var(--av-line);border-radius:var(--av-radius-md);overflow:hidden;background:var(--av-bg-subtle);}
+.ptab{flex:1;padding:10px 16px;cursor:pointer;background:none;border:none;font-family:var(--av-font-sans);font-size:12px;color:var(--av-ink-3);text-align:left;transition:all .15s;border-right:0.5px solid var(--av-line);display:flex;flex-direction:column;gap:3px;}
+.ptab:last-child{border-right:none;}
+.ptab:hover{background:var(--av-bg-emph);}
+.ptab.active{background:var(--av-bg-surface);color:var(--av-ink);}
+.ptab.p1.active{border-top:2px solid var(--av-gold);}
+.ptab.p2.active{border-top:2px solid var(--av-sec);}
+.ptab.p3.active{border-top:2px solid var(--av-green);}
+.ptab.compare.active{border-top:2px solid var(--av-amber);}
+.ptab-label{font-weight:500;font-size:12.5px;}
+.ptab-sub{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.06em;color:var(--av-ink-mute);}
+.ptab.active .ptab-sub{color:var(--av-ink-3);}
+
+/* ── Main grid ── */
+.main-grid{display:grid;grid-template-columns:340px 1fr;gap:24px;}
+
+/* ── Input panel ── */
+.input-panel{display:flex;flex-direction:column;gap:0;}
+.input-section{padding:18px 20px;border:0.5px solid var(--av-line);border-radius:var(--av-radius-md);background:var(--av-bg-surface);margin-bottom:14px;}
+.input-section-label{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--av-gold-deep);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.input-section-label.sec{color:var(--av-sec-deep);}
+.input-section-label.grn{color:var(--av-green);}
+.section-rule{flex:1;height:0.5px;background:var(--av-line);}
+.field{margin-bottom:14px;}
+.field:last-child{margin-bottom:0;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.f-label{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--av-ink-3);margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.f-hint{font-family:var(--av-font-mono);font-size:8px;color:var(--av-ink-mute);font-style:italic;letter-spacing:0;}
+.f-input{display:flex;align-items:center;height:34px;background:var(--av-bg-input);border:0.5px solid var(--av-line-strong);border-radius:var(--av-radius-sm);overflow:hidden;transition:border-color .15s;}
+.f-input:focus-within{border-color:var(--av-gold);}
+.f-prefix,.f-suffix{font-family:var(--av-font-mono);font-size:11px;color:var(--av-ink-3);padding:0 8px;background:var(--av-bg-subtle);border-right:0.5px solid var(--av-line);height:100%;display:flex;align-items:center;flex-shrink:0;}
+.f-suffix{border-right:none;border-left:0.5px solid var(--av-line);}
+.f-input input{flex:1;border:none;background:transparent;font-family:var(--av-font-mono);font-size:12px;color:var(--av-ink);padding:0 8px;outline:none;width:100%;}
+/* assumption dot */
+.assumed::after{content:"~";font-family:var(--av-font-mono);font-size:9px;color:var(--av-amber);margin-left:4px;}
+.f-slider{width:100%;margin-top:6px;accent-color:var(--av-gold);}
+.f-slider-row{display:flex;justify-content:space-between;font-family:var(--av-font-mono);font-size:9px;color:var(--av-ink-mute);margin-top:2px;}
+
+/* ── Output panel ── */
+.output-panel{display:flex;flex-direction:column;gap:20px;}
+
+/* KPI strip */
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+.kpi{background:var(--av-bg-surface);border:0.5px solid var(--av-line);border-radius:var(--av-radius-md);padding:14px 16px;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi.ltv-cac::before{background:var(--av-gold);}
+.kpi.ltv::before{background:var(--av-sec);}
+.kpi.cac::before{background:var(--av-amber);}
+.kpi.payback::before{background:var(--av-blue);}
+.kpi.nrr::before{background:var(--av-green);}
+.kpi-eyebrow{font-family:var(--av-font-mono);font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--av-ink-3);margin-bottom:6px;}
+.kpi-val{font-size:22px;font-weight:500;letter-spacing:-0.02em;color:var(--av-ink);line-height:1;}
+.kpi-val.good{color:var(--av-green);}
+.kpi-val.warn{color:var(--av-amber);}
+.kpi-val.bad{color:var(--av-red);}
+.kpi-sub{font-family:var(--av-font-mono);font-size:9px;color:var(--av-ink-mute);margin-top:5px;}
+.kpi-bench{font-family:var(--av-font-mono);font-size:8px;color:var(--av-ink-mute);margin-top:4px;padding-top:6px;border-top:0.5px solid var(--av-line-faint);}
+
+/* Charts area */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.chart-card{background:var(--av-bg-surface);border:0.5px solid var(--av-line);border-radius:var(--av-radius-md);padding:18px 20px;}
+.chart-card.wide{grid-column:1/-1;}
+.chart-label{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--av-ink-3);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.chart-label-right{font-size:9px;color:var(--av-ink-mute);}
+.chart-wrap{position:relative;height:180px;}
+.chart-wrap.tall{height:220px;}
+
+/* Readiness scorecard */
+.readiness-card{background:var(--av-bg-surface);border:0.5px solid var(--av-line);border-radius:var(--av-radius-md);padding:18px 20px;}
+.readiness-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;}
+.r-item{padding:10px 12px;border-radius:var(--av-radius-sm);border:0.5px solid var(--av-line);}
+.r-item.pass{background:var(--av-green-pale);border-color:var(--av-green);}
+.r-item.warn{background:var(--av-amber-pale);border-color:var(--av-amber);}
+.r-item.fail{background:var(--av-red-pale);border-color:var(--av-red);}
+.r-icon{font-size:14px;margin-bottom:4px;}
+.r-label{font-family:var(--av-font-mono);font-size:8.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--av-ink-3);margin-bottom:3px;}
+.r-val{font-size:12.5px;font-weight:500;color:var(--av-ink);}
+.r-note{font-size:11px;color:var(--av-ink-2);margin-top:2px;line-height:1.4;}
+
+/* Insight box */
+.insight-box{background:var(--av-bg-emph);border:0.5px solid var(--av-line-strong);border-left:3px solid var(--av-gold);border-radius:0 var(--av-radius-md) var(--av-radius-md) 0;padding:12px 16px;font-size:12px;color:var(--av-ink-2);line-height:1.6;}
+.insight-box strong{color:var(--av-ink);font-weight:500;}
+.insight-box.red{border-left-color:var(--av-red);background:var(--av-red-pale);}
+.insight-box.green{border-left-color:var(--av-green);background:var(--av-green-pale);}
+
+/* Compare mode */
+.compare-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.compare-col{background:var(--av-bg-surface);border:0.5px solid var(--av-line);border-radius:var(--av-radius-md);overflow:hidden;}
+.compare-header{padding:14px 16px;border-bottom:0.5px solid var(--av-line);}
+.compare-header.p1{border-top:3px solid var(--av-gold);}
+.compare-header.p2{border-top:3px solid var(--av-sec);}
+.compare-header.p3{border-top:3px solid var(--av-green);}
+.compare-header-name{font-size:13px;font-weight:500;color:var(--av-ink);}
+.compare-header-sub{font-family:var(--av-font-mono);font-size:9px;color:var(--av-ink-3);margin-top:2px;}
+.compare-body{padding:14px 16px;}
+.compare-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--av-line-faint);}
+.compare-row:last-child{border-bottom:none;}
+.compare-row-label{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:var(--av-ink-3);}
+.compare-row-val{font-family:var(--av-font-mono);font-size:12px;font-weight:500;color:var(--av-ink);}
+.compare-row-val.good{color:var(--av-green);}
+.compare-row-val.warn{color:var(--av-amber);}
+.compare-row-val.bad{color:var(--av-red);}
+
+/* Waterfall / scenario row */
+.scenario-bar-section{background:var(--av-bg-surface);border:0.5px solid var(--av-line);border-radius:var(--av-radius-md);padding:18px 20px;}
+.scenario-bar-row{display:flex;align-items:center;gap:12px;padding:6px 0;border-bottom:0.5px solid var(--av-line-faint);}
+.scenario-bar-row:last-child{border-bottom:none;}
+.sb-label{font-size:12px;color:var(--av-ink);width:140px;flex-shrink:0;}
+.sb-track{flex:1;height:8px;background:var(--av-line-faint);border-radius:4px;overflow:hidden;}
+.sb-fill{height:100%;border-radius:4px;transition:width .4s ease;}
+.sb-val{font-family:var(--av-font-mono);font-size:11px;width:60px;text-align:right;flex-shrink:0;}
+
+/* Hidden */
+.persona-panel{display:none;}
+.persona-panel.active{display:block;}
+
+/* Tooltip */
+.tip{cursor:help;display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--av-line);font-family:var(--av-font-mono);font-size:8px;text-align:center;line-height:14px;color:var(--av-ink-3);flex-shrink:0;position:relative;}
+.tip:hover::after{content:attr(data-tip);position:absolute;left:20px;top:-4px;background:var(--av-ink);color:var(--av-gold-pale);font-size:10px;font-family:var(--av-font-sans);white-space:nowrap;padding:5px 9px;border-radius:3px;z-index:100;letter-spacing:0;font-weight:400;}
+
+/* Reset btn */
+.reset-btn{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;background:none;border:0.5px solid var(--av-line);border-radius:var(--av-radius-sm);padding:4px 10px;color:var(--av-ink-mute);cursor:pointer;transition:all .15s;margin-top:6px;width:100%;}
+.reset-btn:hover{border-color:var(--av-line-strong);color:var(--av-ink-3);}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="logo-area">
+      <div class="wordmark">Alpha-Val Pro</div>
+      <div class="sub">Unit Economics Calculator</div>
+    </div>
+    <div class="top-bar-right">
+      <div class="assumption-badge">⚠ All inputs are assumptions — not validated data</div>
+      <button class="theme-btn" onclick="toggleTheme()">Light / Dark</button>
+    </div>
+  </div>
+
+  <!-- Persona tabs -->
+  <div class="persona-tabs">
+    <button class="ptab p1 active" onclick="switchPersona('p1')">
+      <span class="ptab-label">P1 · Estimator</span>
+      <span class="ptab-sub">Independent consultant</span>
+    </button>
+    <button class="ptab p2" onclick="switchPersona('p2')">
+      <span class="ptab-label">P2 · Owner PM</span>
+      <span class="ptab-sub">Capital projects team</span>
+    </button>
+    <button class="ptab p3" onclick="switchPersona('p3')">
+      <span class="ptab-label">P3 · Enterprise</span>
+      <span class="ptab-sub">Multi-project operator</span>
+    </button>
+    <button class="ptab compare" onclick="switchPersona('compare')">
+      <span class="ptab-label">◈ Compare all</span>
+      <span class="ptab-sub">Side-by-side view</span>
+    </button>
+  </div>
+
+  <!-- ─── P1 Panel ─── -->
+  <div class="persona-panel active" id="panel-p1">
+    <div class="main-grid">
+      <div class="input-panel">
+
+        <div class="input-section">
+          <div class="input-section-label">Revenue inputs <div class="section-rule"></div></div>
+          <div class="field">
+            <div class="f-label assumed">ACV — Annual Contract Value <span class="tip" data-tip="What one P1 customer pays per year">?</span></div>
+            <div class="f-input"><span class="f-prefix">$</span><input type="number" id="p1-acv" value="4800" min="500" max="50000" oninput="recalc('p1')"></div>
+            <input class="f-slider" type="range" id="p1-acv-s" min="500" max="20000" step="100" value="4800" oninput="syncSlider('p1','acv',this.value)">
+            <div class="f-slider-row"><span>$500</span><span>$20k</span></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <div class="f-label assumed">Studies/yr per customer <span class="tip" data-tip="How many FEL studies one customer runs annually">?</span></div>
+              <div class="f-input"><input type="number" id="p1-studies" value="3" min="1" max="20" oninput="recalc('p1')"></div>
+            </div>
+            <div class="field">
+              <div class="f-label assumed">Gross margin % <span class="tip" data-tip="Revenue minus compute/API/data costs">?</span></div>
+              <div class="f-input"><input type="number" id="p1-margin" value="72" min="10" max="95" oninput="recalc('p1')"><span class="f-suffix">%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div class="input-section-label">Retention & expansion <div class="section-rule"></div></div>
+          <div class="field">
+            <div class="f-label assumed">Annual logo churn % <span class="tip" data-tip="% of customers who don't renew. Vertical SaaS benchmark: 8–15%">?</span></div>
+            <div class="f-input"><input type="number" id="p1-churn" value="18" min="1" max="60" oninput="recalc('p1')"><span class="f-suffix">%</span></div>
+            <input class="f-slider" type="range" id="p1-churn-s" min="1" max="60" step="1" value="18" oninput="syncSlider('p1','churn',this.value)">
+            <div class="f-slider-row"><span>1%</span><span>60%</span></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <div class="f-label assumed">Expansion rate % <span class="tip" data-tip="Avg upsell/expansion from existing customers per year">?</span></div>
+              <div class="f-input"><input type="number" id="p1-expansion" value="8" min="0" max="50" oninput="recalc('p1')"><span class="f-suffix">%</span></div>
+            </div>
+            <div class="field">
+              <div class="f-label assumed">Avg contract length <span class="tip" data-tip="Expected customer lifetime in years before churn">?</span></div>
+              <div class="f-input"><input type="number" id="p1-life" value="2.5" min="0.5" max="10" step="0.5" oninput="recalc('p1')"><span class="f-suffix">yrs</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div class="input-section-label">Acquisition costs <div class="section-rule"></div></div>
+          <div class="field">
+            <div class="f-label assumed">Founder sales time per deal <span class="tip" data-tip="Hours of founder time to close one customer (at implied opportunity cost)">?</span></div>
+            <div class="f-input"><input type="number" id="p1-hrs" value="12" min="1" max="200" oninput="recalc('p1')"><span class="f-suffix">hrs</span></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <div class="f-label assumed">Founder hour rate <span class="tip" data-tip="Opportunity cost of founder time — not cash, but real cost">?</span></div>
+              <div class="f-input"><span class="f-prefix">$</span><input type="number" id="p1-rate" value="200" min="50" max="1000" oninput="recalc('p1')"></div>
+            </div>
+            <div class="field">
+              <div class="f-label assumed">Other CAC costs <span class="tip" data-tip="Conference, travel, tools, content per customer acquired">?</span></div>
+              <div class="f-input"><span class="f-prefix">$</span><input type="number" id="p1-othercac" value="400" min="0" max="20000" oninput="recalc('p1')"></div>
+            </div>
+          </div>
+          <div class="field">
+            <div class="f-label assumed">Sales cycle length <span class="tip" data-tip="Weeks from first contact to signed deal">?</span></div>
+            <div class="f-input"><input type="number" id="p1-cycle" value="6" min="1" max="52" oninput="recalc('p1')"><span class="f-suffix">wks</span></div>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div class="input-section-label">Growth targets <div class="section-rule"></div></div>
+          <div class="field-row">
+            <div class="field">
+              <div class="f-label assumed">Target customers yr 1</div>
+              <div class="f-input"><input type="number" id="p1-cust1" value="8" min="1" max="200" oninput="recalc('p1')"></div>
+            </div>
+            <div class="field">
+              <div class="f-label assumed">Target customers yr 2</div>
+              <div class="f-input"><input type="number" id="p1-cust2" value="25" min="1" max="500" oninput="recalc('p1')"></div>
+            </div>
+          </div>
+        </div>
+
+        <button class="reset-btn" onclick="resetPersona('p1')">↺ Reset P1 to defaults</button>
+      </div>
+
+      <div class="output-panel" id="out-p1"></div>
+    </div>
+  </div>
+
+  <!-- ─── P2 Panel ─── -->
+  <div class="persona-panel" id="panel-p2">
+    <div class="main-grid">
+      <div class="input-panel">
+        <div class="input-section">
+          <div class="input-section-label sec">Revenue inputs <div class="section-rule"></div></div>
+          <div class="field">
+            <div class="f-label assumed">ACV — Annual Contract Value</div>
+            <div class="f-input"><span class="f-prefix">$</span><input type="number" id="p2-acv" value="36000" min="5000" max="300000" oninput="recalc('p2')"></div>
+            <input class="f-slider" type="range" id="p2-acv-s" min="5000" max="200000" step="1000" value="36000" oninput="syncSlider('p2','acv',this.value)">
+            <div class="f-slider-row"><span>$5k</span><span>$200k</span></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <div class="f-label assumed">Studies/yr per customer</div>
+              <div class="f-input"><input type="number" id="p2-studies" value="5" min="1" max="30" oninput="recalc('p2')"></div>
+            </div>
+            <div class="field">
+              <div class="f-label assumed">Gross margin %</div>
+              <div class="f-input"><input type="number" id="p2-margin" value="75" min="10" max="95" oninput="recalc('p2')"><span class="f-suffix">%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div class="input-section-label sec">Retention & expansion <div class="section-rule"></div></div>
+          <div class="field">
+            <div class="f-label assumed">Annual logo churn %</div>
+            <div class="f-input"><input type="number" id="p2-churn" value="12" min="1" max="60" oninput="recalc('p2')"><span class="f-suffix">%</span></div>
+            <input class="f-slider" type="range" id="p2-churn-s" min="1" max="60" step="1" value="12" oninput="syncSlider('p2','churn',this.value)">
+            <div class="f-slider-row"><span>1%</span><span>60%</span></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <div class="f-label assumed">Expansion rate %</div>
+              <div class="f-input"><input type="number" id="p2-expansion" value="15" min="0" max="50" oninput="recalc('p2')"><span class="f-suffix">%</span></div>
+            </div>
+            <div class="field">
+              <div class="f-label assumed">Avg contract length</div>
+              <div class="f-input"><input type="number" id="p2-life" value="3.5" min="0.5" max="10" step="0.5" oninput="recalc('p2')"><span class="f-suffix">yrs</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div class="input-section-label sec">Acquisition costs <div class="section-rule"></div></div>
+          <div class="field">
+            <div class="f-label assumed">Founder sales time per deal</div>
+            <div class="f-input"><input type="number" id="p2-hrs" value="40" min="1" max="500" oninput="recalc('p2')"><span class="f-suffix">hrs</span></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <div class="f-label assumed">Founder hour rate</div>
+              <div class="f-input"><span class="f-prefix">$</span><input type="number" id="p2-rate" value="200" min="50" max="1000" oninput="recalc('p2')"></div>
+            </div>
+            <div class="field">
+              <div class="f-label assumed">Other CAC costs</div>
+              <div class="f-input"><span class="f-prefix">$</span><input type="number" id="p2-othercac" value="2000" min="0" max="50000" oninput="recalc('p2')"></div>
+            </div>
+          </div>
+          <div class="field">
+            <div class="f-label assumed">Sales cycle length</div>
+            <div class="f-input"><input type="number" id="p2-cycle" value="20" min="1" max="104" oninput="recalc('p2')"><span class="f-suffix">wks</span></div>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div class="input-section-label sec">Growth targets <div class="section-rule"></div></div>
+          <div class="field-row">
+            <div class="field">
+              <div class="f-label assumed">Target customers yr 1</div>
+              <div class="f-input"><input type="number" id="p2-cust1" value="3" min="1" max="100" oninput="recalc('p2')"></div>
+            </div>
+            <div class="field">
+              <div class="f-label assumed">Target customers yr 2</div>
+              <div class="f-input"><input type="number" id="p2-cust2" value="10" min="1" max="200" oninput="recalc('p2')"></div>
+            </div>
+          </div>
+        </div>
+        <button class="reset-btn" onclick="resetPersona('p2')">↺ Reset P2 to defaults</button>
+      </div>
+      <div class="output-panel" id="out-p2"></div>
+    </div>
+  </div>
+
+  <!-- ─── P3 Panel ─── -->
+  <div class="persona-panel" id="panel-p3">
+    <div class="main-grid">
+      <div class="input-panel">
+        <div class="input-section">
+          <div class="input-section-label grn">Revenue inputs <div class="section-rule"></div></div>
+          <div class="field">
+            <div class="f-label assumed">ACV — Annual Contract Value</div>
+            <div class="f-input"><span class="f-prefix">$</span><input type="number" id="p3-acv" value="120000" min="20000" max="1000000" oninput="recalc('p3')"></div>
+            <input class="f-slider" type="range" id="p3-acv-s" min="20000" max="500000" step="5000" value="120000" oninput="syncSlider('p3','acv',this.value)">
+            <div class="f-slider-row"><span>$20k</span><span>$500k</span></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <div class="f-label assumed">Studies/yr per customer</div>
+              <div class="f-input"><input type="number" id="p3-studies" value="12" min="1" max="50" oninput="recalc('p3')"></div>
+            </div>
+            <div class="field">
+              <div class="f-label assumed">Gross margin %</div>
+              <div class="f-input"><input type="number" id="p3-margin" value="78" min="10" max="95" oninput="recalc('p3')"><span class="f-suffix">%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div class="input-section-label grn">Retention & expansion <div class="section-rule"></div></div>
+          <div class="field">
+            <div class="f-label assumed">Annual logo churn %</div>
+            <div class="f-input"><input type="number" id="p3-churn" value="8" min="1" max="60" oninput="recalc('p3')"><span class="f-suffix">%</span></div>
+            <input class="f-slider" type="range" id="p3-churn-s" min="1" max="60" step="1" value="8" oninput="syncSlider('p3','churn',this.value)">
+            <div class="f-slider-row"><span>1%</span><span>60%</span></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <div class="f-label assumed">Expansion rate %</div>
+              <div class="f-input"><input type="number" id="p3-expansion" value="22" min="0" max="60" oninput="recalc('p3')"><span class="f-suffix">%</span></div>
+            </div>
+            <div class="field">
+              <div class="f-label assumed">Avg contract length</div>
+              <div class="f-input"><input type="number" id="p3-life" value="5" min="0.5" max="15" step="0.5" oninput="recalc('p3')"><span class="f-suffix">yrs</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div class="input-section-label grn">Acquisition costs <div class="section-rule"></div></div>
+          <div class="field">
+            <div class="f-label assumed">Founder sales time per deal</div>
+            <div class="f-input"><input type="number" id="p3-hrs" value="120" min="1" max="1000" oninput="recalc('p3')"><span class="f-suffix">hrs</span></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <div class="f-label assumed">Founder hour rate</div>
+              <div class="f-input"><span class="f-prefix">$</span><input type="number" id="p3-rate" value="200" min="50" max="1000" oninput="recalc('p3')"></div>
+            </div>
+            <div class="field">
+              <div class="f-label assumed">Other CAC costs</div>
+              <div class="f-input"><span class="f-prefix">$</span><input type="number" id="p3-othercac" value="8000" min="0" max="100000" oninput="recalc('p3')"></div>
+            </div>
+          </div>
+          <div class="field">
+            <div class="f-label assumed">Sales cycle length</div>
+            <div class="f-input"><input type="number" id="p3-cycle" value="36" min="1" max="104" oninput="recalc('p3')"><span class="f-suffix">wks</span></div>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div class="input-section-label grn">Growth targets <div class="section-rule"></div></div>
+          <div class="field-row">
+            <div class="field">
+              <div class="f-label assumed">Target customers yr 1</div>
+              <div class="f-input"><input type="number" id="p3-cust1" value="1" min="1" max="50" oninput="recalc('p3')"></div>
+            </div>
+            <div class="field">
+              <div class="f-label assumed">Target customers yr 2</div>
+              <div class="f-input"><input type="number" id="p3-cust2" value="4" min="1" max="100" oninput="recalc('p3')"></div>
+            </div>
+          </div>
+        </div>
+        <button class="reset-btn" onclick="resetPersona('p3')">↺ Reset P3 to defaults</button>
+      </div>
+      <div class="output-panel" id="out-p3"></div>
+    </div>
+  </div>
+
+  <!-- ─── Compare Panel ─── -->
+  <div class="persona-panel" id="panel-compare">
+    <div id="compare-output"></div>
+  </div>
+
+</div>
+
+<script>
+// ────────────────────────────────────────────────────────
+// Default values
+// ────────────────────────────────────────────────────────
+const DEFAULTS = {
+  p1:{acv:4800,studies:3,margin:72,churn:18,expansion:8,life:2.5,hrs:12,rate:200,othercac:400,cycle:6,cust1:8,cust2:25},
+  p2:{acv:36000,studies:5,margin:75,churn:12,expansion:15,life:3.5,hrs:40,rate:200,othercac:2000,cycle:20,cust1:3,cust2:10},
+  p3:{acv:120000,studies:12,margin:78,churn:8,expansion:22,life:5,hrs:120,rate:200,othercac:8000,cycle:36,cust1:1,cust2:4}
+};
+
+// Chart registry
+const charts = {};
+
+// ────────────────────────────────────────────────────────
+// Core calculations
+// ────────────────────────────────────────────────────────
+function getInputs(p){
+  const g = id => parseFloat(document.getElementById(`${p}-${id}`)?.value)||0;
+  return {
+    acv: g('acv'), studies: g('studies'), margin: g('margin')/100,
+    churn: g('churn')/100, expansion: g('expansion')/100,
+    life: g('life'), hrs: g('hrs'), rate: g('rate'),
+    othercac: g('othercac'), cycle: g('cycle'),
+    cust1: g('cust1'), cust2: g('cust2')
+  };
+}
+
+function calcMetrics(v){
+  const cac = (v.hrs * v.rate) + v.othercac;
+  const grossLTV = v.acv * v.life * (1 + v.expansion * v.life * 0.5); // expansion accumulates
+  const ltv = grossLTV * v.margin;
+  const ltvCac = cac > 0 ? ltv / cac : 0;
+  const paybackMonths = cac > 0 && v.acv > 0 ? (cac / (v.acv * v.margin)) * 12 : 0;
+  const nrr = 1 + v.expansion - v.churn;
+  const arr1 = v.acv * v.cust1;
+  const arr2 = v.acv * v.cust2 * (nrr); // rough NRR impact yr2
+  const mrr1 = arr1 / 12;
+  const totalSalesHr1 = v.hrs * v.cust1;
+  return { cac, ltv, ltvCac, paybackMonths, nrr, arr1, arr2, mrr1, totalSalesHr1 };
+}
+
+// ────────────────────────────────────────────────────────
+// Colour helpers
+// ────────────────────────────────────────────────────────
+function ltvCacColor(r){ return r>=3?'good':r>=2?'warn':'bad'; }
+function paybackColor(m){ return m<=12?'good':m<=18?'warn':'bad'; }
+function nrrColor(n){ return n>=1.1?'good':n>=1.0?'warn':'bad'; }
+function fmt$(n){ return n>=1e6?`$${(n/1e6).toFixed(2)}M`:n>=1000?`$${(n/1000).toFixed(1)}k`:`$${Math.round(n).toLocaleString()}`; }
+function fmtRatio(n){ return `${n.toFixed(1)}x`; }
+function fmtPct(n){ return `${(n*100).toFixed(0)}%`; }
+
+// ────────────────────────────────────────────────────────
+// Readiness checks
+// ────────────────────────────────────────────────────────
+function readinessItems(m, v){
+  return [
+    {
+      label:'LTV:CAC ratio',val:fmtRatio(m.ltvCac),
+      pass:m.ltvCac>=3,warn:m.ltvCac>=2&&m.ltvCac<3,
+      note:m.ltvCac>=3?'Meets 3:1 minimum for sustainable growth':'Below 3:1 — unit economics not yet viable at scale',
+      bench:'Benchmark: ≥3:1 (Bessemer BVP 2026)'
+    },
+    {
+      label:'CAC payback',val:`${m.paybackMonths.toFixed(1)} mo`,
+      pass:m.paybackMonths<=12,warn:m.paybackMonths<=18,
+      note:m.paybackMonths<=12?'Payback under 12 months — capital-efficient':m.paybackMonths<=18?'Borderline — target <12 months for seed stage':'Payback >18 months — requires more capital to fund growth',
+      bench:'Benchmark: <12 mo (SaaS Capital 2026)'
+    },
+    {
+      label:'Net revenue retention',val:fmtPct(m.nrr),
+      pass:m.nrr>=1.1,warn:m.nrr>=1.0&&m.nrr<1.1,
+      note:m.nrr>=1.1?'NRR >110% — existing cohort grows without new logos':'NRR below 110% — expansion must outpace churn',
+      bench:'Benchmark: ≥108% vertical SaaS median'
+    },
+    {
+      label:'Yr 1 ARR target',val:fmt$(m.arr1),
+      pass:m.arr1>=100000,warn:m.arr1>=50000,
+      note:m.arr1>=100000?'Yr 1 ARR target suggests credible seed narrative':'Below $100k ARR target — minimal PMF signal for investors',
+      bench:'Seed signal: ≥$100k ARR (informal)'
+    },
+    {
+      label:'Founder hours yr 1',val:`${m.totalSalesHr1.toFixed(0)} hrs`,
+      pass:m.totalSalesHr1<=400,warn:m.totalSalesHr1<=800,
+      note:m.totalSalesHr1<=400?'Manageable founder time commitment to close yr 1 targets':m.totalSalesHr1<=800?'Heavy but feasible — leaves ~50% time for product':'Sales time exceeds sustainable founder capacity (>800 hrs)',
+      bench:'Assumes ~2,000 hr/yr total founder capacity'
+    },
+    {
+      label:'Sales cycle',val:`${v.cycle} wks`,
+      pass:v.cycle<=8,warn:v.cycle<=16,
+      note:v.cycle<=8?'Short cycle — fast feedback loop for iterating GTM':v.cycle<=16?'Moderate cycle — plan 2-3 deals in parallel':'>16 weeks: cash runway risk + slow validation signal',
+      bench:'Early-stage target: <8 weeks for PMF validation'
+    }
+  ];
+}
+
+// ────────────────────────────────────────────────────────
+// Output renderer
+// ────────────────────────────────────────────────────────
+function getColor(p){ return p==='p1'?'#c4900e':p==='p2'?'#5058a8':p==='p3'?'#2e7d32':'#b87e10'; }
+function isDark(){ return document.documentElement.getAttribute('data-theme')==='dark'; }
+function gridColor(){ return isDark()?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.04)'; }
+function tickColor(){ return isDark()?'#7a6020':'#b09040'; }
+
+function renderOutput(p){
+  const v = getInputs(p);
+  const m = calcMetrics(v);
+  const color = getColor(p);
+  const container = document.getElementById(`out-${p}`);
+
+  // Generate ARR growth series (5 yr)
+  const arrSeries = [];
+  let cust = v.cust1;
+  let acvCurr = v.acv;
+  for(let yr=1;yr<=5;yr++){
+    arrSeries.push(Math.round(cust * acvCurr));
+    cust = Math.round(cust * (1-v.churn) * (1+0.4) + cust * 0.3); // new + retained
+    acvCurr = acvCurr * (1 + v.expansion);
+  }
+
+  // LTV waterfall breakdown
+  const baseRev = v.acv * v.life;
+  const expansionRev = v.acv * v.life * v.expansion * v.life * 0.5;
+  const cogs = (baseRev + expansionRev) * (1 - v.margin);
+
+  // Payback curve — monthly cumulative margin
+  const paybackMonthly = [];
+  let cumulative = -m.cac;
+  const monthlyMargin = (v.acv * v.margin) / 12;
+  for(let mo=0;mo<=Math.min(36, Math.ceil(m.paybackMonths*1.8)+6);mo++){
+    paybackMonthly.push(parseFloat(cumulative.toFixed(0)));
+    cumulative += monthlyMargin;
+  }
+
+  // Churn sensitivity — ltvCac at different churn rates
+  const churnSeries = [5,10,15,20,25,30,40].map(c=>{
+    const vv = {...v, churn:c/100};
+    const mm = calcMetrics(vv);
+    return parseFloat(mm.ltvCac.toFixed(2));
+  });
+
+  const readiness = readinessItems(m, v);
+
+  // Insight generation
+  let insight = '';
+  let insightClass = '';
+  if(m.ltvCac >= 4){
+    insightClass='green'; insight=`<strong>Strong unit economics.</strong> LTV:CAC of ${fmtRatio(m.ltvCac)} exceeds the 4:1 investor threshold. CAC payback of ${m.paybackMonths.toFixed(1)} months suggests capital-efficient growth. The main risk is whether these assumptions hold under real churn — P1 churn is the most sensitive variable.`;
+  } else if(m.ltvCac >= 3){
+    insightClass=''; insight=`<strong>Viable but tight.</strong> LTV:CAC of ${fmtRatio(m.ltvCac)} clears the 3:1 minimum, but leaves little room for CAC overrun or higher-than-expected churn. Reduce churn by 5 pp or increase ACV by ~20% to reach comfortable 4:1 territory.`;
+  } else if(m.ltvCac >= 2){
+    insightClass=''; insight=`<strong>Below the minimum threshold.</strong> LTV:CAC of ${fmtRatio(m.ltvCac)} signals the business will burn capital to acquire customers faster than it recovers it. At current inputs, Alpha-Val cannot scale this persona profitably. Lever: reduce founder hours in deal (self-serve trial), reduce churn, or raise ACV.`;
+  } else {
+    insightClass='red'; insight=`<strong>Unit economics are not viable.</strong> LTV:CAC of ${fmtRatio(m.ltvCac)} means every dollar spent on acquisition loses money. This is a structural pricing or retention problem — not a growth tactic problem. Do not attempt to scale with these numbers.`;
+  }
+
+  container.innerHTML = `
+    <div class="kpi-strip">
+      <div class="kpi ltv-cac">
+        <div class="kpi-eyebrow">LTV : CAC</div>
+        <div class="kpi-val ${ltvCacColor(m.ltvCac)}">${fmtRatio(m.ltvCac)}</div>
+        <div class="kpi-sub">Benchmark 3–5×</div>
+        <div class="kpi-bench">≥3× minimum · ≥4× seed-ready</div>
+      </div>
+      <div class="kpi ltv">
+        <div class="kpi-eyebrow">Customer LTV</div>
+        <div class="kpi-val">${fmt$(m.ltv)}</div>
+        <div class="kpi-sub">Gross margin incl. expansion</div>
+        <div class="kpi-bench">Vert. SaaS median $25k–$50k</div>
+      </div>
+      <div class="kpi cac">
+        <div class="kpi-eyebrow">CAC (all-in)</div>
+        <div class="kpi-val">${fmt$(m.cac)}</div>
+        <div class="kpi-sub">Founder time + direct costs</div>
+        <div class="kpi-bench">B2B median $1.2k · Elite &lt;$600</div>
+      </div>
+      <div class="kpi payback">
+        <div class="kpi-eyebrow">Payback period</div>
+        <div class="kpi-val ${paybackColor(m.paybackMonths)}">${m.paybackMonths.toFixed(1)} mo</div>
+        <div class="kpi-sub">Months to recover CAC</div>
+        <div class="kpi-bench">Target &lt;12 mo · &lt;18 mo ok</div>
+      </div>
+      <div class="kpi nrr">
+        <div class="kpi-eyebrow">NRR</div>
+        <div class="kpi-val ${nrrColor(m.nrr)}">${fmtPct(m.nrr)}</div>
+        <div class="kpi-sub">Net revenue retention</div>
+        <div class="kpi-bench">Vert. SaaS median 108–118%</div>
+      </div>
+    </div>
+
+    <div class="insight-box ${insightClass}">${insight}</div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-label">ARR growth trajectory (5yr hypothesis) <span class="chart-label-right">Customers yr1→yr5</span></div>
+        <div class="chart-wrap"><canvas id="chart-arr-${p}"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">CAC payback curve <span class="chart-label-right">Cumulative margin vs. CAC</span></div>
+        <div class="chart-wrap"><canvas id="chart-payback-${p}"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Churn sensitivity on LTV:CAC <span class="chart-label-right">Other inputs held constant</span></div>
+        <div class="chart-wrap"><canvas id="chart-churn-${p}"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">LTV breakdown <span class="chart-label-right">Where the value comes from</span></div>
+        <div class="chart-wrap"><canvas id="chart-ltv-${p}"></canvas></div>
+      </div>
+    </div>
+
+    <div class="readiness-card">
+      <div class="chart-label">Model readiness scorecard <span class="chart-label-right">6 investor-grade checks vs. 2026 benchmarks</span></div>
+      <div class="readiness-grid">
+        ${readiness.map(r=>`
+          <div class="r-item ${r.pass?'pass':r.warn?'warn':'fail'}">
+            <div class="r-icon">${r.pass?'✓':r.warn?'⚠':'✗'}</div>
+            <div class="r-label">${r.label}</div>
+            <div class="r-val">${r.val}</div>
+            <div class="r-note">${r.note}</div>
+            <div class="r-note" style="opacity:.65;margin-top:3px;font-style:italic">${r.bench}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="scenario-bar-section">
+      <div class="chart-label">ACV sensitivity — LTV:CAC at different price points <span class="chart-label-right">All other inputs fixed</span></div>
+      ${[0.5,0.75,1,1.25,1.5,2].map(mult=>{
+        const testACV = v.acv * mult;
+        const testM = calcMetrics({...v, acv: testACV});
+        const pct = Math.min(100, (testM.ltvCac/8)*100);
+        const col = testM.ltvCac>=3?'var(--av-green)':testM.ltvCac>=2?'var(--av-amber)':'var(--av-red)';
+        return `<div class="scenario-bar-row">
+          <div class="sb-label">${mult===1?'<strong>Current</strong> ':''} ${fmt$(testACV)}/yr ${mult===1?'← current':''}</div>
+          <div class="sb-track"><div class="sb-fill" style="width:${pct}%;background:${col}"></div></div>
+          <div class="sb-val" style="color:${col}">${fmtRatio(testM.ltvCac)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+
+  // Draw charts
+  setTimeout(()=>drawCharts(p, arrSeries, paybackMonthly, churnSeries, baseRev, expansionRev, cogs, m.cac, color), 10);
+}
+
+function drawCharts(p, arrSeries, payback, churnSeries, baseRev, expansionRev, cogs, cac, color){
+  const dk = isDark();
+  const grid = gridColor();
+  const tick = tickColor();
+  const fontFam = "'DM Mono', monospace";
+
+  const base = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.formattedValue}`}}},
+    scales:{
+      x:{grid:{color:grid},ticks:{color:tick,font:{family:fontFam,size:9}}},
+      y:{grid:{color:grid},ticks:{color:tick,font:{family:fontFam,size:9}}}
+    }
+  };
+
+  // Destroy existing
+  Object.keys(charts).filter(k=>k.startsWith(p+'-')).forEach(k=>{charts[k].destroy();delete charts[k];});
+
+  // ARR chart
+  const arrCtx = document.getElementById(`chart-arr-${p}`);
+  if(arrCtx) charts[p+'-arr'] = new Chart(arrCtx, {
+    type:'bar',
+    data:{
+      labels:['Yr 1','Yr 2','Yr 3','Yr 4','Yr 5'],
+      datasets:[{data:arrSeries,backgroundColor:color+'55',borderColor:color,borderWidth:1.5,borderRadius:3}]
+    },
+    options:{...base,plugins:{...base.plugins},scales:{
+      x:{...base.scales.x},
+      y:{...base.scales.y,ticks:{...base.scales.y.ticks,callback:v=>v>=1000?`$${(v/1000).toFixed(0)}k`:v}}
+    }}
+  });
+
+  // Payback curve
+  const pbCtx = document.getElementById(`chart-payback-${p}`);
+  if(pbCtx) charts[p+'-pb'] = new Chart(pbCtx, {
+    type:'line',
+    data:{
+      labels:payback.map((_,i)=>`M${i}`),
+      datasets:[{
+        data:payback,borderColor:color,borderWidth:2,fill:true,
+        backgroundColor:color+'22',pointRadius:0,tension:0.3
+      },{
+        data:payback.map(()=>0),borderColor:isDark()?'#6a5418':'#c8b870',
+        borderWidth:1,borderDash:[4,4],pointRadius:0,fill:false
+      }]
+    },
+    options:{...base,scales:{
+      x:{...base.scales.x},
+      y:{...base.scales.y,ticks:{...base.scales.y.ticks,callback:v=>`$${(v/1000).toFixed(0)}k`}}
+    }}
+  });
+
+  // Churn sensitivity
+  const csCtx = document.getElementById(`chart-churn-${p}`);
+  if(csCtx){
+    const csColors = churnSeries.map(v=>v>=3?'#2e7d32':v>=2?'#b87e10':'#b23b20');
+    charts[p+'-cs'] = new Chart(csCtx, {
+      type:'bar',
+      data:{
+        labels:['5%','10%','15%','20%','25%','30%','40%'],
+        datasets:[{data:churnSeries,backgroundColor:csColors,borderRadius:3,borderWidth:0}]
+      },
+      options:{...base,scales:{
+        x:{...base.scales.x},
+        y:{...base.scales.y,min:0,ticks:{...base.scales.y.ticks,callback:v=>`${v}x`}}
+      },plugins:{
+        ...base.plugins,
+        annotation:{annotations:{line1:{type:'line',yMin:3,yMax:3,borderColor:'#2e7d32',borderWidth:1,borderDash:[4,4]}}}
+      }}
+    });
+  }
+
+  // LTV donut
+  const ltvCtx = document.getElementById(`chart-ltv-${p}`);
+  if(ltvCtx) charts[p+'-ltv'] = new Chart(ltvCtx, {
+    type:'doughnut',
+    data:{
+      labels:['Base revenue (margin)','Expansion (margin)','COGS'],
+      datasets:[{
+        data:[baseRev*(1-(1-parseFloat(document.getElementById(`${p}-margin`).value)/100)), expansionRev*(1-(1-parseFloat(document.getElementById(`${p}-margin`).value)/100)), cogs, cac],
+        backgroundColor:[color,color+'88',isDark()?'#2e2614':'#e6e0cc',isDark()?'#2a1410':'#f5e2dc'],
+        borderWidth:0
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'bottom',labels:{color:tick,font:{family:fontFam,size:9},boxWidth:10,padding:8}},
+      tooltip:{callbacks:{label:c=>`${c.label}: $${Math.round(c.raw).toLocaleString()}`}}}
+    }
+  });
+}
+
+// ────────────────────────────────────────────────────────
+// Compare view
+// ────────────────────────────────────────────────────────
+function renderCompare(){
+  const personas = ['p1','p2','p3'];
+  const labels = {p1:'P1 · Estimator',p2:'P2 · Owner PM',p3:'P3 · Enterprise'};
+  const subs = {p1:'Independent consultant',p2:'Capital projects team',p3:'Multi-project operator'};
+
+  const rows = personas.map(p=>{
+    const v = getInputs(p);
+    const m = calcMetrics(v);
+    return {p, v, m};
+  });
+
+  const container = document.getElementById('compare-output');
+
+  container.innerHTML = `
+    <div class="compare-grid" style="margin-bottom:20px;">
+      ${rows.map(({p,v,m})=>`
+        <div class="compare-col">
+          <div class="compare-header ${p}">
+            <div class="compare-header-name">${labels[p]}</div>
+            <div class="compare-header-sub">${subs[p]}</div>
+          </div>
+          <div class="compare-body">
+            <div class="compare-row"><span class="compare-row-label">ACV</span><span class="compare-row-val">${fmt$(v.acv)}</span></div>
+            <div class="compare-row"><span class="compare-row-label">CAC (all-in)</span><span class="compare-row-val">${fmt$(m.cac)}</span></div>
+            <div class="compare-row"><span class="compare-row-label">LTV</span><span class="compare-row-val">${fmt$(m.ltv)}</span></div>
+            <div class="compare-row"><span class="compare-row-label">LTV:CAC</span><span class="compare-row-val ${ltvCacColor(m.ltvCac)}">${fmtRatio(m.ltvCac)}</span></div>
+            <div class="compare-row"><span class="compare-row-label">Payback</span><span class="compare-row-val ${paybackColor(m.paybackMonths)}">${m.paybackMonths.toFixed(1)} mo</span></div>
+            <div class="compare-row"><span class="compare-row-label">NRR</span><span class="compare-row-val ${nrrColor(m.nrr)}">${fmtPct(m.nrr)}</span></div>
+            <div class="compare-row"><span class="compare-row-label">Yr 1 ARR</span><span class="compare-row-val">${fmt$(m.arr1)}</span></div>
+            <div class="compare-row"><span class="compare-row-label">Sales cycle</span><span class="compare-row-val ${v.cycle<=8?'good':v.cycle<=16?'warn':'bad'}">${v.cycle} wks</span></div>
+            <div class="compare-row"><span class="compare-row-label">Founder hrs yr 1</span><span class="compare-row-val ${m.totalSalesHr1<=400?'good':m.totalSalesHr1<=800?'warn':'bad'}">${Math.round(m.totalSalesHr1)} hrs</span></div>
+          </div>
+        </div>`).join('')}
+    </div>
+
+    <div class="chart-card wide" style="margin-bottom:16px;">
+      <div class="chart-label">LTV:CAC · Payback · NRR comparison <span class="chart-label-right">All three personas — current assumptions</span></div>
+      <div class="chart-wrap tall"><canvas id="chart-compare-radar"></canvas></div>
+    </div>
+
+    <div class="chart-card wide" style="margin-bottom:16px;">
+      <div class="chart-label">ARR yr 1 vs. Founder hours required <span class="chart-label-right">Efficiency comparison</span></div>
+      <div class="chart-wrap"><canvas id="chart-compare-bubble"></canvas></div>
+    </div>
+
+    <div class="readiness-card">
+      <div class="chart-label">Readiness verdict by persona</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:14px;">
+        ${rows.map(({p,v,m})=>{
+          const checks = readinessItems(m,v);
+          const passes = checks.filter(c=>c.pass).length;
+          const warns = checks.filter(c=>!c.pass&&c.warn).length;
+          const fails = checks.filter(c=>!c.pass&&!c.warn).length;
+          const cls = passes>=5?'pass':passes>=3?'warn':'fail';
+          return `<div class="r-item ${cls}">
+            <div class="r-label" style="font-size:11px;font-weight:500;">${labels[p]}</div>
+            <div style="margin:8px 0;font-size:20px;font-weight:500">${passes}/6 checks pass</div>
+            <div class="r-note">✓ ${passes} pass · ⚠ ${warns} warn · ✗ ${fails} fail</div>
+            <div class="r-note" style="margin-top:6px;font-style:italic">${cls==='pass'?'Viable — begin pilot validation':cls==='warn'?'Marginal — adjust inputs before scaling':'Not yet viable — structural issues to resolve'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
+  setTimeout(()=>{
+    const dk = isDark();
+    const tick = tickColor();
+    const fontFam = "'DM Mono', monospace";
+
+    // Destroy old compare charts
+    ['compare-radar','compare-bubble'].forEach(k=>{ if(charts[k]){charts[k].destroy();delete charts[k];} });
+
+    const ms = rows.map(r=>r.m);
+    const vs = rows.map(r=>r.v);
+
+    // Radar
+    const radarCtx = document.getElementById('chart-compare-radar');
+    if(radarCtx){
+      // Normalize to 0-1: ltvCac/8, 1-(payback/36), nrr-0.8/0.6, arr1/200k, 1-(churn/0.4), 1-(cycle/52)
+      const norm = (val,min,max)=>Math.min(1,Math.max(0,(val-min)/(max-min)));
+      const radar = (m,v)=>[
+        norm(m.ltvCac,0,8), norm(36-m.paybackMonths,-12,36),
+        norm(m.nrr,0.8,1.4), norm(m.arr1,0,300000),
+        norm(1-v.churn,0.6,1), norm(1-v.cycle/52,0,1)
+      ].map(v=>parseFloat((v*100).toFixed(1)));
+
+      charts['compare-radar'] = new Chart(radarCtx,{
+        type:'radar',
+        data:{
+          labels:['LTV:CAC','Fast payback','NRR','Yr1 ARR','Low churn','Short cycle'],
+          datasets:[
+            {label:'P1 Estimator',data:radar(ms[0],vs[0]),borderColor:'#c4900e',backgroundColor:'#c4900e22',borderWidth:2,pointRadius:3},
+            {label:'P2 Owner PM',data:radar(ms[1],vs[1]),borderColor:'#5058a8',backgroundColor:'#5058a822',borderWidth:2,pointRadius:3},
+            {label:'P3 Enterprise',data:radar(ms[2],vs[2]),borderColor:'#2e7d32',backgroundColor:'#2e7d3222',borderWidth:2,pointRadius:3}
+          ]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          scales:{r:{grid:{color:gridColor()},ticks:{color:tick,font:{family:fontFam,size:8},stepSize:25},pointLabels:{color:tick,font:{family:fontFam,size:9}},min:0,max:100}},
+          plugins:{legend:{labels:{color:tick,font:{family:fontFam,size:10},boxWidth:10}}}
+        }
+      });
+    }
+
+    // Bubble — ARR vs. Founder hrs, bubble size = LTV
+    const bubbleCtx = document.getElementById('chart-compare-bubble');
+    if(bubbleCtx){
+      charts['compare-bubble'] = new Chart(bubbleCtx,{
+        type:'bubble',
+        data:{datasets:[
+          {label:'P1 Estimator',data:[{x:ms[0].totalSalesHr1,y:ms[0].arr1/1000,r:Math.min(30,ms[0].ltv/1000)}],backgroundColor:'#c4900e88',borderColor:'#c4900e',borderWidth:2},
+          {label:'P2 Owner PM',data:[{x:ms[1].totalSalesHr1,y:ms[1].arr1/1000,r:Math.min(30,ms[1].ltv/3000)}],backgroundColor:'#5058a888',borderColor:'#5058a8',borderWidth:2},
+          {label:'P3 Enterprise',data:[{x:ms[2].totalSalesHr1,y:ms[2].arr1/1000,r:Math.min(30,ms[2].ltv/5000)}],backgroundColor:'#2e7d3288',borderColor:'#2e7d32',borderWidth:2}
+        ]},
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          scales:{
+            x:{grid:{color:gridColor()},ticks:{color:tick,font:{family:fontFam,size:9},callback:v=>`${v}hrs`},title:{display:true,text:'Founder hours to close yr 1 targets',color:tick,font:{family:fontFam,size:9}}},
+            y:{grid:{color:gridColor()},ticks:{color:tick,font:{family:fontFam,size:9},callback:v=>`$${v}k`},title:{display:true,text:'Yr 1 ARR ($k)',color:tick,font:{family:fontFam,size:9}}}
+          },
+          plugins:{legend:{labels:{color:tick,font:{family:fontFam,size:10},boxWidth:10}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ARR $${c.raw.y}k / ${c.raw.x} hrs`}}}
+        }
+      });
+    }
+  },10);
+}
+
+// ────────────────────────────────────────────────────────
+// Slider sync
+// ────────────────────────────────────────────────────────
+function syncSlider(p,field,val){
+  const inp = document.getElementById(`${p}-${field}`);
+  if(inp){ inp.value = val; recalc(p); }
+}
+function syncInputToSlider(p,field){
+  const sl = document.getElementById(`${p}-${field}-s`);
+  const inp = document.getElementById(`${p}-${field}`);
+  if(sl && inp) sl.value = inp.value;
+}
+
+// ────────────────────────────────────────────────────────
+// Main recalc + reset
+// ────────────────────────────────────────────────────────
+function recalc(p){
+  ['acv','churn'].forEach(f=>syncInputToSlider(p,f));
+  if(currentPersona === 'compare') renderCompare();
+  else renderOutput(p);
+}
+
+function resetPersona(p){
+  const d = DEFAULTS[p];
+  Object.keys(d).forEach(k=>{
+    const el = document.getElementById(`${p}-${k}`);
+    if(el) el.value = d[k];
+  });
+  recalc(p);
+}
+
+// ────────────────────────────────────────────────────────
+// Persona switching
+// ────────────────────────────────────────────────────────
+let currentPersona = 'p1';
+function switchPersona(p){
+  currentPersona = p;
+  document.querySelectorAll('.persona-panel').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.ptab').forEach(el=>el.classList.remove('active'));
+  document.getElementById(`panel-${p}`)?.classList.add('active');
+  document.querySelector(`.ptab.${p}`)?.classList.add('active');
+  if(p==='compare') renderCompare();
+  else renderOutput(p);
+}
+
+function toggleTheme(){
+  const html = document.documentElement;
+  html.setAttribute('data-theme', html.getAttribute('data-theme')==='dark'?'light':'dark');
+  // Redraw charts
+  if(currentPersona==='compare') renderCompare();
+  else renderOutput(currentPersona);
+}
+
+// ────────────────────────────────────────────────────────
+// Helper
+// ────────────────────────────────────────────────────────
+function id(x){ return document.getElementById(x); }
+
+// Init
+window.addEventListener('DOMContentLoaded',()=>{
+  recalc('p1');
+});
+</script>
+</body>
+</html>

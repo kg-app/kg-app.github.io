@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpha-Val · Business Model Review</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* ── Alpha-Val Design Tokens v0.2 ── */
+  :root {
+    --av-bg-page: #fafaf7;
+    --av-bg-surface: #ffffff;
+    --av-bg-emph: #fbf7ec;
+    --av-bg-subtle: #f5f2e9;
+    --av-bg-row-alt: #fcfaf3;
+    --av-bg-rail: #0f0d04;
+    --av-line: #e6e0cc;
+    --av-line-strong: #c8b870;
+    --av-line-faint: #efead8;
+    --av-gold-deep: #9a7010;
+    --av-gold: #c4900e;
+    --av-gold-soft: #e5bd55;
+    --av-gold-pale: #f5e8b8;
+    --av-ink: #1a1508;
+    --av-ink-2: #4a3d14;
+    --av-ink-3: #7a6020;
+    --av-ink-mute: #b09040;
+    --av-sec-pale: #eceef8;
+    --av-sec-soft: #8890cc;
+    --av-sec: #5058a8;
+    --av-sec-deep: #363c80;
+    --av-sec-dark: #222658;
+    --av-green: #2e7d32;
+    --av-green-pale: #e3f0dc;
+    --av-amber: #b87e10;
+    --av-amber-pale: #faedc8;
+    --av-red: #b23b20;
+    --av-red-pale: #f5e2dc;
+    --av-blue: #2a5a8a;
+    --av-blue-pale: #dce6f0;
+    --av-font-sans: "DM Sans", -apple-system, sans-serif;
+    --av-font-mono: "DM Mono", monospace;
+    --av-radius-sm: 3px;
+    --av-radius-md: 4px;
+    --av-radius-lg: 6px;
+    --av-shadow-sm: 0 1px 2px rgba(26,21,8,0.04);
+    --av-shadow-md: 0 2px 8px rgba(26,21,8,0.08);
+  }
+  [data-theme="dark"] {
+    --av-bg-page: #0a0805;
+    --av-bg-surface: #14110a;
+    --av-bg-emph: #1e1808;
+    --av-bg-subtle: #1a150b;
+    --av-bg-row-alt: #18130a;
+    --av-bg-rail: #050402;
+    --av-line: #2e2614;
+    --av-line-strong: #6a5418;
+    --av-line-faint: #221c10;
+    --av-gold-deep: #8e6610;
+    --av-gold: #d4a020;
+    --av-gold-soft: #e5bd55;
+    --av-gold-pale: #3a2e10;
+    --av-ink: #f2e6c0;
+    --av-ink-2: #d4be7a;
+    --av-ink-3: #a88b40;
+    --av-ink-mute: #7a6020;
+    --av-sec-pale: #141838;
+    --av-sec-soft: #8890cc;
+    --av-sec: #7880c0;
+    --av-sec-deep: #5058a8;
+    --av-sec-dark: #c4c8e8;
+    --av-green: #6ba86e;
+    --av-green-pale: #1a2a18;
+    --av-amber: #d4a020;
+    --av-amber-pale: #2a2010;
+    --av-red: #d45f40;
+    --av-red-pale: #2a1410;
+    --av-blue: #6090c0;
+    --av-blue-pale: #14202a;
+    --av-shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+    --av-shadow-md: 0 2px 8px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--av-bg-page);
+    font-family: var(--av-font-sans);
+    color: var(--av-ink);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.45;
+  }
+
+  /* ── Shell & Navigation ── */
+  .app-shell { display: flex; height: 100vh; overflow: hidden; }
+
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--av-bg-rail);
+    border-right: 0.5px solid #2a2010;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #3a2e10 transparent;
+  }
+
+  .sidebar-header {
+    padding: 20px 16px 16px;
+    border-bottom: 0.5px solid #2a2010;
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo {
+    font-family: var(--av-font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--av-gold-soft);
+    letter-spacing: -0.01em;
+  }
+
+  .sidebar-sub {
+    font-family: var(--av-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--av-gold-deep);
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+
+  .slide-nav { padding: 12px 0; flex: 1; }
+
+  .nav-section-label {
+    font-family: var(--av-font-mono);
+    font-size: 8.5px;
+    letter-spacing: 0.14em;
+    color: #5a4818;
+    text-transform: uppercase;
+    padding: 12px 16px 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.12s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+
+  .nav-item:hover { background: rgba(196,144,14,0.08); }
+  .nav-item.active { background: rgba(196,144,14,0.14); }
+
+  .nav-item-num {
+    font-family: var(--av-font-mono);
+    font-size: 9px;
+    color: #5a4818;
+    width: 16px;
+    flex-shrink: 0;
+  }
+
+  .nav-item.active .nav-item-num { color: var(--av-gold); }
+
+  .nav-item-label {
+    font-size: 11.5px;
+    color: #a08040;
+    line-height: 1.3;
+  }
+
+  .nav-item.active .nav-item-label { color: var(--av-gold-soft); }
+
+  .nav-verdict {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--av-font-mono);
+    font-size: 8px;
+    letter-spacing: 0.08em;
+    padding: 2px 5px;
+    border-radius: 2px;
+    margin-left: auto;
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+  .nav-verdict.green { background: #1a2a18; color: #6ba86e; }
+  .nav-verdict.amber { background: #2a2010; color: #d4a020; }
+  .nav-verdict.red { background: #2a1410; color: #d45f40; }
+
+  .sidebar-footer {
+    padding: 14px 16px;
+    border-top: 0.5px solid #2a2010;
+    flex-shrink: 0;
+  }
+
+  .theme-btn {
+    font-family: var(--av-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: #5a4818;
+    text-transform: uppercase;
+    background: none;
+    border: 0.5px solid #2a2010;
+    border-radius: 3px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    width: 100%;
+  }
+  .theme-btn:hover { border-color: var(--av-gold-deep); color: var(--av-gold-deep); }
+
+  /* ── Slide Canvas ── */
+  .slide-canvas {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px 48px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--av-line-strong) transparent;
+  }
+
+  .slide { display: none; }
+  .slide.active { display: block; }
+
+  /* ── Slide Layouts ── */
+  .slide-eyebrow {
+    font-family: var(--av-font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    color: var(--av-gold-deep);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .slide-title {
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    color: var(--av-ink);
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+
+  .slide-subtitle {
+    font-family: var(--av-font-mono);
+    font-size: 12px;
+    color: var(--av-ink-3);
+    margin-bottom: 32px;
+  }
+
+  .slide-divider {
+    height: 0.5px;
+    background: var(--av-line);
+    margin-bottom: 32px;
+  }
+
+  /* ── Cover Slide ── */
+  .cover-shell {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .cover-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--av-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: var(--av-gold-deep);
+    text-transform: uppercase;
+    background: var(--av-gold-pale);
+    border: 0.5px solid var(--av-line-strong);
+    border-radius: 3px;
+    padding: 5px 12px;
+    margin-bottom: 24px;
+  }
+
+  .cover-title {
+    font-size: 42px;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    color: var(--av-ink);
+    line-height: 1.1;
+    margin-bottom: 16px;
+    max-width: 640px;
+  }
+
+  .cover-title span { color: var(--av-gold); }
+
+  .cover-body {
+    font-size: 14px;
+    color: var(--av-ink-2);
+    line-height: 1.7;
+    max-width: 560px;
+    margin-bottom: 36px;
+  }
+
+  .cover-meta-row {
+    display: flex;
+    gap: 32px;
+    padding-top: 28px;
+    border-top: 0.5px solid var(--av-line);
+  }
+
+  .cover-meta-item { }
+  .cover-meta-label {
+    font-family: var(--av-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--av-ink-mute);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .cover-meta-val {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--av-ink);
+  }
+
+  /* ── Grid helpers ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .grid-2-3 { display: grid; grid-template-columns: 2fr 3fr; gap: 16px; margin-bottom: 20px; }
+  .grid-3-2 { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; margin-bottom: 20px; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--av-bg-surface);
+    border: 0.5px solid var(--av-line);
+    border-radius: var(--av-radius-md);
+    padding: 20px 22px;
+  }
+
+  .card-gold { border-left: 2px solid var(--av-gold); }
+  .card-sec { border-left: 2px solid var(--av-sec); }
+  .card-red { border-left: 2px solid var(--av-red); }
+  .card-amber { border-left: 2px solid var(--av-amber); }
+  .card-green { border-left: 2px solid var(--av-green); }
+
+  .card-label {
+    font-family: var(--av-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--av-ink-3);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--av-ink);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .card-body {
+    font-size: 12.5px;
+    color: var(--av-ink-2);
+    line-height: 1.6;
+  }
+
+  /* ── Pill / badge ── */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--av-font-mono);
+    font-size: 8.5px;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .pill-green { background: var(--av-green-pale); color: var(--av-green); }
+  .pill-amber { background: var(--av-amber-pale); color: var(--av-amber); }
+  .pill-red { background: var(--av-red-pale); color: var(--av-red); }
+  .pill-gold { background: var(--av-gold-pale); color: var(--av-gold-deep); }
+  .pill-sec { background: var(--av-sec-pale); color: var(--av-sec-dark); }
+  .pill-ink { background: var(--av-ink); color: var(--av-gold-soft); }
+
+  /* ── Verdict rows ── */
+  .verdict-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .verdict-table th {
+    font-family: var(--av-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--av-ink-3);
+    text-transform: uppercase;
+    font-weight: 400;
+    padding: 8px 12px;
+    border-bottom: 0.5px solid var(--av-line);
+    background: var(--av-bg-row-alt);
+    text-align: left;
+  }
+  .verdict-table td {
+    padding: 10px 12px;
+    border-bottom: 0.5px solid var(--av-line-faint);
+    color: var(--av-ink);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .verdict-table tr:last-child td { border-bottom: none; }
+  .verdict-table .dim { color: var(--av-ink-3); font-size: 11.5px; }
+
+  /* ── RSVPed score blocks ── */
+  .rsvp-block {
+    background: var(--av-bg-surface);
+    border: 0.5px solid var(--av-line);
+    border-radius: var(--av-radius-md);
+    overflow: hidden;
+  }
+
+  .rsvp-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 0.5px solid var(--av-line-faint);
+  }
+
+  .rsvp-letter {
+    width: 32px;
+    height: 32px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--av-font-mono);
+    font-size: 15px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .rsvp-name { font-size: 13px; font-weight: 500; color: var(--av-ink); }
+  .rsvp-tag { font-family: var(--av-font-mono); font-size: 10px; color: var(--av-ink-3); margin-top: 1px; }
+
+  .rsvp-body { padding: 14px 16px; }
+  .rsvp-body p { font-size: 12px; color: var(--av-ink-2); line-height: 1.6; margin-bottom: 10px; }
+  .rsvp-body p:last-child { margin-bottom: 0; }
+
+  .rsvp-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--av-amber);
+    background: var(--av-amber-pale);
+    border-radius: 3px;
+    padding: 4px 9px;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+  .rsvp-flag.red { color: var(--av-red); background: var(--av-red-pale); }
+  .rsvp-flag.green { color: var(--av-green); background: var(--av-green-pale); }
+
+  /* ── Quadrant / 2×2 ── */
+  .matrix-2x2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 12px;
+    aspect-ratio: 2/1;
+  }
+
+  .matrix-cell {
+    background: var(--av-bg-surface);
+    border: 0.5px solid var(--av-line);
+    border-radius: var(--av-radius-md);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .matrix-cell.highlight { background: var(--av-bg-emph); border-color: var(--av-line-strong); }
+
+  .matrix-cell-label {
+    font-family: var(--av-font-mono);
+    font-size: 8.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--av-ink-mute);
+  }
+
+  .matrix-cell-title { font-size: 12.5px; font-weight: 500; color: var(--av-ink); }
+  .matrix-cell-body { font-size: 11.5px; color: var(--av-ink-2); line-height: 1.5; }
+
+  /* ── Alert banner ── */
+  .alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--av-radius-sm);
+    border: 0.5px solid;
+    font-size: 12px;
+    line-height: 1.55;
+    margin-bottom: 16px;
+  }
+  .alert-amber { background: var(--av-amber-pale); border-color: var(--av-amber); color: var(--av-amber); }
+  .alert-red { background: var(--av-red-pale); border-color: var(--av-red); color: var(--av-red); }
+  .alert-green { background: var(--av-green-pale); border-color: var(--av-green); color: var(--av-green); }
+  .alert-sec { background: var(--av-sec-pale); border-color: var(--av-sec); color: var(--av-sec-dark); }
+  .alert-gold { background: var(--av-gold-pale); border-color: var(--av-gold); color: var(--av-gold-deep); }
+
+  .alert-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--av-font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .alert-amber .alert-icon { background: var(--av-amber); color: #fff; }
+  .alert-red .alert-icon { background: var(--av-red); color: #fff; }
+  .alert-green .alert-icon { background: var(--av-green); color: #fff; }
+  .alert-sec .alert-icon { background: var(--av-sec); color: var(--av-sec-pale); }
+  .alert-gold .alert-icon { background: var(--av-gold); color: #fff; }
+
+  .alert-body { color: var(--av-ink); }
+  .alert-body strong { font-weight: 500; }
+
+  /* ── Horizontal score bar ── */
+  .score-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 0.5px solid var(--av-line-faint);
+  }
+  .score-bar-row:last-child { border-bottom: none; }
+  .score-bar-label { font-size: 12px; color: var(--av-ink); width: 120px; flex-shrink: 0; }
+  .score-bar-track { flex: 1; height: 6px; background: var(--av-line-faint); border-radius: 3px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 3px; }
+  .score-bar-val { font-family: var(--av-font-mono); font-size: 11px; color: var(--av-ink-3); width: 30px; text-align: right; }
+
+  /* ── SLIP panel ── */
+  .slip-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 1fr;
+    gap: 12px 16px;
+    align-items: start;
+    padding: 14px 0;
+    border-bottom: 0.5px solid var(--av-line-faint);
+  }
+  .slip-row:last-child { border-bottom: none; }
+  .slip-letter {
+    font-family: var(--av-font-mono);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1;
+    padding-top: 2px;
+  }
+  .slip-desc { font-size: 12.5px; color: var(--av-ink-2); line-height: 1.55; }
+  .slip-verdict { font-size: 12px; color: var(--av-ink-2); line-height: 1.55; }
+  .slip-title { font-size: 12.5px; font-weight: 500; color: var(--av-ink); margin-bottom: 4px; }
+
+  /* ── Priority list ── */
+  .priority-list { list-style: none; }
+  .priority-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 0.5px solid var(--av-line-faint);
+  }
+  .priority-item:last-child { border-bottom: none; }
+  .priority-rank {
+    font-family: var(--av-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--av-gold-deep);
+    background: var(--av-gold-pale);
+    border-radius: 2px;
+    padding: 3px 7px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .priority-rank.sec { background: var(--av-sec-pale); color: var(--av-sec-dark); }
+  .priority-rank.red { background: var(--av-red-pale); color: var(--av-red); }
+  .priority-content-title { font-size: 13px; font-weight: 500; color: var(--av-ink); margin-bottom: 3px; }
+  .priority-content-body { font-size: 12px; color: var(--av-ink-2); line-height: 1.55; }
+
+  /* ── Section heading inside slides ── */
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    margin-top: 28px;
+  }
+  .section-head:first-child { margin-top: 0; }
+  .section-head-label {
+    font-family: var(--av-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: var(--av-gold-deep);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .section-head-rule { flex: 1; height: 0.5px; background: var(--av-line); }
+
+  /* ── Progress indicator ── */
+  .slide-progress {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 28px;
+  }
+  .progress-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--av-line-strong);
+    transition: all 0.2s;
+  }
+  .progress-dot.active {
+    width: 20px;
+    border-radius: 3px;
+    background: var(--av-gold);
+  }
+
+  /* ── Quote block ── */
+  .pull-quote {
+    border-left: 3px solid var(--av-gold);
+    padding: 12px 18px;
+    background: var(--av-bg-emph);
+    border-radius: 0 var(--av-radius-md) var(--av-radius-md) 0;
+    font-size: 13px;
+    color: var(--av-ink-2);
+    line-height: 1.65;
+    font-style: italic;
+    margin-bottom: 16px;
+  }
+
+  .pull-quote.sec { border-left-color: var(--av-sec); }
+  .pull-quote.red { border-left-color: var(--av-red); }
+
+  /* ── Summary scorecard ── */
+  .scorecard-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 0.5px solid var(--av-line-faint);
+    gap: 10px;
+  }
+  .scorecard-row:last-child { border-bottom: none; }
+  .scorecard-letter {
+    font-family: var(--av-font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    width: 22px;
+    flex-shrink: 0;
+  }
+  .scorecard-name { font-size: 12.5px; font-weight: 500; color: var(--av-ink); width: 130px; flex-shrink: 0; }
+  .scorecard-body { font-size: 11.5px; color: var(--av-ink-2); flex: 1; line-height: 1.4; }
+  .scorecard-verdict { flex-shrink: 0; }
+
+  /* ── Slide nav controls ── */
+  .slide-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 0.5px solid var(--av-line);
+  }
+
+  .nav-btn {
+    font-family: var(--av-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: none;
+    border: 0.5px solid var(--av-line-strong);
+    border-radius: var(--av-radius-sm);
+    padding: 7px 14px;
+    color: var(--av-ink-3);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .nav-btn:hover { border-color: var(--av-gold); color: var(--av-gold-deep); background: var(--av-bg-emph); }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; }
+  .nav-btn:disabled:hover { border-color: var(--av-line-strong); color: var(--av-ink-3); background: none; }
+
+  .slide-counter {
+    font-family: var(--av-font-mono);
+    font-size: 10px;
+    color: var(--av-ink-mute);
+    letter-spacing: 0.06em;
+  }
+
+  .mb-4 { margin-bottom: 16px; }
+  .mb-6 { margin-bottom: 24px; }
+  .mb-8 { margin-bottom: 32px; }
+  .mt-4 { margin-top: 16px; }
+  .gap-2 { gap: 8px; }
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+
+  /* dark sidebar always on */
+  .sidebar { color-scheme: dark; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">Alpha-Val Pro</div>
+      <div class="sidebar-sub">Business Model Review</div>
+    </div>
+    <nav class="slide-nav">
+      <div class="nav-section-label">Framework</div>
+      <button class="nav-item active" onclick="goToSlide(0)">
+        <span class="nav-item-num">—</span>
+        <span class="nav-item-label">Cover & Framing</span>
+      </button>
+      <button class="nav-item" onclick="goToSlide(1)">
+        <span class="nav-item-num">01</span>
+        <span class="nav-item-label">The Diamond</span>
+        <span class="nav-verdict amber">Partial</span>
+      </button>
+      <button class="nav-item" onclick="goToSlide(2)">
+        <span class="nav-item-num">02</span>
+        <span class="nav-item-label">CORE Identity</span>
+        <span class="nav-verdict red">Unresolved</span>
+      </button>
+      <button class="nav-item" onclick="goToSlide(3)">
+        <span class="nav-item-num">03</span>
+        <span class="nav-item-label">RSVPed Scorecard</span>
+        <span class="nav-verdict amber">Mixed</span>
+      </button>
+      <button class="nav-item" onclick="goToSlide(4)">
+        <span class="nav-item-num">04</span>
+        <span class="nav-item-label">SLIP Analysis</span>
+        <span class="nav-verdict amber">Partial</span>
+      </button>
+      <button class="nav-item" onclick="goToSlide(5)">
+        <span class="nav-item-num">05</span>
+        <span class="nav-item-label">Minimum Viable Segment</span>
+        <span class="nav-verdict red">Blocking</span>
+      </button>
+      <button class="nav-item" onclick="goToSlide(6)">
+        <span class="nav-item-num">06</span>
+        <span class="nav-item-label">3Ups & Pricing</span>
+        <span class="nav-verdict amber">Unbuilt</span>
+      </button>
+      <button class="nav-item" onclick="goToSlide(7)">
+        <span class="nav-item-num">07</span>
+        <span class="nav-item-label">LTV / CAC Mechanics</span>
+        <span class="nav-verdict red">Unknown</span>
+      </button>
+      <button class="nav-item" onclick="goToSlide(8)">
+        <span class="nav-item-num">08</span>
+        <span class="nav-item-label">Partnerships & Ecosystem</span>
+        <span class="nav-verdict amber">Latent</span>
+      </button>
+      <button class="nav-item" onclick="goToSlide(9)">
+        <span class="nav-item-num">09</span>
+        <span class="nav-item-label">Honest Risk Register</span>
+        <span class="nav-verdict red">Critical</span>
+      </button>
+      <button class="nav-item" onclick="goToSlide(10)">
+        <span class="nav-item-num">10</span>
+        <span class="nav-item-label">Next 90 Days</span>
+        <span class="nav-verdict green">Action</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="theme-btn" onclick="toggleTheme()">Toggle Light / Dark</button>
+    </div>
+  </aside>
+
+  <!-- ── Slide Canvas ── -->
+  <main class="slide-canvas">
+
+    <!-- ────────────────────────────── SLIDE 0 · COVER ────────────────────────────── -->
+    <div class="slide active" id="slide-0">
+      <div class="cover-shell">
+        <div class="cover-badge">Skok Framework Analysis · June 2026</div>
+        <h1 class="cover-title">Does Alpha-Val have a<br><span>business model</span><br>or just a product?</h1>
+        <p class="cover-body">
+          This deck maps Alpha-Val Pro against Michael Skok's customer-centric business model framework — the Diamond, RSVPed, SLIP, MVS, and the 3Ups. The analysis is intended to be diagnostic, not promotional. Where the model is strong, it says so. Where gaps are blocking progress, they are named directly.
+        </p>
+        <div class="cover-meta-row">
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Product</div>
+            <div class="cover-meta-val">Alpha-Val Pro</div>
+          </div>
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Stage</div>
+            <div class="cover-meta-val">Alpha · 2 testers</div>
+          </div>
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Framework</div>
+            <div class="cover-meta-val">Skok / HBS Innovation Lab</div>
+          </div>
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Overall verdict</div>
+            <div class="cover-meta-val" style="color: var(--av-amber);">Strong problem, weak model</div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-controls">
+        <button class="nav-btn" disabled>← Prev</button>
+        <span class="slide-counter">1 / 11</span>
+        <button class="nav-btn" onclick="goToSlide(1)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ────────────────────────────── SLIDE 1 · DIAMOND ────────────────────────────── -->
+    <div class="slide" id="slide-1">
+      <div class="slide-eyebrow">Slide 01 · The Diamond</div>
+      <h2 class="slide-title">Four pillars — three are partially built</h2>
+      <p class="slide-subtitle">Customer Value Proposition · Go-to-Market · Technology/Ops · Cash Flow Formula</p>
+      <div class="slide-divider"></div>
+
+      <div class="alert alert-gold mb-4">
+        <div class="alert-icon">◆</div>
+        <div class="alert-body">The Diamond asks: <strong>how do you create value, deliver it, and make money sustainably?</strong> Alpha-Val has a clear answer for the first question. The third question — making money — has no validated answer yet.</div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card card-gold">
+          <div class="card-label">Pillar 1 · Customer Value Proposition</div>
+          <div class="card-title">Auditable TIC estimation from SOW documents</div>
+          <div class="card-body">Ingesting a scope-of-work document and producing a provenance-tracked Total Installed Cost sheet directly addresses a real, painful, manually expensive workflow. The NI 43-101 / SK 1300 auditability angle is a genuine differentiator — not "faster" but "defensible." This is the strongest part of the model.</div>
+          <div style="margin-top: 12px;"><span class="pill pill-green">✓ Well-defined</span></div>
+        </div>
+        <div class="card card-amber">
+          <div class="card-label">Pillar 2 · Go-to-Market Model</div>
+          <div class="card-title">Unclear: owner's team vs. independent consultant?</div>
+          <div class="card-body">The P1/P2 MVS decision has not been made. Without a resolved primary persona, the GTM motion (outreach sequence, channel, pitch framing, pricing anchor) cannot be specified. Conference presence (SME, CIM, PDAC) is directionally correct but not a strategy. Current traction is two alpha testers — insufficient to validate a GTM hypothesis.</div>
+          <div style="margin-top: 12px;"><span class="pill pill-amber">⚠ Unresolved</span></div>
+        </div>
+        <div class="card card-sec">
+          <div class="card-label">Pillar 3 · Technology & Operations Model</div>
+          <div class="card-title">Two-pass LLM pipeline with auditability layer</div>
+          <div class="card-body">FastAPI + MongoDB + Atlas Vector Search + Anthropic API is a coherent, production-capable stack. The two-pass extraction/sizing architecture is well-reasoned. Key gap: mass balance is unresolved (throughput as edge property, not node), which means the TIC output can be numerically wrong. This is a trust-gating risk that blocks pilots, not a roadmap item.</div>
+          <div style="margin-top: 12px;"><span class="pill pill-amber">⚠ Mass balance gap</span></div>
+        </div>
+        <div class="card card-red">
+          <div class="card-label">Pillar 4 · Cash Flow Formula</div>
+          <div class="card-title">No pricing model, no revenue, no LTV/CAC data</div>
+          <div class="card-body">There is no validated price point, no paid customers, and no data on customer acquisition cost. The "Pro" tier implies a SaaS model but the packaging, trial mechanics, and expansion motion haven't been designed. The Skok framework is explicit: a business model that can't answer the cash flow question is not yet a business model.</div>
+          <div style="margin-top: 12px;"><span class="pill pill-red">✗ Missing</span></div>
+        </div>
+      </div>
+
+      <div class="slide-controls">
+        <button class="nav-btn" onclick="goToSlide(0)">← Prev</button>
+        <span class="slide-counter">2 / 11</span>
+        <button class="nav-btn" onclick="goToSlide(2)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ────────────────────────────── SLIDE 2 · CORE ────────────────────────────── -->
+    <div class="slide" id="slide-2">
+      <div class="slide-eyebrow">Slide 02 · The CORE</div>
+      <h2 class="slide-title">What is the one word Alpha-Val owns?</h2>
+      <p class="slide-subtitle">Capability Of Really Exceptional Value — the single thing customers associate with your brand</p>
+      <div class="slide-divider"></div>
+
+      <div class="alert alert-red mb-4">
+        <div class="alert-icon">!</div>
+        <div class="alert-body"><strong>The CORE is unresolved — and this is not a branding problem, it's a strategy problem.</strong> Skok's test: if you can't name it in one word, you're probably pulling energy in two directions at once. Alpha-Val is currently pitching speed and auditability and optionality. These are three different CORE claims.</div>
+      </div>
+
+      <div class="grid-3" style="margin-bottom: 24px;">
+        <div class="card">
+          <div class="card-label">Candidate CORE A</div>
+          <div class="card-title" style="font-size: 22px; color: var(--av-gold);">Provenance</div>
+          <div class="card-body">Every cost line traces back to a cited source. Disclosure-standard defensible. Validated by Danilo as a Blatant/Critical pain point. Strongest commercial hook for owners teams facing regulatory scrutiny.</div>
+          <div style="margin-top: 10px;"><span class="pill pill-gold">Strongest candidate</span></div>
+        </div>
+        <div class="card">
+          <div class="card-label">Candidate CORE B</div>
+          <div class="card-title" style="font-size: 22px; color: var(--av-sec);">Speed</div>
+          <div class="card-body">"Hours not weeks." Appealing pitch but unvalidated quantitatively. Also the claim most vulnerable to competitive erosion as other AI tools mature. Latent/Aspirational in the 4U+BLAC map — not the strongest hook.</div>
+          <div style="margin-top: 10px;"><span class="pill pill-amber">Weaker — unvalidated</span></div>
+        </div>
+        <div class="card">
+          <div class="card-label">Candidate CORE C</div>
+          <div class="card-title" style="font-size: 22px; color: var(--av-ink-3);">Optionality</div>
+          <div class="card-body">Scenario and NPV comparison across technology paths (SAG vs HPGR). High fidelity SPA built. But this is a H2 feature in the PRD and should not be the CORE for H1 commercial validation — positions as interesting but secondary.</div>
+          <div style="margin-top: 10px;"><span class="pill pill-sec">H2 — not H1 CORE</span></div>
+        </div>
+      </div>
+
+      <div class="pull-quote">
+        "Skok's point is precise: diluting CORE across multiple claims means no one associates anything specific with your brand. The current Alpha-Val website and pitch lead with speed, but the strongest validated pain point is provenance. This misalignment is not cosmetic — it affects which customers convert, which partnerships make sense, and what the product roadmap prioritizes."
+      </div>
+
+      <div class="alert alert-gold">
+        <div class="alert-icon">→</div>
+        <div class="alert-body"><strong>Recommendation:</strong> Commit to <strong>Provenance</strong> as the CORE. Reframe speed and optionality as outcomes of provenance, not parallel claims. "Audit-ready cost estimates from day one" > "hours not weeks."</div>
+      </div>
+
+      <div class="slide-controls">
+        <button class="nav-btn" onclick="goToSlide(1)">← Prev</button>
+        <span class="slide-counter">3 / 11</span>
+        <button class="nav-btn" onclick="goToSlide(3)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ────────────────────────────── SLIDE 3 · RSVPed ────────────────────────────── -->
+    <div class="slide" id="slide-3">
+      <div class="slide-eyebrow">Slide 03 · RSVPed Scorecard</div>
+      <h2 class="slide-title">How robust is the model today?</h2>
+      <p class="slide-subtitle">Repeatable · Scalable · Valuable · Disruptive (P) · Defensible</p>
+      <div class="slide-divider"></div>
+
+      <div class="grid-2" style="margin-bottom: 0;">
+        <div class="rsvp-block">
+          <div class="rsvp-header">
+            <div class="rsvp-letter" style="background: var(--av-amber-pale); color: var(--av-amber);">R</div>
+            <div>
+              <div class="rsvp-name">Repeatable</div>
+              <div class="rsvp-tag">Do customers keep buying?</div>
+            </div>
+            <span class="pill pill-amber" style="margin-left:auto;">Unproven</span>
+          </div>
+          <div class="rsvp-body">
+            <p>Mining capital projects are episodic, not subscription. A single company may run 2–3 FEL cycles per year at most. Repeatability depends on either (a) a large enough customer base to generate consistent ARR, or (b) expanding within accounts across multiple studies. Neither has been tested.</p>
+            <div class="rsvp-flag">The "Updating" motion (one of the 3Ups) — keeping users engaged between studies — is not yet designed.</div>
+          </div>
+        </div>
+
+        <div class="rsvp-block">
+          <div class="rsvp-header">
+            <div class="rsvp-letter" style="background: var(--av-green-pale); color: var(--av-green);">S</div>
+            <div>
+              <div class="rsvp-name">Scalable</div>
+              <div class="rsvp-tag">Can it grow without proportional cost?</div>
+            </div>
+            <span class="pill pill-green" style="margin-left:auto;">Plausible</span>
+          </div>
+          <div class="rsvp-body">
+            <p>The LLM pipeline architecture is inherently scalable — marginal cost per estimate is compute + API tokens, not headcount. Cost data (InfoMine, CEPCI escalation) can be centralized. The main scalability risk is accuracy: if each new project type requires manual calibration, scale breaks.</p>
+            <div class="rsvp-flag green">Semantic caching and AST-based deterministic sizing (FR-2.6) are the right levers here.</div>
+          </div>
+        </div>
+
+        <div class="rsvp-block">
+          <div class="rsvp-header">
+            <div class="rsvp-letter" style="background: var(--av-gold-pale); color: var(--av-gold-deep);">V</div>
+            <div>
+              <div class="rsvp-name">Valuable</div>
+              <div class="rsvp-tag">Significant worth to customer and founder?</div>
+            </div>
+            <span class="pill pill-gold" style="margin-left:auto;">Yes — unquantified</span>
+          </div>
+          <div class="rsvp-body">
+            <p>The pain is real: manual TIC estimation at FEL-1/2 consumes weeks of senior estimator time and produces outputs that often can't be audited for disclosure. Alpha-Val addresses both. The problem is that the value is asserted everywhere but computed nowhere — the gain/pain ratio is a narrative, not a number.</p>
+            <div class="rsvp-flag">No validated estimate of hours saved per study or cost avoided per disclosure cycle. This is a credibility gap in every sales conversation.</div>
+          </div>
+        </div>
+
+        <div class="rsvp-block">
+          <div class="rsvp-header">
+            <div class="rsvp-letter" style="background: var(--av-sec-pale); color: var(--av-sec-dark);">P</div>
+            <div>
+              <div class="rsvp-name">Disruptive (P)</div>
+              <div class="rsvp-tag">Does it change the rules of the game?</div>
+            </div>
+            <span class="pill pill-sec" style="margin-left:auto;">Potentially yes</span>
+          </div>
+          <div class="rsvp-body">
+            <p>Making disclosure-grade cost provenance available at FEL-1/2 (not just FEL-3) is genuinely new. Current market: consultants do this manually and charge accordingly. If Alpha-Val can produce auditable FEL-1 estimates in hours, it disrupts the consultant model — which also means consultants are a threat vector if they build competing tools.</p>
+            <div class="rsvp-flag">The "P" claim depends entirely on accuracy. Matthew's sizing bugs are not a minor UX issue — they undermine the disruption claim itself.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rsvp-block" style="margin-top: 16px;">
+        <div class="rsvp-header">
+          <div class="rsvp-letter" style="background: var(--av-red-pale); color: var(--av-red);">D</div>
+          <div>
+            <div class="rsvp-name">Defensible</div>
+            <div class="rsvp-tag">Is there a moat competitors can't easily cross?</div>
+          </div>
+          <span class="pill pill-red" style="margin-left:auto;">Weak today</span>
+        </div>
+        <div class="rsvp-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div>
+            <p>At this stage, the defensibility is primarily in the data provenance graph (proprietary cost dataset + citation tracking), the domain-specific LLM fine-tuning potential, and network effects from accumulated project comparables. None of these moats exist yet — they are the result of operating at scale, not preconditions of it.</p>
+          </div>
+          <div>
+            <p>The real moat candidates are: (1) a proprietary cost database built from customer projects, (2) workflow lock-in through integration with owner's team toolchains, and (3) NI 43-101 / SK 1300 compliance features that are expensive for generalist AI tools to replicate. Lead-time data (surfaced by Danilo) is an uncontested moat candidate today.</p>
+          </div>
+        </div>
+        <div style="padding: 0 16px 14px;">
+          <div class="rsvp-flag red">No moat without customers. The urgency to close pilots is not just commercial validation — it's moat-building.</div>
+        </div>
+      </div>
+
+      <div class="slide-controls">
+        <button class="nav-btn" onclick="goToSlide(2)">← Prev</button>
+        <span class="slide-counter">4 / 11</span>
+        <button class="nav-btn" onclick="goToSlide(4)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ────────────────────────────── SLIDE 4 · SLIP ────────────────────────────── -->
+    <div class="slide" id="slide-4">
+      <div class="slide-eyebrow">Slide 04 · SLIP Analysis</div>
+      <h2 class="slide-title">Is the product easy enough to adopt?</h2>
+      <p class="slide-subtitle">Simple · Low Cost · Instant Value · Plays well in ecosystem</p>
+      <div class="slide-divider"></div>
+
+      <div class="alert alert-sec mb-4">
+        <div class="alert-icon">i</div>
+        <div class="alert-body"><strong>SLIP is the product-led growth test.</strong> Skok's key insight: the value proposition can be highly disruptive, but the adoption experience must be frictionless. If the customer has to change their workflow to use the product, they won't. This is especially important in mining, where teams are conservative and tool fatigue is high.</div>
+      </div>
+
+      <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 20px;">
+        <div style="padding: 14px 16px; background: var(--av-bg-row-alt); border-bottom: 0.5px solid var(--av-line);">
+          <div style="display: grid; grid-template-columns: 28px 1fr 1fr; gap: 16px; font-family: var(--av-font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--av-ink-3);">
+            <div></div>
+            <div>Alpha-Val today</div>
+            <div>Gap / concern</div>
+          </div>
+        </div>
+
+        <div style="padding: 0 16px;">
+          <div class="slip-row">
+            <div class="slip-letter" style="color: var(--av-green);">S</div>
+            <div class="slip-desc">
+              <div class="slip-title">Simple to use</div>
+              Upload SOW → get TIC. The core workflow is genuinely simple in concept. The two-pass LLM pipeline hides complexity from the user.
+            </div>
+            <div class="slip-verdict">
+              <span class="pill pill-amber" style="margin-bottom: 6px; display: inline-flex;">Partially</span><br>
+              Accuracy bugs (Matthew's sizing flags) break the "just works" perception. Simplicity is a trust claim, not just a UI claim. One wrong output undoes it.
+            </div>
+          </div>
+
+          <div class="slip-row">
+            <div class="slip-letter" style="color: var(--av-amber);">L</div>
+            <div class="slip-desc">
+              <div class="slip-title">Low initial cost</div>
+              No pricing defined. The free-to-pro tier model is mentioned but not implemented. Without a trial or freemium entry point, the first commercial conversation starts at a price negotiation.
+            </div>
+            <div class="slip-verdict">
+              <span class="pill pill-red" style="margin-bottom: 6px; display: inline-flex;">Missing</span><br>
+              No tiered pricing. No self-serve trial. Onboarding friction is high — prospects must engage directly before seeing any value.
+            </div>
+          </div>
+
+          <div class="slip-row">
+            <div class="slip-letter" style="color: var(--av-gold);">I</div>
+            <div class="slip-desc">
+              <div class="slip-title">Instant value</div>
+              If the accuracy is correct, a user gets a draft TIC with provenance tracking within minutes of uploading an SOW — that is genuinely instant relative to the status quo of weeks.
+            </div>
+            <div class="slip-verdict">
+              <span class="pill pill-green" style="margin-bottom: 6px; display: inline-flex;">Strong potential</span><br>
+              This is the product's best SLIP dimension. The Aha moment is clear and fast — if the output is trusted. Trust is the gating variable.
+            </div>
+          </div>
+
+          <div class="slip-row">
+            <div class="slip-letter" style="color: var(--av-sec);">P</div>
+            <div class="slip-desc">
+              <div class="slip-title">Plays well in ecosystem</div>
+              Mining teams use Excel, Word-based SOWs, project management tools, and internal cost databases. Alpha-Val's SOW ingestion is ecosystem-aware, but the TIC output's portability (to Excel, PDF, QP/EPC workflows) is not documented.
+            </div>
+            <div class="slip-verdict">
+              <span class="pill pill-amber" style="margin-bottom: 6px; display: inline-flex;">Unknown</span><br>
+              No confirmed integration with tools teams already use. Lead-time and sourcing data (Danilo's suggestion) could be a connector that increases ecosystem fit significantly.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pull-quote red">
+        "The biggest SLIP risk is the 'P' (Plays well). If teams can't export the TIC sheet directly into their existing cost management or reporting workflows, adoption requires a behavior change — which is exactly what Skok warns against. This should be validated in alpha before designing the paid tier."
+      </div>
+
+      <div class="slide-controls">
+        <button class="nav-btn" onclick="goToSlide(3)">← Prev</button>
+        <span class="slide-counter">5 / 11</span>
+        <button class="nav-btn" onclick="goToSlide(5)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ────────────────────────────── SLIDE 5 · MVS ────────────────────────────── -->
+    <div class="slide" id="slide-5">
+      <div class="slide-eyebrow">Slide 05 · Minimum Viable Segment</div>
+      <h2 class="slide-title">Who exactly is the first customer?</h2>
+      <p class="slide-subtitle">MVS: a group who all share the exact same need and buy the same way</p>
+      <div class="slide-divider"></div>
+
+      <div class="alert alert-red mb-4">
+        <div class="alert-icon">!</div>
+        <div class="alert-body"><strong>The P1 vs. P2 decision is the most consequential unresolved question in the business model.</strong> Skok is explicit that MVS is not just a marketing concept — it determines your sales motion, your pricing anchor, your feature priority, and your success criteria for pilots. Alpha-Val has two plausible MVS candidates that require different everything.</div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 20px;">
+        <div class="card card-gold">
+          <div class="card-label">P1 · Independent Estimator / Technical Consultant</div>
+          <div class="card-title">The estimator who does this manually today</div>
+          <div class="card-body">
+            <strong>Pain:</strong> Spends 2–4 weeks per study producing a TIC sheet that may not survive a NI 43-101 audit. Has no defensible citation trail.<br><br>
+            <strong>Buy signal:</strong> Pays out of pocket or charges clients for tool access. Decision is individual or small team.<br><br>
+            <strong>Pricing anchor:</strong> Replaces $X of their own billable time. Potentially higher WTP if it expands their capacity.<br><br>
+            <strong>Risk:</strong> Individual estimators may also be the threatened party — if Alpha-Val replaces their core service, they have no incentive to adopt.
+          </div>
+          <div style="margin-top: 12px;"><span class="pill pill-gold">Matthew archetype</span></div>
+        </div>
+        <div class="card card-sec">
+          <div class="card-label">P2 · Owner's Project Manager / Capital Projects Team</div>
+          <div class="card-title">The owner's team running FEL 1–3</div>
+          <div class="card-body">
+            <strong>Pain:</strong> Receives estimates from consultants with no audit trail. Faces disclosure requirements at FEL-3 with gaps in the provenance chain.<br><br>
+            <strong>Buy signal:</strong> Budget already exists for estimating tools and consultant fees. Procurement goes through approval.<br><br>
+            <strong>Pricing anchor:</strong> Replaces consultant fees ($50–200k/study). Much larger ACV potential.<br><br>
+            <strong>Risk:</strong> Longer sales cycle, committee buy-in, IT/security approval. Harder to reach with a two-person startup.
+          </div>
+          <div style="margin-top: 12px;"><span class="pill pill-sec">Danilo archetype</span></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-label">MVS Decision Matrix</div>
+        <table class="verdict-table">
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>P1 · Estimator</th>
+              <th>P2 · Owner PM</th>
+              <th>Advantage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Sales cycle</strong></td>
+              <td>Weeks</td>
+              <td>Months</td>
+              <td><span class="pill pill-gold">P1</span></td>
+            </tr>
+            <tr>
+              <td><strong>ACV potential</strong></td>
+              <td>$2k–10k/yr</td>
+              <td>$30k–150k/yr</td>
+              <td><span class="pill pill-sec">P2</span></td>
+            </tr>
+            <tr>
+              <td><strong>Adoption friction</strong></td>
+              <td>Low — individual decision</td>
+              <td>High — committee + IT</td>
+              <td><span class="pill pill-gold">P1</span></td>
+            </tr>
+            <tr>
+              <td><strong>Validates auditability claim</strong></td>
+              <td>Partially — workflow level</td>
+              <td>Fully — disclosure level</td>
+              <td><span class="pill pill-sec">P2</span></td>
+            </tr>
+            <tr>
+              <td><strong>Referral / virality</strong></td>
+              <td>Peer-to-peer in consultant network</td>
+              <td>Conference / operator network</td>
+              <td class="dim">Similar</td>
+            </tr>
+            <tr>
+              <td><strong>Current alpha testers</strong></td>
+              <td>Matthew (estimator)</td>
+              <td>Danilo (industry / operator)</td>
+              <td><span class="pill pill-amber">Both</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="alert alert-amber">
+        <div class="alert-icon">→</div>
+        <div class="alert-body"><strong>Recommendation:</strong> Start with P1 (estimator) to close the first paid pilot and validate accuracy at low sales cycle cost. Design the product so P2 is the natural land-and-expand destination — when P1 delivers an auditable TIC to their P2 client, P2 sees the output and becomes the expansion buyer.</div>
+      </div>
+
+      <div class="slide-controls">
+        <button class="nav-btn" onclick="goToSlide(4)">← Prev</button>
+        <span class="slide-counter">6 / 11</span>
+        <button class="nav-btn" onclick="goToSlide(6)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ────────────────────────────── SLIDE 6 · 3UPS & PRICING ────────────────────────────── -->
+    <div class="slide" id="slide-6">
+      <div class="slide-eyebrow">Slide 06 · Pricing, 3Ups & Co-creation</div>
+      <h2 class="slide-title">How does Alpha-Val make money sustainably?</h2>
+      <p class="slide-subtitle">Price & Package · Update · Upgrade · Upsell · Community</p>
+      <div class="slide-divider"></div>
+
+      <div class="section-head">
+        <div class="section-head-label">Pricing model</div>
+        <div class="section-head-rule"></div>
+      </div>
+
+      <div class="alert alert-red mb-4">
+        <div class="alert-icon">!</div>
+        <div class="alert-body"><strong>No pricing model exists today.</strong> This is not an oversight — it is a strategic gap. Skok's "Price and Package" secret is about more than numbers: it determines the land-and-expand motion, the trial mechanic, and whether customers perceive Alpha-Val as a tool or a platform.</div>
+      </div>
+
+      <div class="grid-3" style="margin-bottom: 24px;">
+        <div class="card">
+          <div class="card-label">Tier 1 · Hypothesis</div>
+          <div class="card-title" style="color: var(--av-ink-3);">Free / Limited</div>
+          <div class="card-body">One FEL-1 estimate per month, no provenance export, community data only. Reduces adoption friction. Not currently designed.</div>
+          <div style="margin-top: 8px;"><span class="pill pill-red">Not built</span></div>
+        </div>
+        <div class="card">
+          <div class="card-label">Tier 2 · Hypothesis</div>
+          <div class="card-title" style="color: var(--av-gold);">Pro · $X/study or $Y/month</div>
+          <div class="card-body">Full provenance tracking, AACE class tagging, export to Excel/PDF. Price anchor: fraction of one day of senior estimator time. WTP not yet validated.</div>
+          <div style="margin-top: 8px;"><span class="pill pill-amber">Hypothesized</span></div>
+        </div>
+        <div class="card">
+          <div class="card-label">Tier 3 · Hypothesis</div>
+          <div class="card-title" style="color: var(--av-sec);">Enterprise · Owner's Team</div>
+          <div class="card-body">Multi-user, portfolio view, optionality/NPV module, custom cost data. This is the P2 expansion play. H2 timeline per roadmap.</div>
+          <div style="margin-top: 8px;"><span class="pill pill-sec">H2 only</span></div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <div class="section-head-label">The 3Ups — Update, Upgrade, Upsell</div>
+        <div class="section-head-rule"></div>
+      </div>
+
+      <ul class="priority-list">
+        <li class="priority-item">
+          <span class="priority-rank">Update</span>
+          <div class="priority-content">
+            <div class="priority-content-title">Retention: keep users engaged between studies</div>
+            <div class="priority-content-body">Mining projects have episodic FEL cycles. Between studies, what brings estimators back? Candidates: cost index updates (CEPCI/Nelson-Farrar), market alerts for equipment lead times (Danilo's insight), benchmark comparisons. None of these are designed. Without an Update motion, Alpha-Val is a per-project tool, not a subscription.</div>
+          </div>
+        </li>
+        <li class="priority-item">
+          <span class="priority-rank">Upgrade</span>
+          <div class="priority-content">
+            <div class="priority-content-title">New capabilities that expand value per user</div>
+            <div class="priority-content-body">HPGR sizing, more process types, Lang/Hand factor automation, mass balance resolution. These are mapped in the PRD. The risk: upgrading before the base product is accurate undermines trust further. Accuracy first, breadth second.</div>
+          </div>
+        </li>
+        <li class="priority-item">
+          <span class="priority-rank">Upsell</span>
+          <div class="priority-content">
+            <div class="priority-content-title">Increasing value from P1 → P2 expansion</div>
+            <div class="priority-content-body">The natural upsell is P1 → P2: an estimator who uses Alpha-Val produces a TIC that their owner client can see. The owner then wants the full provenance chain for disclosure, which requires the Enterprise tier. This is a coherent land-and-expand path — but it requires P2 to see the output, which means Alpha-Val needs shareable/exportable outputs now.</div>
+          </div>
+        </li>
+      </ul>
+
+      <div class="section-head">
+        <div class="section-head-label">Co-creation & Community</div>
+        <div class="section-head-rule"></div>
+      </div>
+
+      <div class="card card-sec">
+        <div class="card-label">Partnership Opportunity — Largely Untouched</div>
+        <div class="card-title">Cost data providers, QP networks, cloud platforms</div>
+        <div class="card-body">Skok's "whole product" concept: no startup can build everything. Alpha-Val needs: (1) cost data (InfoMine is a start, but is 2015-vintage), (2) equipment supplier lead-time data (uncontested white space per Danilo), (3) QP/CP professional networks for distribution. None of these partnerships are in active pursuit. The Design Partner LOI structure is the right vehicle for starting this — but it needs to be initiated before seed close, not after.</div>
+      </div>
+
+      <div class="slide-controls">
+        <button class="nav-btn" onclick="goToSlide(5)">← Prev</button>
+        <span class="slide-counter">7 / 11</span>
+        <button class="nav-btn" onclick="goToSlide(7)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ────────────────────────────── SLIDE 7 · LTV/CAC ────────────────────────────── -->
+    <div class="slide" id="slide-7">
+      <div class="slide-eyebrow">Slide 07 · LTV / CAC Mechanics</div>
+      <h2 class="slide-title">Can this unit economics actually work?</h2>
+      <p class="slide-subtitle">Multipliers increase LTV · Levers reduce CAC · The ratio must be >3:1 to scale</p>
+      <div class="slide-divider"></div>
+
+      <div class="alert alert-amber mb-4">
+        <div class="alert-icon">⚠</div>
+        <div class="alert-body"><strong>No real LTV or CAC data exists yet.</strong> The following is a structured hypothesis exercise — not a financial model. The goal is to identify which levers matter most before spending on growth.</div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 24px;">
+        <div class="card">
+          <div class="card-label">LTV — Multipliers that increase lifetime value</div>
+          <div style="margin-top: 4px;">
+            <div class="score-bar-row">
+              <div class="score-bar-label">Referral virality</div>
+              <div class="score-bar-track"><div class="score-bar-fill" style="width: 35%; background: var(--av-amber);"></div></div>
+              <div class="score-bar-val">Low</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-label">P1→P2 expansion</div>
+              <div class="score-bar-track"><div class="score-bar-fill" style="width: 65%; background: var(--av-gold);"></div></div>
+              <div class="score-bar-val">Med</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-label">Multi-study retention</div>
+              <div class="score-bar-track"><div class="score-bar-fill" style="width: 25%; background: var(--av-red);"></div></div>
+              <div class="score-bar-val">Low</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-label">Conference network</div>
+              <div class="score-bar-track"><div class="score-bar-fill" style="width: 50%; background: var(--av-amber);"></div></div>
+              <div class="score-bar-val">Med</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-label">Data network moat</div>
+              <div class="score-bar-track"><div class="score-bar-fill" style="width: 15%; background: var(--av-red);"></div></div>
+              <div class="score-bar-val">V.Low</div>
+            </div>
+          </div>
+          <div class="card-body" style="margin-top: 12px; font-size: 11.5px;">
+            Mining is a small-world industry — referral virality is possible but requires visible trust signals (case studies, named testers willing to be referenced). Currently blocked by alpha confidentiality.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">CAC — Levers that reduce acquisition cost</div>
+          <div style="margin-top: 4px;">
+            <div class="score-bar-row">
+              <div class="score-bar-label">Inbound content</div>
+              <div class="score-bar-track"><div class="score-bar-fill" style="width: 20%; background: var(--av-red);"></div></div>
+              <div class="score-bar-val">Low</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-label">Conference presence</div>
+              <div class="score-bar-track"><div class="score-bar-fill" style="width: 55%; background: var(--av-gold);"></div></div>
+              <div class="score-bar-val">Med</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-label">Founder outreach</div>
+              <div class="score-bar-track"><div class="score-bar-fill" style="width: 70%; background: var(--av-green);"></div></div>
+              <div class="score-bar-val">High</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-label">Matthew referrals</div>
+              <div class="score-bar-track"><div class="score-bar-fill" style="width: 60%; background: var(--av-gold);"></div></div>
+              <div class="score-bar-val">Med</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-label">Self-serve trial</div>
+              <div class="score-bar-track"><div class="score-bar-fill" style="width: 5%; background: var(--av-red);"></div></div>
+              <div class="score-bar-val">None</div>
+            </div>
+          </div>
+          <div class="card-body" style="margin-top: 12px; font-size: 11.5px;">
+            CAC is currently pure founder time. That is correct for stage. The risk is that without a self-serve trial, every conversion requires a demo — which caps throughput at founder bandwidth.
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-amber">
+        <div class="card-label">The TetraScience parallel — are we monetizing the right thing?</div>
+        <div class="card-title">The spaghetti isn't the TIC sheet — it's the provenance graph</div>
+        <div class="card-body">Skok's TetraScience case study: the company nearly failed by monetizing hardware (the peripheral) instead of the data ecosystem (the core value). Alpha-Val's equivalent risk: charging per estimate (the peripheral) instead of for the provenance audit trail (the core value). The TIC sheet is a commodity output. The defensible value is the citation graph that makes it audit-ready. Pricing should reflect this — otherwise Alpha-Val is a faster Excel template, not a platform.</div>
+      </div>
+
+      <div class="slide-controls">
+        <button class="nav-btn" onclick="goToSlide(6)">← Prev</button>
+        <span class="slide-counter">8 / 11</span>
+        <button class="nav-btn" onclick="goToSlide(8)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ────────────────────────────── SLIDE 8 · PARTNERSHIPS ────────────────────────────── -->
+    <div class="slide" id="slide-8">
+      <div class="slide-eyebrow">Slide 08 · Partnerships & Ecosystem</div>
+      <h2 class="slide-title">Where is Alpha-Val in the "whole product"?</h2>
+      <p class="slide-subtitle">No startup can build everything. Identify what you lack and who provides it.</p>
+      <div class="slide-divider"></div>
+
+      <div class="grid-3" style="margin-bottom: 20px;">
+        <div class="card card-green">
+          <div class="card-label">Alpha-Val owns</div>
+          <div class="card-title">SOW ingestion + LLM pipeline</div>
+          <div class="card-body">The extraction-sizing-provenance chain. This is the CORE. No one else is doing this specifically for mining FEL cost estimation with NI 43-101 / SK 1300 auditability in mind. This should be protected and deepened.</div>
+        </div>
+        <div class="card card-amber">
+          <div class="card-label">Alpha-Val needs (not built)</div>
+          <div class="card-title">Current cost data &amp; lead times</div>
+          <div class="card-body">InfoMine 2015 + CEPCI escalation is a starting point, not a moat. Real-time equipment pricing, supplier lead-time databases, and regional cost factors require either data partnerships or proprietary collection. This is a "whole product" gap that breaks the value proposition at scale.</div>
+        </div>
+        <div class="card card-sec">
+          <div class="card-label">Ecosystem partners needed</div>
+          <div class="card-title">QP networks, CPM tools, cloud platforms</div>
+          <div class="card-body">Qualified Persons (QPs) under NI 43-101 must sign off on disclosed estimates. A partnership with QP professional networks creates a distribution channel and compliance credibility simultaneously. CPM / project management tool integrations reduce "P" (SLIP) friction.</div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <div class="section-head-label">Win-win partnership test — does the partner also profit?</div>
+        <div class="section-head-rule"></div>
+      </div>
+
+      <table class="verdict-table" style="margin-bottom: 20px;">
+        <thead>
+          <tr>
+            <th>Potential Partner</th>
+            <th>What they provide</th>
+            <th>What they get</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Equipment suppliers</strong></td>
+            <td>Lead-time data, pricing</td>
+            <td>Spec visibility with estimators earlier in cycle</td>
+            <td><span class="pill pill-gold">Unexplored — high potential</span></td>
+          </tr>
+          <tr>
+            <td><strong>Cost data vendors</strong> (InfoMine, Wood Mackenzie)</td>
+            <td>Current cost indices</td>
+            <td>New distribution channel via Alpha-Val</td>
+            <td><span class="pill pill-amber">Dependent on their licensing</span></td>
+          </tr>
+          <tr>
+            <td><strong>QP / CP professional bodies</strong></td>
+            <td>Regulatory credibility, member network</td>
+            <td>Tool their members use — association value</td>
+            <td><span class="pill pill-red">Not contacted</span></td>
+          </tr>
+          <tr>
+            <td><strong>Mining consultancies</strong> (P1 channel)</td>
+            <td>Referrals, domain feedback</td>
+            <td>Competitive risk if they build in-house</td>
+            <td><span class="pill pill-amber">Handle carefully</span></td>
+          </tr>
+          <tr>
+            <td><strong>Cloud / infra</strong> (AWS, Azure)</td>
+            <td>Credits, marketplace listing</td>
+            <td>Another AI workload on their platform</td>
+            <td><span class="pill pill-sec">Standard startup programs</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pull-quote sec">
+        "Skok's win-win criterion: identify the one thing that makes you profitable that also makes the partner successful. For equipment suppliers, it's obvious — if Alpha-Val's estimates reference supplier A's lead times and pricing, supplier A gets spec'd into FEL-1 studies before the RFQ even goes out. This is worth a data partnership conversation."
+      </div>
+
+      <div class="slide-controls">
+        <button class="nav-btn" onclick="goToSlide(7)">← Prev</button>
+        <span class="slide-counter">9 / 11</span>
+        <button class="nav-btn" onclick="goToSlide(9)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ────────────────────────────── SLIDE 9 · RISK REGISTER ────────────────────────────── -->
+    <div class="slide" id="slide-9">
+      <div class="slide-eyebrow">Slide 09 · Honest Risk Register</div>
+      <h2 class="slide-title">What could actually kill this?</h2>
+      <p class="slide-subtitle">Risks ordered by kill probability × imminence — not by comfort level</p>
+      <div class="slide-divider"></div>
+
+      <ul class="priority-list">
+        <li class="priority-item">
+          <span class="priority-rank red">P0 · Critical</span>
+          <div class="priority-content">
+            <div class="priority-content-title">Accuracy bugs undermine the entire value proposition</div>
+            <div class="priority-content-body">Matthew's sizing accuracy flags are not a bug report — they are a trust signal failure. Alpha-Val's CORE is provenance and auditability. If the numbers are wrong, provenance is irrelevant. Every external demo and every pitch runs on the implicit claim that the TIC output is correct. This must be resolved before any further external contact, including Jay Roberg and Ben. The mass balance resolution (FR-2.6) and the sizing accuracy fixes are the same priority as sales.</div>
+          </div>
+        </li>
+        <li class="priority-item">
+          <span class="priority-rank red">P0 · Critical</span>
+          <div class="priority-content">
+            <div class="priority-content-title">MVS indecision blocks everything downstream</div>
+            <div class="priority-content-body">Website copy, pitch framing, pricing, pilot success criteria, conference focus, and design partner LOI structure all depend on knowing whether P1 or P2 is the primary persona. Running both in parallel with two alpha testers is not a strategy — it's a pre-decision holding pattern. The cost of indecision compounds weekly.</div>
+          </div>
+        </li>
+        <li class="priority-item">
+          <span class="priority-rank amber">P1 · High</span>
+          <div class="priority-content">
+            <div class="priority-content-title">No validated quantification of value delivered</div>
+            <div class="priority-content-body">The "hours not weeks" claim is the primary commercial hook on the website and in pitches. It is unvalidated. A well-resourced competitor or a skeptical investor will ask: what's the actual time saved per study? What does a false positive in the TIC cost the owner? Without numbers, the gain/pain ratio is a story, not a defensible claim. Alpha testers should be instrumented to capture this.</div>
+          </div>
+        </li>
+        <li class="priority-item">
+          <span class="priority-rank amber">P1 · High</span>
+          <div class="priority-content">
+            <div class="priority-content-title">Consultants as distribution channel are also the threatened party</div>
+            <div class="priority-content-body">If Alpha-Val targets independent estimators (P1), those same people may recognize that the product reduces their billable hours. Unlike TetraScience's hardware problem (the wrong monetization object), this is an adoption incentive inversion. The framing must shift: Alpha-Val expands what P1 can bill — it doesn't replace their judgment, it removes their data assembly labor so they can do more studies.</div>
+          </div>
+        </li>
+        <li class="priority-item">
+          <span class="priority-rank sec">P2 · Medium</span>
+          <div class="priority-content">
+            <div class="priority-content-title">LLM commoditization makes the pipeline a feature, not a moat</div>
+            <div class="priority-content-body">The two-pass Anthropic pipeline is well-engineered but is not defensible by itself. Any mining software company with a few engineers can build a similar pipeline in 6–12 months. The moat must be the data (cost comparables, lead-time data, project library) and the workflow integration — not the LLM architecture. This argues for accelerating data collection through early customers.</div>
+          </div>
+        </li>
+        <li class="priority-item">
+          <span class="priority-rank sec">P2 · Medium</span>
+          <div class="priority-content">
+            <div class="priority-content-title">Pitch / product misalignment in external materials</div>
+            <div class="priority-content-body">The website currently leads with Latent/Aspirational pain (speed). The strongest validated pain is Blatant/Critical (auditability/provenance). This is a conversion leak — the people most motivated to buy (those under disclosure pressure) don't immediately see themselves in the pitch. The optionality mock, while high-quality, risks positioning Alpha-Val as a scenario tool rather than a compliance tool. Messaging must be realigned before the next external conversation.</div>
+          </div>
+        </li>
+      </ul>
+
+      <div class="slide-controls">
+        <button class="nav-btn" onclick="goToSlide(8)">← Prev</button>
+        <span class="slide-counter">10 / 11</span>
+        <button class="nav-btn" onclick="goToSlide(10)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ────────────────────────────── SLIDE 10 · NEXT 90 DAYS ────────────────────────────── -->
+    <div class="slide" id="slide-10">
+      <div class="slide-eyebrow">Slide 10 · Next 90 Days</div>
+      <h2 class="slide-title">What does a resolved model require?</h2>
+      <p class="slide-subtitle">Ordered by dependency — each block gates the next</p>
+      <div class="slide-divider"></div>
+
+      <div class="alert alert-gold mb-6">
+        <div class="alert-icon">→</div>
+        <div class="alert-body"><strong>The Skok framework teaches that a business model is not built once — it's iterated through customer contact.</strong> The following actions are not a roadmap. They are the minimum set of decisions and experiments needed to move from "product with promise" to "business model with evidence."</div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <div class="section-head">
+            <div class="section-head-label">Month 1 — Resolve blockers</div>
+            <div class="section-head-rule"></div>
+          </div>
+          <ul class="priority-list">
+            <li class="priority-item">
+              <span class="priority-rank red">Must</span>
+              <div class="priority-content">
+                <div class="priority-content-title">Fix sizing accuracy bugs (Matthew's flags)</div>
+                <div class="priority-content-body">No external demos until this is done. Document the fix with before/after outputs for Matthew to re-validate. Use this as a trust signal when re-engaging.</div>
+              </div>
+            </li>
+            <li class="priority-item">
+              <span class="priority-rank red">Must</span>
+              <div class="priority-content">
+                <div class="priority-content-title">Make the P1 vs P2 MVS decision</div>
+                <div class="priority-content-body">Run a structured 2-hour decision session using Matthew (P1 signal) and Danilo (P2 signal) feedback. Commit. All subsequent work flows from this decision.</div>
+              </div>
+            </li>
+            <li class="priority-item">
+              <span class="priority-rank gold">High</span>
+              <div class="priority-content">
+                <div class="priority-content-title">Elevate FR-2.6 (mass balance) to Must for H1</div>
+                <div class="priority-content-body">Throughput as an edge property is not a nice-to-have. A TIC sheet with wrong mass balance is an incorrect TIC sheet. This is a product correctness issue, not a feature.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="section-head">
+            <div class="section-head-label">Month 2 — Validate and instrument</div>
+            <div class="section-head-rule"></div>
+          </div>
+          <ul class="priority-list">
+            <li class="priority-item">
+              <span class="priority-rank gold">High</span>
+              <div class="priority-content">
+                <div class="priority-content-title">Instrument alpha testers for value metrics</div>
+                <div class="priority-content-body">Capture: time from SOW upload to accepted TIC, number of manual corrections, confidence in provenance trail. These become the "gain/pain ratio" numbers that replace the asserted "hours not weeks" claim.</div>
+              </div>
+            </li>
+            <li class="priority-item">
+              <span class="priority-rank gold">High</span>
+              <div class="priority-content">
+                <div class="priority-content-title">Reframe website around Provenance, not Speed</div>
+                <div class="priority-content-body">Lead with the auditability claim. Name the disclosure standards (NI 43-101, SK 1300, JORC). Show what a provenance trail looks like. Speed becomes a secondary benefit, not the headline.</div>
+              </div>
+            </li>
+            <li class="priority-item">
+              <span class="priority-rank sec">Plan</span>
+              <div class="priority-content">
+                <div class="priority-content-title">Outreach to Jay Roberg and Ben</div>
+                <div class="priority-content-body">Structure outreach as a design partner ask, not a demo. Design partners get early access and input on roadmap; in return, they commit to a structured feedback cadence and a potential LOI. Do not pitch until sizing bugs are resolved.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-head" style="margin-top: 8px;">
+        <div class="section-head-label">Month 3 — First commercial signal</div>
+        <div class="section-head-rule"></div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card card-gold">
+          <div class="card-label">Target</div>
+          <div class="card-title">First paid pilot signed</div>
+          <div class="card-body">Even at a nominal price ($500–2,000), a signed pilot validates willingness to pay. Pilot success criteria must be pre-defined: accuracy threshold, provenance completeness, time-to-TIC. These are negotiated with the customer, not set unilaterally.</div>
+        </div>
+        <div class="card card-sec">
+          <div class="card-label">Target</div>
+          <div class="card-title">3 Design Partner LOIs</div>
+          <div class="card-body">LOIs are not revenue — they are signals of intent that unlock seed conversations. They must be from organizations that represent the committed MVS segment, not a mix of P1 and P2. Value to partners: roadmap influence, early access, discounted pilot pricing.</div>
+        </div>
+        <div class="card card-green">
+          <div class="card-label">Target</div>
+          <div class="card-title">Quantified value claim</div>
+          <div class="card-body">Replace "hours not weeks" with a real number from real usage: "Alpha-Val reduced FEL-1 TIC assembly time by X hours for [company type], with full NI 43-101 provenance." This is the headline that converts cold outreach at SME/CIM.</div>
+        </div>
+      </div>
+
+      <div class="pull-quote" style="margin-top: 24px;">
+        "Skok's summary principle: 'Prioritize customer profitability.' Alpha-Val succeeds commercially only if its customers also profit — in time recovered, in disclosure risk reduced, in studies run per year. Make that customer profit visible, measurable, and named. Then build the business model around capturing a fair fraction of it."
+      </div>
+
+      <div class="slide-controls">
+        <button class="nav-btn" onclick="goToSlide(9)">← Prev</button>
+        <span class="slide-counter">11 / 11</span>
+        <button class="nav-btn" disabled>→ End</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  let current = 0;
+  const total = 11;
+
+  function goToSlide(n) {
+    document.getElementById('slide-' + current).classList.remove('active');
+    document.querySelectorAll('.nav-item')[current].classList.remove('active');
+    current = n;
+    document.getElementById('slide-' + current).classList.add('active');
+    document.querySelectorAll('.nav-item')[current].classList.add('active');
+    document.querySelector('.slide-canvas').scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' && current < total - 1) goToSlide(current + 1);
+    if (e.key === 'ArrowLeft' && current > 0) goToSlide(current - 1);
+  });
+</script>
+</body>
+</html>
