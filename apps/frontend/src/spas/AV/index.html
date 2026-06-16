@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,166 +8,97 @@
 <style>
 :root {
   --av-bg-page:#fafaf7;--av-bg-surface:#ffffff;--av-bg-emph:#fbf7ec;--av-bg-subtle:#f5f2e9;
-  --av-bg-row-alt:#fcfaf3;--av-bg-rail:#0f0d04;
   --av-line:#e6e0cc;--av-line-strong:#c8b870;--av-line-faint:#efead8;
-  --av-gold-deep:#9a7010;--av-gold:#c4900e;--av-gold-soft:#e5bd55;--av-gold-pale:#f5e8b8;
+  --av-gold-deep:#9a7010;--av-gold:#c4900e;--av-gold-pale:#f5e8b8;
   --av-ink:#1a1508;--av-ink-2:#4a3d14;--av-ink-3:#7a6020;--av-ink-mute:#b09040;
-  --av-sec-pale:#eceef8;--av-sec:#5058a8;--av-sec-dark:#222658;
-  --av-green:#2e7d32;--av-green-pale:#e3f0dc;
-  --av-amber:#b87e10;--av-amber-pale:#faedc8;
   --av-font-sans:"DM Sans",-apple-system,sans-serif;
   --av-font-mono:"DM Mono",monospace;
-}
-[data-theme="dark"]{
-  --av-bg-page:#0a0805;--av-bg-surface:#14110a;--av-bg-emph:#1e1808;--av-bg-subtle:#1a150b;
-  --av-bg-row-alt:#18130a;--av-bg-rail:#050402;
-  --av-line:#2e2614;--av-line-strong:#6a5418;--av-line-faint:#221c10;
-  --av-gold-deep:#8e6610;--av-gold:#d4a020;--av-gold-soft:#e5bd55;--av-gold-pale:#3a2e10;
-  --av-ink:#f2e6c0;--av-ink-2:#d4be7a;--av-ink-3:#a88b40;--av-ink-mute:#7a6020;
-  --av-sec-pale:#141838;--av-sec:#7880c0;--av-sec-dark:#c4c8e8;
-  --av-green:#6ba86e;--av-green-pale:#1a2a18;
-  --av-amber:#d4a020;--av-amber-pale:#2a2010;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--av-bg-page);font-family:var(--av-font-sans);color:var(--av-ink);-webkit-font-smoothing:antialiased;min-height:100vh;}
 
-.shell{max-width:860px;margin:0 auto;padding:48px 32px 80px;}
+.shell{max-width:640px;margin:0 auto;padding:48px 32px 80px;}
 
-/* Header */
-.header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:40px;padding-bottom:20px;border-bottom:0.5px solid var(--av-line);}
-.header-left{}
-.wordmark{font-size:18px;font-weight:500;letter-spacing:-0.02em;color:var(--av-ink);}
+.header{margin-bottom:36px;padding-bottom:18px;border-bottom:0.5px solid var(--av-line);}
+.wordmark{font-size:17px;font-weight:500;letter-spacing:-0.02em;color:var(--av-ink);}
 .wordmark span{color:var(--av-gold);}
-.header-sub{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--av-gold-deep);margin-top:5px;}
-.header-right{display:flex;align-items:center;gap:10px;}
-.theme-btn{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;background:none;border:0.5px solid var(--av-line-strong);border-radius:3px;padding:5px 11px;color:var(--av-ink-3);cursor:pointer;transition:all .15s;}
-.theme-btn:hover{border-color:var(--av-gold);color:var(--av-gold-deep);}
+.header-sub{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--av-gold-deep);margin-top:4px;}
 
-/* Meta row */
-.meta-row{display:flex;align-items:center;gap:16px;margin-bottom:28px;}
-.meta-chip{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:3px 9px;border-radius:10px;border:0.5px solid var(--av-line-strong);color:var(--av-ink-3);}
-.meta-chip.gold{background:var(--av-gold-pale);border-color:var(--av-gold);color:var(--av-gold-deep);}
-.meta-rule{flex:1;height:0.5px;background:var(--av-line);}
+.file-list{display:flex;flex-direction:column;border:0.5px solid var(--av-line);border-radius:5px;overflow:hidden;background:var(--av-bg-surface);}
 
-/* File list */
-.file-list{display:flex;flex-direction:column;gap:0;border:0.5px solid var(--av-line);border-radius:6px;overflow:hidden;background:var(--av-bg-surface);}
+.group-header{padding:8px 16px;background:var(--av-bg-subtle);border-bottom:0.5px solid var(--av-line);}
+.group-label{font-family:var(--av-font-mono);font-size:8.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--av-ink-3);}
 
-.file-row{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:0;padding:0;border-bottom:0.5px solid var(--av-line-faint);transition:background .12s;text-decoration:none;color:inherit;}
+.file-row{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:0.5px solid var(--av-line-faint);text-decoration:none;color:inherit;transition:background .12s;}
 .file-row:last-child{border-bottom:none;}
 .file-row:hover{background:var(--av-bg-emph);}
 .file-row:hover .file-name{color:var(--av-gold);}
 
-.file-icon{padding:14px 14px 14px 18px;color:var(--av-gold-soft);font-size:14px;flex-shrink:0;line-height:1;}
-.file-main{padding:14px 0;min-width:0;}
-.file-name{font-size:13px;font-weight:500;color:var(--av-ink);letter-spacing:-0.01em;transition:color .12s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.file-name{font-size:13px;font-weight:500;color:var(--av-ink);letter-spacing:-0.01em;transition:color .12s;}
 .file-desc{font-size:11.5px;color:var(--av-ink-3);margin-top:2px;line-height:1.4;}
-.file-tag{display:inline-flex;align-items:center;font-family:var(--av-font-mono);font-size:8px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 7px;border-radius:8px;margin-right:6px;margin-top:4px;}
-.tag-strategy{background:var(--av-gold-pale);color:var(--av-gold-deep);}
-.tag-optionality{background:var(--av-sec-pale);color:var(--av-sec-dark);}
-.tag-finance{background:var(--av-green-pale);color:var(--av-green);}
-.tag-latest{background:var(--av-amber-pale);color:var(--av-amber);}
 
-.file-size{font-family:var(--av-font-mono);font-size:10px;color:var(--av-ink-mute);padding:14px 12px;white-space:nowrap;text-align:right;}
-.file-date{font-family:var(--av-font-mono);font-size:10px;color:var(--av-ink-mute);padding:14px 18px 14px 0;white-space:nowrap;text-align:right;}
-
-/* Group header */
-.group-header{padding:10px 18px;background:var(--av-bg-subtle);border-bottom:0.5px solid var(--av-line);display:flex;align-items:center;gap:10px;}
-.group-label{font-family:var(--av-font-mono);font-size:8.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--av-ink-3);}
-.group-rule{flex:1;height:0.5px;background:var(--av-line);}
-
-/* Hover arrow */
-.file-arrow{padding:14px 18px 14px 0;color:var(--av-line-strong);font-size:11px;transition:all .12s;}
+.file-right{display:flex;align-items:center;gap:12px;flex-shrink:0;margin-left:20px;}
+.file-date{font-family:var(--av-font-mono);font-size:10px;color:var(--av-ink-mute);}
+.file-arrow{font-size:11px;color:var(--av-line-strong);transition:all .12s;}
 .file-row:hover .file-arrow{color:var(--av-gold);transform:translateX(2px);}
 
-/* Footer */
-.footer{margin-top:36px;display:flex;align-items:center;justify-content:space-between;}
+.footer{margin-top:24px;}
 .footer-note{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.08em;color:var(--av-ink-mute);}
-.footer-count{font-family:var(--av-font-mono);font-size:9px;letter-spacing:0.1em;color:var(--av-ink-mute);}
 </style>
 </head>
 <body>
 <div class="shell">
 
   <header class="header">
-    <div class="header-left">
-      <div class="wordmark">Alpha<span>-Val</span></div>
-      <div class="header-sub">Artifact Index · AV/</div>
-    </div>
-    <div class="header-right">
-      <button class="theme-btn" onclick="toggleTheme()">Light / Dark</button>
-    </div>
+    <div class="wordmark">Alpha<span>-Val</span></div>
+    <div class="header-sub">Artifact Index · AV/</div>
   </header>
-
-  <div class="meta-row">
-    <div class="meta-chip gold">7 files</div>
-    <div class="meta-chip">Updated Jun 16 2026</div>
-    <div class="meta-rule"></div>
-  </div>
 
   <div class="file-list">
 
-    <!-- Strategy -->
-    <div class="group-header">
-      <span class="group-label">Strategy</span>
-      <div class="group-rule"></div>
-    </div>
+    <div class="group-header"><span class="group-label">Strategy</span></div>
 
     <a class="file-row" href="av-business-model-review-v1.html">
-      <div class="file-icon">◈</div>
-      <div class="file-main">
+      <div>
         <div class="file-name">av-business-model-review-v1.html</div>
-        <div class="file-desc">Skok framework analysis — Diamond, CORE, RSVPed, SLIP, MVS, 3Ups mapped to Alpha-Val</div>
-        <div><span class="file-tag tag-strategy">Strategy</span><span class="file-tag tag-latest">Latest</span></div>
+        <div class="file-desc">Skok framework analysis — Diamond, CORE, RSVPed, SLIP, MVS, 3Ups</div>
       </div>
-      <div class="file-size">78 KB</div>
-      <div class="file-date">Jun 16</div>
-      <div class="file-arrow">→</div>
+      <div class="file-right">
+        <span class="file-date">Jun 16</span>
+        <span class="file-arrow">→</span>
+      </div>
     </a>
 
     <a class="file-row" href="av-unit-economics-v1.html">
-      <div class="file-icon">◈</div>
-      <div class="file-main">
+      <div>
         <div class="file-name">av-unit-economics-v1.html</div>
-        <div class="file-desc">Interactive CAC / LTV / NRR calculator — P1, P2, P3 persona scenarios with benchmark overlays</div>
-        <div><span class="file-tag tag-finance">Finance</span><span class="file-tag tag-latest">Latest</span></div>
+        <div class="file-desc">CAC / LTV / NRR calculator — P1, P2, P3 persona scenarios</div>
       </div>
-      <div class="file-size">56 KB</div>
-      <div class="file-date">Jun 16</div>
-      <div class="file-arrow">→</div>
+      <div class="file-right">
+        <span class="file-date">Jun 16</span>
+        <span class="file-arrow">→</span>
+      </div>
     </a>
 
-    <!-- Optionality suite -->
-    <div class="group-header">
-      <span class="group-label">FEL Mocks</span>
-      <div class="group-rule"></div>
-    </div>
+    <div class="group-header"><span class="group-label">FEL Mocks</span></div>
 
     <a class="file-row" href="av-optionality-v5.html">
-      <div class="file-icon">◇</div>
-      <div class="file-main">
+      <div>
         <div class="file-name">av-optionality-v5.html</div>
-        <div class="file-desc">Full pipeline SPA — frozen base case, SAG-Ball / HPGR-Ball / Fine Grind, throughput sub-options, NPV matrix</div>
-        <div><span class="file-tag tag-optionality">Optionality</span><span class="file-tag tag-latest">Latest</span></div>
+        <div class="file-desc">Full pipeline SPA — SAG-Ball / HPGR-Ball / Fine Grind, throughput sub-options, NPV matrix</div>
       </div>
-      <div class="file-size">118 KB</div>
-      <div class="file-date">Jun 15</div>
-      <div class="file-arrow">→</div>
+      <div class="file-right">
+        <span class="file-date">Jun 15</span>
+        <span class="file-arrow">→</span>
+      </div>
     </a>
 
   </div>
 
   <div class="footer">
     <div class="footer-note">alpha-val.com · internal use only</div>
-    <div class="footer-count">7 artifacts · 542 KB total</div>
   </div>
 
 </div>
-
-<script>
-function toggleTheme(){
-  const h = document.documentElement;
-  h.setAttribute('data-theme', h.getAttribute('data-theme')==='dark'?'light':'dark');
-}
-</script>
 </body>
 </html>
