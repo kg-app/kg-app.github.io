@@ -1,0 +1,2483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ValidAIt — Workspace</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f5f5; --surf:#fff; --surf-2:#fafafa; --line:#d8d8d8; --line-2:#e8e8e8;
+  --ink:#1a1a1a; --ink-2:#444; --ink-3:#777; --ink-4:#aaa; --ink-5:#ccc;
+  --acc:#2a2a2a; --acc-soft:#666;
+  --warn:#a04020; --warn-soft:#d9a090; --warn-bg:#f5e5e0;
+  --good:#2a6a2e; --good-soft:#90b890; --good-bg:#e5efe2;
+  --info:#3a5a8a; --info-soft:#8898b8; --info-bg:#e0e8f2;
+  --mid:#6c5a98; --mid-soft:#a898c8; --mid-bg:#ebe5f0;
+  --gold:#8a7020;
+}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);font-size:13px;line-height:1.5;height:100vh;overflow:hidden}
+
+/* App shell */
+.app{display:flex;flex-direction:column;height:100vh}
+
+/* Global top bar */
+.gbar{height:48px;background:var(--ink);color:#fff;display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0}
+.gbrand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;letter-spacing:-.3px;cursor:pointer;color:#fff}
+.gbrand-box{width:24px;height:24px;background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:11px;font-weight:800}
+.gcrumb{font-size:12px;color:#bbb;display:flex;align-items:center;gap:6px}
+.gcrumb .sep{color:#666}
+.gcrumb .curr{color:#fff;font-weight:500}
+.gbar-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.gav{width:26px;height:26px;border-radius:50%;background:#555;border:1.5px solid #777;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#ddd}
+.gbtn{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border:1.5px solid #fff;background:#fff;color:var(--ink);font-size:12.5px;font-weight:600;cursor:pointer;border-radius:3px;font-family:inherit}
+.gbtn-gh{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1.5px solid #555;background:transparent;color:#ddd;font-size:12.5px;font-weight:500;cursor:pointer;border-radius:3px;font-family:inherit}
+.gbtn-gh:hover{border-color:#888;color:#fff;background:rgba(255,255,255,.06)}
+.gbtn:hover{background:#eee}
+
+/* Generic buttons (reused) */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 15px;border:1px solid var(--line);background:#fff;font-size:12.5px;cursor:pointer;border-radius:3px;font-family:inherit;color:var(--ink-2);white-space:nowrap}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:disabled:hover{background:#fff}
+.btn:hover{background:#f5f5f5;border-color:var(--ink-4)}
+.btn-p{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn-p:disabled:hover{background:var(--ink)}
+.btn-p:hover{background:var(--acc)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-gh{border-color:transparent;background:transparent}.btn-gh:hover{border-color:var(--line)}
+.btn-warn{color:var(--warn);border-color:var(--warn-soft)}.btn-warn:hover{background:var(--warn-bg)}
+
+/* ───────── DASHBOARD VIEW ───────── */
+.dash{flex:1;overflow-y:auto;background:var(--surf)}
+.dash-wrap{max-width:980px;margin:0 auto;padding:32px 28px 60px}
+.dash-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px}
+.dash-title{font-size:21px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
+.dash-sub{font-size:12.5px;color:var(--ink-3);margin-top:3px}
+.dash-search{position:relative;width:240px}
+.dash-search input{width:100%;padding:7px 12px 7px 30px;border:1px solid var(--line);border-radius:4px;font-size:12.5px;font-family:inherit}
+.dash-search::before{content:'⌕';position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink-4);font-size:14px}
+
+table.dash-tbl{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.dash-tbl thead th{padding:11px 16px;text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.07em;color:var(--ink-4);text-transform:uppercase;background:var(--surf-2);border-bottom:1.5px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+.dash-tbl thead th:hover{color:var(--ink-2)}
+.dash-tbl thead th.sortcol{color:var(--ink)}
+.sort-arrow{font-size:9px;margin-left:3px;opacity:.7}
+.dash-tbl tbody td{padding:13px 16px;border-bottom:1px solid var(--line-2);color:var(--ink);vertical-align:middle}
+.dash-tbl tbody tr:last-child td{border-bottom:none}
+.dash-tbl tbody tr:hover td{background:#fafaf7}
+.an-name{font-weight:600;color:var(--ink);cursor:pointer;font-size:13.5px}
+.an-name:hover{text-decoration:underline}
+.an-date{font-size:12px;color:var(--ink-3);font-family:monospace}
+.an-docs{font-size:12.5px;color:var(--ink-2)}
+.an-docs-n{font-weight:700;color:var(--ink)}
+
+.row-menu-wrap{position:relative;display:inline-block}
+.row-menu-btn{width:26px;height:26px;border-radius:4px;border:1px solid transparent;background:none;cursor:pointer;font-size:15px;color:var(--ink-3);display:flex;align-items:center;justify-content:center;font-family:inherit}
+.row-menu-btn:hover{background:#eee;border-color:var(--line)}
+.row-menu{position:absolute;right:0;top:30px;background:#fff;border:1px solid var(--line);border-radius:4px;box-shadow:0 6px 20px rgba(0,0,0,.12);min-width:140px;z-index:50;display:none;padding:4px}
+.row-menu.on{display:block}
+.row-menu-item{padding:7px 11px;font-size:12.5px;cursor:pointer;border-radius:3px;display:flex;align-items:center;gap:7px;color:var(--ink-2)}
+.row-menu-item:hover{background:#f0f0f0}
+.row-menu-item.danger{color:var(--warn)}
+.row-menu-item.danger:hover{background:var(--warn-bg)}
+
+.empty-dash{padding:60px 20px;text-align:center;color:var(--ink-4);font-size:13px}
+
+/* ───────── ANALYSIS SUBHEADER ───────── */
+.subhead{background:var(--surf);border-bottom:1.5px solid var(--line);padding:14px 18px;flex-shrink:0}
+.subhead-top{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.an-title-edit{font-size:18px;font-weight:700;color:var(--ink);border:1px solid transparent;border-radius:3px;padding:2px 6px;margin-left:-7px;cursor:text;background:none;font-family:inherit;min-width:120px}
+.an-title-edit:hover{border-color:var(--line)}
+.an-title-edit:focus{outline:none;border-color:var(--ink-3);background:#fafafa}
+.subhead-meta{font-size:11.5px;color:var(--ink-4);display:flex;align-items:center;gap:14px;margin-left:1px}
+.subhead-meta b{color:var(--ink-3);font-weight:600}
+.subhead-actions{margin-left:auto;display:flex;gap:8px}
+
+/* ───────── ENTITY TABS / FILTER (same as before) ───────── */
+.subbar{background:var(--surf);border-bottom:1.5px solid var(--line);padding:0 18px;display:flex;align-items:center;gap:0;flex-shrink:0}
+.tab{padding:10px 16px;font-size:13px;cursor:pointer;color:var(--ink-3);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1.5px;font-family:inherit;font-weight:500;display:flex;align-items:center;gap:6px}
+.tab:hover{color:var(--ink-2)}
+.tab.on{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
+.tab-cnt{background:#eee;padding:1px 7px;border-radius:8px;font-size:10px;color:var(--ink-3);font-weight:600}
+.tab.on .tab-cnt{background:var(--ink);color:#fff}
+.tab-disabled{color:var(--ink-5);cursor:default}.tab-disabled:hover{color:var(--ink-5)}
+.tab-soon{background:#f0f0f0;color:var(--ink-4);font-size:9px;padding:1px 5px;border-radius:6px;letter-spacing:.05em;text-transform:uppercase}
+.bar-spacer{flex:1}
+
+.filtbar{background:var(--surf-2);border-bottom:1px solid var(--line-2);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.search{flex:1;max-width:280px;position:relative}
+.search input{width:100%;padding:6px 11px 6px 28px;border:1px solid var(--line);border-radius:3px;font-size:12.5px;font-family:inherit;background:#fff}
+.search input:focus{outline:none;border-color:var(--ink-3)}
+.search::before{content:'⌕';position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--ink-4);font-size:13px}
+.flt-grp{display:flex;gap:0;border:1px solid var(--line);border-radius:3px;overflow:hidden;background:#fff}
+.flt{padding:5px 11px;font-size:11.5px;color:var(--ink-3);cursor:pointer;border:none;background:none;font-family:inherit;border-right:1px solid var(--line-2)}
+.flt:last-child{border-right:none}
+.flt:hover{background:#f5f5f5}
+.flt.on{background:var(--ink);color:#fff}
+
+/* Work area */
+.work{flex:1;display:flex;overflow:hidden;min-height:0}
+.main{flex:1;overflow:auto;background:var(--surf);position:relative}
+.panel{width:0;background:var(--surf);border-left:2px solid var(--line);overflow:hidden;flex-shrink:0;transition:width .22s ease;display:flex;flex-direction:column}
+.panel.on{width:440px}
+
+/* Empty state */
+.empty{height:100%;display:flex;align-items:center;justify-content:center;padding:32px 20px}
+.empty-card{max-width:520px;width:100%;background:var(--surf-2);border:2px dashed var(--line);border-radius:6px;padding:48px 40px;text-align:center}
+.empty-icon{font-size:36px;color:var(--ink-4);margin-bottom:10px}
+.empty-title{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:5px}
+.empty-sub{font-size:13px;color:var(--ink-3);margin-bottom:24px;line-height:1.6}
+.empty-actions{display:flex;gap:10px;justify-content:center;margin-bottom:18px}
+.empty-divider{font-size:11px;color:var(--ink-4);letter-spacing:.1em;margin-bottom:14px;font-family:monospace;text-transform:uppercase}
+.empty-formats{font-size:11px;color:var(--ink-4)}
+
+/* Processing state */
+.proc{padding:32px;max-width:640px;margin:0 auto}
+.proc-bar{height:4px;background:#e0e0e0;border-radius:2px;overflow:hidden;margin:12px 0 18px}
+.proc-fill{height:100%;background:var(--ink);transition:width .8s ease;width:0}
+.proc-step{padding:10px 0;font-size:12.5px;color:var(--ink-4);display:flex;align-items:center;gap:8px}
+.proc-step.done{color:var(--ink-2)}.proc-step.cur{color:var(--ink);font-weight:600}
+.proc-tick{width:14px;height:14px;border-radius:50%;border:1.5px solid #ccc;display:flex;align-items:center;justify-content:center;font-size:8px;color:transparent}
+.proc-step.done .proc-tick{background:var(--good);border-color:var(--good);color:#fff}
+.proc-step.cur .proc-tick{border-color:var(--ink);background:#fff;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(.85)}}
+
+/* Table (entity tables) */
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+thead th{position:sticky;top:0;background:var(--surf-2);padding:8px 11px;text-align:left;font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--ink-4);text-transform:uppercase;border-bottom:1.5px solid var(--line);white-space:nowrap;z-index:5}
+tbody td{padding:9px 11px;border-bottom:1px solid var(--line-2);color:var(--ink);vertical-align:top}
+tbody tr{cursor:pointer;transition:background .08s}
+tbody tr:hover td{background:#fafaf5}
+tbody tr.sel td{background:#f0eee3}
+tbody tr.sel{box-shadow:inset 3px 0 0 var(--ink)}
+.id-cell{font-family:monospace;font-size:10.5px;color:var(--ink-4);font-weight:600;white-space:nowrap}
+.txt-cell{font-size:12px;color:var(--ink);font-style:italic;max-width:380px;line-height:1.4}
+.cell-meta{font-size:10.5px;color:var(--ink-4);margin-top:2px;font-family:monospace}
+.row-warn{background:#fdf6f3}
+.row-warn:hover td{background:#f8eee8}
+
+.cell-edit{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border:1px solid transparent;border-radius:3px;cursor:pointer;transition:all .1s}
+.cell-edit:hover{border-color:var(--line);background:#fff}
+.cell-edit::after{content:'⌄';font-size:9px;color:var(--ink-4);margin-left:2px;opacity:.6}
+
+.bdg{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:8px;font-size:10.5px;font-weight:600;border:1px solid;white-space:nowrap}
+.bdg::before{content:'●';font-size:5px}
+.b-asm{border-color:#bbb;color:var(--ink-3);background:#f0f0f0}.b-asm::before{color:#aaa}
+.b-sup{border-color:var(--good-soft);color:var(--good);background:var(--good-bg)}.b-sup::before{color:var(--good)}
+.b-dis{border-color:var(--warn-soft);color:var(--warn);background:var(--warn-bg)}.b-dis::before{color:var(--warn)}
+.b-val{border-color:var(--ink);color:var(--ink);background:#e0ddd4}.b-val::before{color:var(--ink)}
+.b-rev{border-color:#b89060;color:#8a6020;background:#f5e8d8;font-style:italic}.b-rev::before{color:#b89060}
+.b-gap{border-color:var(--warn);color:var(--warn);background:var(--warn-bg);font-weight:700}
+
+.chip{display:inline-block;padding:1px 6px;border-radius:8px;font-size:9.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;border:1px solid;white-space:nowrap;margin:1px 2px 1px 0}
+.t-beh{background:var(--info-bg);color:var(--info);border-color:var(--info-soft)}
+.t-att{background:#faf2dc;color:var(--gold);border-color:#d9bf70}
+.t-doc{background:var(--good-bg);color:var(--good);border-color:var(--good-soft)}
+.t-ana{background:#eee;color:var(--ink-3);border-color:var(--line)}
+.fw-tag{font-size:10.5px;color:var(--ink-3);white-space:nowrap}
+
+.t-type{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:2px;white-space:nowrap}
+.tt-per{background:var(--mid-bg);color:var(--mid)}
+.tt-com{background:#faf2dc;color:var(--gold)}
+.tt-tec{background:var(--warn-bg);color:var(--warn)}
+.tt-fra{background:#eee;color:var(--ink-3)}
+.tt-risk{background:var(--warn-bg);color:var(--warn)}
+.pri{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:2px;white-space:nowrap;letter-spacing:.04em}
+.pri-p0{background:var(--warn);color:#fff}
+.pri-p1{background:#b87020;color:#fff}
+.pri-p2{background:var(--ink-3);color:#fff}
+
+.ref{font-family:monospace;font-size:10px;padding:1px 5px;border-radius:2px;background:#f0eee3;border:1px solid var(--line-2);color:var(--ink-3);white-space:nowrap;cursor:pointer;display:inline-block;margin:1px}
+.ref:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.prov{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:8px;font-size:10px;color:var(--info);background:var(--info-bg);border:1px solid var(--info-soft);cursor:pointer;font-family:monospace;font-weight:600}
+.prov:hover{background:var(--info);color:#fff}
+.prov-mini{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#f0eee3;color:var(--ink-3);font-size:9px;cursor:pointer;margin-left:4px;border:1px solid var(--line-2);font-family:inherit;font-weight:700}
+.prov-mini:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.str{display:inline-flex;gap:2px}
+.sd{width:6px;height:6px;border-radius:50%;background:#ddd}
+.sd.on{background:var(--ink-3)}
+
+.stats{display:flex;gap:0;background:var(--surf);border-bottom:1px solid var(--line-2);padding:0 18px;flex-shrink:0}
+.stat{padding:10px 14px;border-right:1px solid var(--line-2);min-width:88px}
+.stat:last-child{border-right:none}
+.stat-n{font-size:18px;font-weight:700;color:var(--ink)}
+.stat-l{font-size:9.5px;color:var(--ink-4);letter-spacing:.05em;margin-top:1px}
+.stat-warn .stat-n{color:var(--warn)}
+.stat-good .stat-n{color:var(--good)}
+.stat-mid .stat-n{color:var(--ink-3)}
+
+/* Side panel */
+.pan-hdr{padding:13px 18px;border-bottom:1.5px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--surf-2)}
+.pan-hdr-l{display:flex;align-items:center;gap:8px;flex:1}
+.pan-id{font-family:monospace;font-size:11px;color:var(--ink-4);font-weight:700}
+.pan-title{font-size:13px;font-weight:600;color:var(--ink)}
+.pan-x{cursor:pointer;font-size:18px;color:var(--ink-4);background:none;border:none;line-height:1;padding:0;font-family:inherit}.pan-x:hover{color:var(--ink)}
+.pan-body{flex:1;overflow-y:auto;padding:16px 18px}
+.pan-foot{padding:11px 18px;border-top:1px solid var(--line);display:flex;gap:8px;flex-shrink:0;background:var(--surf-2)}
+
+.pan-tabs{display:flex;gap:0;border-bottom:1px solid var(--line);padding:0 18px;background:var(--surf-2);flex-shrink:0}
+.pan-tab{padding:8px 12px;font-size:11.5px;cursor:pointer;color:var(--ink-3);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;font-weight:500;display:flex;align-items:center;gap:5px}
+.pan-tab.on{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
+.pan-tab-cnt{background:#eee;padding:0 5px;border-radius:6px;font-size:9px;color:var(--ink-3);font-weight:600}
+
+.sec{margin-bottom:18px}
+.sec-l{font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--ink-4);text-transform:uppercase;margin-bottom:7px}
+.kv{display:flex;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line-2);font-size:12px}
+.kv:last-child{border:none}
+.kv-k{font-size:10.5px;color:var(--ink-4);min-width:90px;text-transform:uppercase;letter-spacing:.04em;padding-top:1px}
+.kv-v{flex:1;color:var(--ink)}
+.ai-block{background:#f5f5f0;border:1px solid var(--line);border-left:3px solid var(--ink-3);border-radius:0 3px 3px 0;padding:11px 12px;margin-bottom:10px;font-size:12px;line-height:1.6;color:var(--ink-2)}
+.ai-block ul{padding-left:14px;margin-top:5px}.ai-block li{margin-bottom:4px}
+.ai-block em{display:block;margin-top:7px;font-size:11px;color:var(--ink-4);font-style:italic}
+.ai-l{font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--ink-4);text-transform:uppercase;margin-bottom:6px}
+
+textarea,input[type=text]{width:100%;border:1px solid var(--line);border-radius:3px;padding:7px 10px;font-family:inherit;font-size:12.5px;color:var(--ink);background:#fff;resize:vertical;outline:none}
+textarea:focus,input:focus{border-color:var(--ink-3)}
+textarea{min-height:60px}
+select{padding:5px 22px 5px 8px;border:1px solid var(--line);border-radius:3px;font-size:11.5px;font-family:inherit;background:#fff;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);background-position:calc(100% - 10px) 50%,calc(100% - 6px) 50%;background-size:4px 4px,4px 4px;background-repeat:no-repeat}
+
+.ev-card{background:var(--surf-2);border:1px solid var(--line);border-left:3px solid var(--info);border-radius:0 3px 3px 0;padding:9px 11px;margin-bottom:6px;font-size:11.5px}
+.ev-card-meta{display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap}
+
+.trail{position:relative;padding-left:18px}
+.trail::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:var(--line)}
+.trail-item{position:relative;padding:6px 0 6px 5px;font-size:11.5px}
+.trail-item::before{content:'';position:absolute;left:-18px;top:9px;width:9px;height:9px;border-radius:50%;background:var(--surf);border:1.5px solid var(--ink-3)}
+.trail-item.curr::before{background:var(--ink);border-color:var(--ink)}
+.trail-when{font-size:10px;color:var(--ink-4);font-family:monospace}
+.trail-what{font-size:11.5px;color:var(--ink);margin-top:1px}
+.trail-who{font-size:10.5px;color:var(--ink-3);margin-top:1px}
+.src-block{background:#f5f5f0;border:1px solid var(--line);border-radius:3px;padding:9px 10px;margin-top:6px;font-size:11px;font-family:monospace;line-height:1.5;color:var(--ink-3);max-height:120px;overflow-y:auto;white-space:pre-wrap}
+
+.dd-pop{position:fixed;background:#fff;border:1.5px solid var(--ink);border-radius:3px;box-shadow:0 6px 24px rgba(0,0,0,.15);z-index:1000;padding:5px;min-width:160px}
+.dd-opt{padding:5px 10px;font-size:11.5px;cursor:pointer;border-radius:2px;display:flex;align-items:center;gap:7px}
+.dd-opt:hover{background:#f0eee3}
+
+/* Modals (generic) */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:#fff;border-radius:6px;padding:24px;width:520px;max-width:90vw;max-height:88vh;overflow-y:auto}
+.modal h3{font-size:16px;margin-bottom:4px;color:var(--ink)}
+.modal-sub{font-size:12px;color:var(--ink-3);margin-bottom:16px}
+
+/* Upload modal specifics */
+.dropzone{border:2px dashed var(--line);border-radius:6px;padding:28px 20px;text-align:center;cursor:pointer;background:var(--surf-2);transition:all .15s}
+.dropzone:hover{border-color:var(--ink-3);background:#f5f5f0}
+.dropzone-icon{font-size:24px;color:var(--ink-4);margin-bottom:6px}
+.dropzone-txt{font-size:12.5px;color:var(--ink-3)}
+.dropzone-sub{font-size:10.5px;color:var(--ink-4);margin-top:3px}
+.file-row{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--line);border-radius:3px;margin-top:7px;background:#fff}
+.file-icon{width:26px;height:26px;border-radius:3px;background:var(--info-bg);color:var(--info);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.file-icon.existing{background:#eee;color:var(--ink-3)}
+.file-meta{flex:1;min-width:0}
+.file-name{font-size:12px;color:var(--ink);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-sub{font-size:10.5px;color:var(--ink-4)}
+.file-remove{width:22px;height:22px;border-radius:3px;border:none;background:none;color:var(--ink-4);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.file-remove:hover{background:var(--warn-bg);color:var(--warn)}
+.upload-empty{font-size:11.5px;color:var(--ink-4);font-style:italic;padding:8px 2px}
+
+/* Workflow modal */
+.modal-bg.wf .modal{width:760px;max-width:94vw;padding:0}
+.wf-hdr{padding:16px 22px;border-bottom:1.5px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.wf-hdr h3{margin:0}
+.wf-body{padding:18px 22px;overflow-x:auto}
+
+/* Canvas placeholder */
+.canvas-soon{height:100%;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(45deg,#fafafa,#fafafa 12px,#f0f0f0 12px,#f0f0f0 13px)}
+.canvas-soon-inner{background:#fff;border:2px dashed var(--line);border-radius:8px;padding:48px 40px;text-align:center;max-width:520px}
+.canvas-illust{font-size:42px;color:var(--ink-4);margin-bottom:14px;font-family:monospace}
+
+.proto{position:fixed;bottom:10px;right:10px;background:rgba(20,20,20,.6);color:#fff;font-size:10px;padding:3px 8px;border-radius:8px;font-family:monospace;letter-spacing:.05em;z-index:300;pointer-events:none}
+
+/* AI review modal */
+.spinner{width:16px;height:16px;border-radius:50%;border:2px solid #e0e0e0;border-top-color:var(--ink);display:inline-block;animation:spin .7s linear infinite;vertical-align:middle;margin-right:7px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.airev-q{font-size:13px;color:var(--ink);line-height:1.5;margin-bottom:12px}
+.qp-row{display:flex;gap:7px;flex-wrap:wrap}
+.qp-btn{padding:8px 14px;border:1.5px solid var(--line);border-radius:4px;background:#fff;font-size:12.5px;color:var(--ink-2);cursor:pointer;font-family:inherit}
+.qp-btn:hover{border-color:var(--ink);background:#f5f5f5}
+.airev-result{background:var(--good-bg);border:1px solid var(--good-soft);border-left:3px solid var(--good);border-radius:0 4px 4px 0;padding:11px 13px;font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.airev-result b{color:var(--good)}
+
+/* Delete buttons */
+.del-btn{width:22px;height:22px;border-radius:3px;border:1px solid transparent;background:none;color:var(--ink-5);cursor:pointer;font-size:13px;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
+.del-btn:hover{background:var(--warn-bg);border-color:var(--warn-soft);color:var(--warn)}
+.del-confirm-pop{position:fixed;background:#fff;border:1.5px solid var(--warn);border-radius:4px;box-shadow:0 8px 26px rgba(0,0,0,.18);z-index:1000;padding:12px 13px;width:220px}
+.del-confirm-pop .dcp-txt{font-size:12px;color:var(--ink-2);margin-bottom:9px;line-height:1.5}
+.del-confirm-pop .dcp-row{display:flex;gap:6px;justify-content:flex-end}
+
+/* Counterfactual / experiment badges */
+.b-cf-w{border-color:var(--gold);color:var(--gold);background:#faf2dc}
+.b-cf-i{border-color:var(--warn-soft);color:var(--warn);background:var(--warn-bg);font-style:italic}
+.sev-inv{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:2px;background:var(--warn-bg);color:var(--warn);text-transform:uppercase;letter-spacing:.04em}
+.sev-weak{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:2px;background:#eee;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}
+
+/* Experiment cards in tab */
+.exp-method-chip{font-size:10px;color:var(--ink-3);background:#f0f0f0;border:1px solid var(--line-2);padding:1px 7px;border-radius:8px;white-space:nowrap}
+.derive-chips{display:flex;gap:3px;flex-wrap:wrap}
+.gen-exp-btn{background:var(--ink);color:#fff;border-color:var(--ink)}
+.gen-exp-btn:hover{background:#000}
+
+/* Guide modal */
+.modal-bg.guide .modal{width:600px;max-width:94vw}
+.guide-step{display:flex;gap:13px;margin-bottom:18px}
+.guide-num{width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.guide-title{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:3px}
+.guide-txt{font-size:12.5px;color:var(--ink-3);line-height:1.55}
+
+/* Required field marker */
+.req-mark{color:var(--warn);font-weight:700}
+.field-err{border-color:var(--warn) !important}
+
+/* New Analysis gate modal */
+.na-checklist{font-size:12px;display:flex;flex-direction:column;gap:5px}
+.na-check-row{display:flex;align-items:center;gap:7px;color:var(--ink-4);transition:color .15s}
+.na-check-row.ok{color:var(--good)}
+.na-check-icon{width:14px;text-align:center;font-size:12px}
+
+
+.extract-banner{background:var(--info-bg);border-bottom:1px solid var(--info-soft);padding:8px 18px;font-size:11.5px;color:var(--info);display:none;align-items:center;gap:10px;flex-shrink:0}
+.extract-banner.on{display:flex}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══════════════ GLOBAL TOP BAR ═══════════════ -->
+<div class="gbar">
+  <div class="gbrand" onclick="goDash()">
+    <div class="gbrand-box">V</div>
+    ValidAIt
+  </div>
+  <div class="gcrumb" id="gcrumb" style="display:none;">
+    <span class="sep">/</span>
+    <span class="curr" id="gcrumb-name">—</span>
+  </div>
+  <div class="gbar-r">
+    <button class="gbtn-gh" onclick="openGuideModal()">❓ Guide</button>
+    <button class="gbtn" onclick="openNewAnalysisModal()">+ New Analysis</button>
+    <div class="gav">S</div>
+  </div>
+</div>
+
+<!-- ═══════════════ DASHBOARD VIEW ═══════════════ -->
+<div class="dash" id="view-dashboard">
+  <div class="dash-wrap">
+    <div class="dash-head">
+      <div>
+        <div class="dash-title">Your analyses</div>
+        <div class="dash-sub" id="dash-count">3 analyses</div>
+      </div>
+      <div class="dash-search"><input type="text" placeholder="Search analyses…"/></div>
+    </div>
+    <table class="dash-tbl">
+      <thead>
+        <tr>
+          <th onclick="sortDash('name')" id="th-name">Name<span class="sort-arrow" id="ar-name"></span></th>
+          <th onclick="sortDash('created')" id="th-created">Date created<span class="sort-arrow" id="ar-created"></span></th>
+          <th onclick="sortDash('updated')" id="th-updated">Last updated<span class="sort-arrow" id="ar-updated"></span></th>
+          <th onclick="sortDash('docs')" id="th-docs">Documents<span class="sort-arrow" id="ar-docs"></span></th>
+          <th style="width:50px;"></th>
+        </tr>
+      </thead>
+      <tbody id="dash-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════ ANALYSIS VIEW ═══════════════ -->
+<div class="app" id="view-analysis" style="display:none;height:calc(100vh - 48px);">
+
+  <div class="subhead">
+    <div class="subhead-top">
+      <input type="text" class="an-title-edit" id="an-title" value="Untitled Analysis" oninput="onTitleEdit(this.value)"/>
+    </div>
+    <div class="subhead-meta">
+      <span>Created <b id="meta-created">—</b></span>
+      <span>Updated <b id="meta-updated">—</b></span>
+      <span><b id="meta-docs">0</b> documents</span>
+      <div class="subhead-actions">
+        <button class="btn btn-sm" onclick="openUploadModal()">📎 Upload doc</button>
+        <button class="btn btn-sm" onclick="openWorkflowModal()">⊞ Workflow</button>
+        <button class="btn btn-sm">⤓ Export</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="subbar">
+    <button class="tab on" id="tab-claims" onclick="swTab('claims')">Claims <span class="tab-cnt" id="cnt-claims">0</span></button>
+    <button class="tab" id="tab-evidence" onclick="swTab('evidence')">Evidence <span class="tab-cnt" id="cnt-evidence">0</span></button>
+    <button class="tab" id="tab-tensions" onclick="swTab('tensions')">Tensions <span class="tab-cnt" id="cnt-tensions">0</span></button>
+    <button class="tab" id="tab-counterfactuals" onclick="swTab('counterfactuals')">Counterfactuals <span class="tab-cnt" id="cnt-counterfactuals">0</span></button>
+    <button class="tab" id="tab-experiments" onclick="swTab('experiments')">Experiments <span class="tab-cnt" id="cnt-experiments">0</span></button>
+    <button class="tab tab-disabled" id="tab-canvas" onclick="swTab('canvas')">Canvas <span class="tab-soon">soon</span></button>
+    <div class="bar-spacer"></div>
+  </div>
+
+  <div class="stats" id="stats-strip"></div>
+
+  <div class="extract-banner" id="extract-banner">
+    ✓ Extraction complete — claims identified and framework mappings auto-applied
+    <button class="btn btn-sm btn-gh" style="margin-left:auto;" onclick="dismissBanner()">Dismiss</button>
+  </div>
+
+  <div class="filtbar">
+    <div class="search"><input type="text" placeholder="Search claims, evidence, tensions…"/></div>
+    <div class="flt-grp">
+      <button class="flt on">All</button>
+      <button class="flt">Assumed</button>
+      <button class="flt">Supported</button>
+      <button class="flt">Disputed</button>
+      <button class="flt">Critical gaps</button>
+    </div>
+    <span style="font-size:10.5px;color:var(--ink-4);">Framework:</span>
+    <select>
+      <option>All frameworks</option><option>BLAC</option><option>4U</option><option>VPD</option><option>Lean Canvas</option><option>Skok MVS</option>
+    </select>
+    <div style="margin-left:auto;display:flex;gap:6px;" id="filtbar-actions">
+      <button class="btn btn-sm" onclick="openAddModal('claim')">+ Add claim</button>
+    </div>
+  </div>
+
+  <div class="work">
+    <div class="main" id="main-area"></div>
+
+    <div class="panel" id="panel">
+      <div class="pan-hdr">
+        <div class="pan-hdr-l">
+          <span class="pan-id" id="pan-id">C01</span>
+          <span class="pan-title" id="pan-title">Claim detail</span>
+        </div>
+        <button class="pan-x" onclick="closePan()">×</button>
+      </div>
+      <div class="pan-tabs">
+        <button class="pan-tab on" id="ptab-detail" onclick="swPanTab('detail')">Detail</button>
+        <button class="pan-tab" id="ptab-ev" onclick="swPanTab('ev')">Evidence <span class="pan-tab-cnt" id="ptab-ev-cnt">0</span></button>
+        <button class="pan-tab" id="ptab-tn" onclick="swPanTab('tn')">Tensions <span class="pan-tab-cnt" id="ptab-tn-cnt">0</span></button>
+        <button class="pan-tab" id="ptab-prov" onclick="swPanTab('prov')">📎 Provenance</button>
+      </div>
+      <div class="pan-body" id="pan-body"></div>
+      <div class="pan-foot" id="pan-foot"></div>
+    </div>
+  </div>
+
+</div><!-- /view-analysis -->
+
+</div><!-- /app -->
+
+<!-- ═══════════════ ADD CLAIM MODAL ═══════════════ -->
+<div class="modal-bg" id="modal-add" onclick="if(event.target===this)closeAdd()">
+  <div class="modal">
+    <h3 id="add-modal-title">Add a claim manually</h3>
+    <div class="modal-sub" id="add-modal-sub">Claims you add manually are reviewed by AI before they are finalised.</div>
+    <div id="add-modal-body"></div>
+    <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn" onclick="closeAdd()">Cancel</button>
+      <button class="btn btn-p" id="add-modal-submit" onclick="submitAddModal()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ GUIDE MODAL (global how-to-use CTA) ═══════════════ -->
+<div class="modal-bg guide" id="modal-guide" onclick="if(event.target===this)closeGuideModal()">
+  <div class="modal">
+    <div class="wf-hdr" style="padding:0 0 4px;border:none;">
+      <h3 style="margin:0;">How ValidAIt works</h3>
+      <button class="pan-x" onclick="closeGuideModal()">×</button>
+    </div>
+    <div class="modal-sub" style="margin-bottom:18px;">A falsificationist framework for stress-testing your business thesis — built to challenge claims, not confirm them.</div>
+
+    <div class="guide-step">
+      <div class="guide-num">1</div>
+      <div>
+        <div class="guide-title">Start an analysis</div>
+        <div class="guide-txt">Name it, then add a document or your first claim. Documents are parsed automatically into a starting set of claims; you can also add claims by hand at any time.</div>
+      </div>
+    </div>
+    <div class="guide-step">
+      <div class="guide-num">2</div>
+      <div>
+        <div class="guide-title">Claims are challenged, not confirmed</div>
+        <div class="guide-txt">Every claim gets an AI critique designed to find its weakest point. Attach evidence and the AI classifies it as supporting, contradicting, or merely qualifying the claim — status updates accordingly.</div>
+      </div>
+    </div>
+    <div class="guide-step">
+      <div class="guide-num">3</div>
+      <div>
+        <div class="guide-title">Tensions surface contradictions</div>
+        <div class="guide-txt">When two claims conflict — like assuming both an EPCM and an Owner PM are your primary buyer — AI flags it as a tension that needs an explicit resolution.</div>
+      </div>
+    </div>
+    <div class="guide-step">
+      <div class="guide-num">4</div>
+      <div>
+        <div class="guide-title">Counterfactuals name the failure condition</div>
+        <div class="guide-txt">For any claim, ask: what would have to be true for this to be false? AI proposes counterfactuals from its critiques; you can add your own and mark them confirmed or ruled out as you investigate.</div>
+      </div>
+    </div>
+    <div class="guide-step">
+      <div class="guide-num">5</div>
+      <div>
+        <div class="guide-title">Experiments turn analysis into action</div>
+        <div class="guide-txt">Click "Generate experiments" and AI reviews your highest-priority tensions and counterfactuals to propose concrete tests — with the reasoning behind each one shown alongside it.</div>
+      </div>
+    </div>
+    <div class="guide-step" style="margin-bottom:6px;">
+      <div class="guide-num">6</div>
+      <div>
+        <div class="guide-title">Everything is traceable</div>
+        <div class="guide-txt">Click the 📎 icon on any item to see exactly where it came from — a document quote, an interview, or a manual entry — and its full edit history.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:6px;display:flex;justify-content:flex-end;">
+      <button class="btn btn-p" onclick="closeGuideModal()">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ NEW ANALYSIS GATE MODAL ═══════════════ -->
+<div class="modal-bg" id="modal-newanalysis" onclick="if(event.target===this){}">
+  <div class="modal" style="width:560px;">
+    <h3>Create new analysis</h3>
+    <div class="modal-sub">Give it a name, then add a document or your first claim to begin. You will not be able to enter the analysis until at least one is added.</div>
+
+    <div class="sec-l" style="margin-bottom:5px;">Analysis name <span class="req-mark">*</span></div>
+    <input type="text" id="na-name" placeholder="e.g. Acme Co — Series A Thesis" oninput="naCheckReady()"/>
+
+    <div class="etabs" style="margin-top:16px;">
+      <button class="etab on" id="na-tab-upload" onclick="naSwitchTab('upload')">Upload document</button>
+      <button class="etab" id="na-tab-claim" onclick="naSwitchTab('claim')">Add claim manually</button>
+    </div>
+
+    <div id="na-body" style="min-height:130px;"></div>
+
+    <div class="sec" style="margin-top:14px;border-top:1px solid var(--line-2);padding-top:12px;">
+      <div class="na-checklist">
+        <div class="na-check-row" id="na-check-name"><span class="na-check-icon" id="na-check-name-icon">○</span> Name provided</div>
+        <div class="na-check-row" id="na-check-content"><span class="na-check-icon" id="na-check-content-icon">○</span> Document or claim added</div>
+      </div>
+    </div>
+
+    <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn" onclick="closeNewAnalysisModal()">Cancel</button>
+      <button class="btn btn-p" id="na-submit" disabled onclick="createAnalysisFromModal()">Create analysis →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ AI REVIEW MODAL (shown after manual add) ═══════════════ -->
+<div class="modal-bg" id="modal-airev" onclick="if(event.target===this){}">
+  <div class="modal" style="width:460px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+      <div style="width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;">AI</div>
+      <h3 style="margin:0;" id="airev-title">Reviewing your entry…</h3>
+    </div>
+    <div id="airev-body" style="margin-top:12px;"></div>
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;" id="airev-foot"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ UPLOAD / SOURCES MODAL ═══════════════ -->
+<div class="modal-bg" id="modal-upload" onclick="if(event.target===this)closeUploadModal()">
+  <div class="modal">
+    <h3>Manage source documents</h3>
+    <div class="modal-sub">Upload new files or remove sources already attached to this analysis.</div>
+
+    <div class="sec-l">Add files</div>
+    <div class="dropzone" onclick="document.getElementById('file-input').click()" id="dropzone"
+         ondragover="event.preventDefault();this.style.borderColor='#1a1a1a'"
+         ondragleave="this.style.borderColor=''"
+         ondrop="handleDrop(event)">
+      <div class="dropzone-icon">⤓</div>
+      <div class="dropzone-txt">Drag files here, or click to browse</div>
+      <div class="dropzone-sub">PDF, DOCX, MD, TXT · multiple files supported · max 10MB each</div>
+    </div>
+    <input type="file" id="file-input" multiple style="display:none;" onchange="handleFileSelect(event)"/>
+    <div id="pending-files"></div>
+
+    <div class="sec-l" style="margin-top:18px;">Existing sources</div>
+    <div id="existing-sources"></div>
+
+    <div style="margin-top:18px;display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn" onclick="closeUploadModal()">Cancel</button>
+      <button class="btn btn-p" onclick="saveUploadModal()">Save &amp; Update Analysis</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DELETE CONFIRM MODAL ═══════════════ -->
+<div class="modal-bg" id="modal-delconfirm" onclick="if(event.target===this)closeDelConfirm()">
+  <div class="modal" style="width:380px;">
+    <h3>Delete this analysis?</h3>
+    <div class="modal-sub" id="del-target-name">This cannot be undone. All claims, evidence, and tensions in this analysis will be permanently removed.</div>
+    <div style="margin-top:6px;display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn" onclick="closeDelConfirm()">Cancel</button>
+      <button class="btn btn-warn" onclick="confirmDelete()">Delete analysis</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ WORKFLOW MODAL ═══════════════ -->
+<div class="modal-bg wf" id="modal-workflow" onclick="if(event.target===this)closeWorkflowModal()">
+  <div class="modal">
+    <div class="wf-hdr">
+      <h3>Analysis Workflow</h3>
+      <button class="pan-x" onclick="closeWorkflowModal()">×</button>
+    </div>
+    <div class="wf-body">
+<svg width="100%" viewBox="0 0 700 790" xmlns="http://www.w3.org/2000/svg" style="display:block; min-width:580px;" role="img" aria-label="User flow diagram for the venture validation application">
+<defs>
+  <marker id="af" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M2 2L8 5L2 8" fill="none" stroke="#7a6020" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="afb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M2 2L8 5L2 8" fill="none" stroke="#9a7010" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="ai" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M2 2L8 5L2 8" fill="none" stroke="#5058a8" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+<text font-family="'DM Mono',monospace" font-size="9" letter-spacing="0.13" text-transform="uppercase" fill="#b09040" opacity="0.8" x="30" y="14" text-anchor="start">entry</text>
+<text font-family="'DM Mono',monospace" font-size="9" letter-spacing="0.13" fill="#b09040" opacity="0.8" x="350" y="14" text-anchor="middle">core loop</text>
+<text font-family="'DM Mono',monospace" font-size="9" letter-spacing="0.13" fill="#b09040" opacity="0.8" x="508" y="14" text-anchor="middle">tension branch</text>
+<path d="M 120 76 Q 172 98 235 112" fill="none" stroke="#7a6020" stroke-width="0.8" opacity="0.5" marker-end="url(#af)"/>
+<text x="164" y="91" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9" fill="#7a6020" opacity="0.7">extract claims</text>
+<path d="M 580 76 Q 520 98 465 112" fill="none" stroke="#7a6020" stroke-width="0.8" opacity="0.5" marker-end="url(#af)"/>
+<text x="536" y="91" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9" fill="#7a6020" opacity="0.7">extract claims</text>
+<line x1="350" y1="162" x2="350" y2="202" stroke="#7a6020" stroke-width="0.8" opacity="0.5" marker-end="url(#af)"/>
+<text x="362" y="185" font-family="'DM Sans',sans-serif" font-size="9" fill="#7a6020" opacity="0.7">select claim</text>
+<path d="M 155 256 L 95 256 L 95 226 L 155 226" fill="none" stroke="#5058a8" stroke-width="0.9" stroke-dasharray="3 2.5" opacity="0.75" marker-end="url(#ai)"/>
+<text x="88" y="236" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="8.5" fill="#5058a8" opacity="0.8">add evidence</text>
+<text x="88" y="249" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="8.5" fill="#5058a8" opacity="0.8">revise claim</text>
+<path d="M 165 282 L 120 282 L 120 138 L 155 138" fill="none" stroke="#7a6020" stroke-width="0.8" stroke-dasharray="3 2.5" opacity="0.45" marker-end="url(#af)"/>
+<text x="108" y="214" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="8.5" fill="#7a6020" opacity="0.6">next claim</text>
+<line x1="425" y1="232" x2="438" y2="232" stroke="#7a6020" stroke-width="0.8" opacity="0.5" marker-end="url(#af)"/>
+<text x="431" y="223" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8.5" fill="#7a6020" opacity="0.7">tension detected</text>
+<line x1="510" y1="264" x2="510" y2="312" stroke="#7a6020" stroke-width="0.8" opacity="0.5" marker-end="url(#af)"/>
+<text x="522" y="291" font-family="'DM Sans',sans-serif" font-size="8.5" fill="#7a6020" opacity="0.7">confirmed</text>
+<path d="M 438 334 L 422 334 L 422 242 L 425 242" fill="none" stroke="#9a7010" stroke-width="0.8" stroke-dasharray="3 2.5" opacity="0.65" marker-end="url(#afb)"/>
+<text x="435" y="294" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8.5" fill="#9a7010" opacity="0.75" transform="rotate(-90, 435, 294)">revise claim</text>
+<line x1="510" y1="362" x2="510" y2="408" stroke="#7a6020" stroke-width="0.8" opacity="0.5" marker-end="url(#af)"/>
+<text x="522" y="388" font-family="'DM Sans',sans-serif" font-size="8.5" fill="#7a6020" opacity="0.7">experiment</text>
+<path d="M 438 342 L 382 342 L 382 518" fill="none" stroke="#9a7010" stroke-width="0.8" stroke-dasharray="3 2.5" opacity="0.55" marker-end="url(#afb)"/>
+<text x="365" y="432" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8.5" fill="#9a7010" opacity="0.65" transform="rotate(-90, 365, 432)">accept · defer</text>
+<line x1="290" y1="286" x2="290" y2="518" stroke="#7a6020" stroke-width="0.8" opacity="0.5" marker-end="url(#af)"/>
+<text x="302" y="408" font-family="'DM Sans',sans-serif" font-size="8.5" fill="#7a6020" opacity="0.65">queue complete</text>
+<path d="M 438 432 L 398 432" fill="none" stroke="#9a7010" stroke-width="0.8" stroke-dasharray="3 2.5" opacity="0.55" marker-end="url(#afb)"/>
+<text x="396" y="425" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="8" fill="#9a7010" opacity="0.65">result → new evidence</text>
+<line x1="348" y1="30" x2="348" y2="70" stroke="#e6e0cc" stroke-width="0.5" stroke-dasharray="2 2"/>
+<text x="350" y="50" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#b09040" opacity="0.6">or</text>
+<rect x="30" y="22" width="192" height="54" rx="6" fill="#f5e8b8" stroke="#c4900e" stroke-width="0.8"/>
+<text x="126" y="40" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="12" font-weight="500" fill="#9a7010">Paste document</text>
+<text x="126" y="58" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="9.5" fill="#b09040">pitch · lean canvas · exec summary</text>
+<rect x="478" y="22" width="192" height="54" rx="6" fill="#f5e8b8" stroke="#c4900e" stroke-width="0.8"/>
+<text x="574" y="40" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="12" font-weight="500" fill="#9a7010">Guided interview</text>
+<text x="574" y="58" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="9.5" fill="#b09040">6 questions · ~8 min</text>
+<rect x="155" y="112" width="390" height="50" rx="6" fill="#dce6f0" stroke="#2a5a8a" stroke-width="0.8"/>
+<text x="350" y="128" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="12.5" font-weight="500" fill="#2a5a8a">Claim Registry</text>
+<text x="350" y="148" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="9.5" fill="#2a5a8a" opacity="0.75">AI-extracted claims · review &amp; edit · status: assumed</text>
+<rect x="148" y="196" width="280" height="92" rx="8" fill="#eceef8" stroke="#5058a8" stroke-width="1.6"/>
+<rect x="156" y="202" width="70" height="16" rx="8" fill="#5058a8"/>
+<text x="191" y="211" text-anchor="middle" dominant-baseline="central" font-family="'DM Mono',monospace" font-size="8" letter-spacing="0.1" fill="#eceef8">CORE LOOP</text>
+<text x="340" y="232" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="13.5" font-weight="600" fill="#222658">Claim Challenge</text>
+<text x="340" y="252" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="9.5" fill="#5058a8" opacity="0.8">AI critiques · user attaches evidence · status updates</text>
+<text x="340" y="268" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="9.5" fill="#5058a8" opacity="0.7">mark assumed · queue advances</text>
+<rect x="438" y="202" width="166" height="62" rx="6" fill="#faedc8" stroke="#b87e10" stroke-width="0.8"/>
+<text x="521" y="224" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="11.5" font-weight="500" fill="#9a7010">Tension View</text>
+<text x="521" y="241" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="9" fill="#b87e10" opacity="0.85">AI-detected conflicts</text>
+<text x="521" y="255" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="9" fill="#b87e10" opacity="0.85">confirm · dismiss</text>
+<rect x="438" y="312" width="166" height="50" rx="6" fill="#faedc8" stroke="#b87e10" stroke-width="0.8"/>
+<text x="521" y="329" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="11.5" font-weight="500" fill="#9a7010">Decision Panel</text>
+<text x="521" y="349" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="9" fill="#b87e10" opacity="0.85">revise · experiment · accept · defer</text>
+<rect x="438" y="408" width="166" height="54" rx="6" fill="#e3f0dc" stroke="#2e7d32" stroke-width="0.8"/>
+<text x="521" y="426" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="11.5" font-weight="500" fill="#2e7d32">Experiment Design</text>
+<text x="521" y="444" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="9" fill="#2e7d32" opacity="0.85">observable · method · timeframe</text>
+<text x="521" y="457" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="9" fill="#2e7d32" opacity="0.7">result captured →</text>
+<rect x="155" y="518" width="390" height="70" rx="6" fill="#f5e8b8" stroke="#c4900e" stroke-width="1.2"/>
+<text x="350" y="538" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="13" font-weight="500" fill="#9a7010">Session Summary</text>
+<text x="350" y="558" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="9.5" fill="#b09040">N claims · X validated · Y assumed · tensions resolved · experiments queued</text>
+<text x="350" y="575" text-anchor="middle" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="9.5" fill="#b09040">export as markdown</text>
+<line x1="30" y1="622" x2="670" y2="622" stroke="#efead8" stroke-width="0.5"/>
+<text x="30" y="638" font-family="'DM Mono',monospace" font-size="8.5" letter-spacing="0.12" fill="#b09040" opacity="0.7">LEGEND</text>
+<rect x="30" y="650" width="12" height="12" rx="2" fill="#f5e8b8" stroke="#c4900e" stroke-width="0.75"/>
+<text x="48" y="660" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="10" fill="#7a6020">Entry / Exit screen</text>
+<rect x="168" y="650" width="12" height="12" rx="2" fill="#dce6f0" stroke="#2a5a8a" stroke-width="0.75"/>
+<text x="186" y="660" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="10" fill="#7a6020">Information screen</text>
+<rect x="310" y="650" width="12" height="12" rx="2" fill="#eceef8" stroke="#5058a8" stroke-width="1.5"/>
+<text x="328" y="660" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="10" fill="#7a6020">Core loop</text>
+<rect x="418" y="650" width="12" height="12" rx="2" fill="#faedc8" stroke="#b87e10" stroke-width="0.75"/>
+<text x="436" y="660" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="10" fill="#7a6020">Decision screen</text>
+<rect x="552" y="650" width="12" height="12" rx="2" fill="#e3f0dc" stroke="#2e7d32" stroke-width="0.75"/>
+<text x="570" y="660" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="10" fill="#7a6020">Experiment</text>
+<line x1="30" y1="690" x2="58" y2="690" stroke="#7a6020" stroke-width="0.9" opacity="0.55" marker-end="url(#af)"/>
+<text x="65" y="694" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="10" fill="#7a6020">Forward navigation</text>
+<line x1="168" y1="690" x2="196" y2="690" stroke="#5058a8" stroke-width="0.9" stroke-dasharray="3 2.5" opacity="0.75" marker-end="url(#ai)"/>
+<text x="203" y="694" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="10" fill="#7a6020">In-screen loop</text>
+<line x1="310" y1="690" x2="338" y2="690" stroke="#9a7010" stroke-width="0.9" stroke-dasharray="3 2.5" opacity="0.65" marker-end="url(#afb)"/>
+<text x="345" y="694" dominant-baseline="central" font-family="'DM Sans',sans-serif" font-size="10" fill="#7a6020">Feedback / branch return</text>
+<text x="350" y="740" text-anchor="middle" font-family="'DM Mono',monospace" font-size="8.5" fill="#b09040" opacity="0.55">v0.1 · based on venture validation data model · session-only, no auth, single user</text>
+</svg>
+    </div>
+  </div>
+</div>
+
+<div class="dd-pop" id="dd" style="display:none;"></div>
+<div class="del-confirm-pop" id="del-item-pop" style="display:none;"></div>
+
+<div class="proto">SPA wireframe · v0.4 · dashboard + workspace</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// GENERIC DEMO DATASETS (for analyses other than Alpha-Val)
+// ═══════════════════════════════════════════════
+function makeGenericDataset(){
+  return {
+    claims: [
+      {id:"G1", cat:"Pain", text:"\"Mid-market SaaS buyers churn within 90 days primarily due to unclear pricing tiers\"",
+       fw:"BLAC: Blatant", fw2:"VPD: Customer pain", status:"assumed", ev:["GE1"], tn:["GT1"], cf:[], exp:[],
+       note:"Based on a small sample of churn interviews. Needs validation against churn data, not just stated reasons.",
+       prov:{src:"northwind-pitch.pdf · slide 3", extracted:"AI extraction · pass 1", creator:"AI auto-extraction", confidence:0.7,
+             srcQuote:"Customers frequently cite confusion about which tier covers their usage as a reason for cancelling within the first quarter.",
+             trail:[{when:"2025-05-02 09:10", who:"AI extraction", what:"Extracted from pitch deck"}]},
+       crit:"This claim conflates two distinct problems: pricing confusion at signup versus pricing confusion at renewal. The 90-day window suggests an onboarding issue more than a pricing-structure issue. Needs a churn survey with a forced-choice reason, not open text."},
+      {id:"G2", cat:"Solution", text:"\"Usage-based pricing increases expansion revenue by 20 percent or more versus flat-rate plans\"",
+       fw:"4U: Unworkable (current)", fw2:"Lean Canvas: Solution", status:"assumed", ev:[], tn:["GT1"], cf:[], exp:[],
+       note:"No internal data yet. This is an industry benchmark claim, not yet tested on this product.",
+       prov:{src:"northwind-pitch.pdf · slide 7", extracted:"AI extraction · pass 1", creator:"AI auto-extraction", confidence:0.55,
+             srcQuote:"Industry data suggests usage-based pricing models can drive 20%+ higher expansion revenue compared to flat-rate plans.",
+             trail:[{when:"2025-05-02 09:10", who:"AI extraction", what:"Extracted from pitch deck"}]},
+       crit:"This is an industry-wide statistic, not evidence specific to this product or customer base. Needs a controlled pricing experiment with a subset of customers before being treated as a product claim."},
+      {id:"G3", cat:"Persona", text:"\"Procurement teams require SOC 2 Type II certification before signing annual contracts\"",
+       fw:"BLAC: Blatant", fw2:"Regulatory driver", status:"supported", ev:["GE2"], tn:[], cf:[], exp:[],
+       note:"Confirmed in 9 of 10 enterprise deals reviewed. Strong behavioral evidence.",
+       prov:{src:"Sales call notes · Q2 2025", extracted:"Manual entry", creator:"Sales lead", confidence:1.0,
+             srcQuote:"SOC 2 report requested in 9 of 10 enterprise deals reviewed this quarter, typically at the contract-redline stage.",
+             trail:[{when:"2025-05-10 14:00", who:"Sales lead (manual)", what:"Added from CRM deal review"}]},
+       crit:"Strong evidence. Consider whether SOC 2 Type I is sufficient at the pilot stage to reduce sales cycle friction before Type II is complete."}
+    ],
+    evidence: [
+      {id:"GE1", claims:["G1"], text:"3 of 5 churned customers cited pricing-tier confusion in exit interviews.", src:"Exit interview notes · 2025", type:"attitudinal", cls:"qualifies", str:1,
+       prov:{src:"Exit interview log · Q1 2025", extracted:"Manual entry", creator:"Customer success lead", confidence:1.0,
+             srcQuote:"Exit interview summary: of 5 churned accounts contacted, 3 mentioned being unsure which plan tier matched their usage.",
+             trail:[{when:"2025-04-28 11:00", who:"CS lead (manual)", what:"Logged from exit interview calls"}]}},
+      {id:"GE2", claims:["G3"], text:"CRM review: SOC 2 report requested in 9 of 10 enterprise deals this quarter.", src:"CRM deal review · Q2 2025", type:"behavioral", cls:"supports", str:3,
+       prov:{src:"Salesforce deal review export", extracted:"Manual entry", creator:"Sales lead", confidence:1.0,
+             srcQuote:"Deal stage notes across 10 enterprise opportunities show SOC 2 documentation requested in 9 cases prior to signature.",
+             trail:[{when:"2025-05-10 14:05", who:"Sales lead (manual)", what:"Compiled from CRM export"}]}}
+    ],
+    tensions: [
+      {id:"GT1", title:"Pricing model vs. revenue claim", claims:["G1","G2"], type:"com", pri:"p1", status:"assumed",
+       desc:"G1 says pricing confusion drives churn. G2 says usage-based pricing increases expansion revenue. Usage-based pricing is often less predictable for buyers, which could increase confusion rather than reduce it. These two claims may be in tension rather than mutually reinforcing.",
+       path:"Run a small pilot comparing churn and expansion on usage-based versus flat-rate cohorts before committing to a single pricing direction.",
+       prov:{src:"Auto-detected · cross-claim analysis", extracted:"AI tension detection", creator:"AI auto-detection", confidence:0.68,
+             srcQuote:"Cross-claim analysis: G1 (pricing confusion drives churn) and G2 (usage-based pricing increases revenue) may conflict if usage-based pricing increases perceived complexity.",
+             trail:[{when:"2025-05-02 09:15", who:"AI tension detection", what:"Auto-detected from G1 and G2"}]}}
+    ],
+    counterfactuals: [],
+    experiments: [],
+    sources: [
+      {name:"northwind-pitch.pdf", added:"2025-05-02", size:"2.4 MB"},
+      {name:"customer-interviews.docx", added:"2025-05-10", size:"180 KB"}
+    ]
+  };
+}
+
+function makeHealthDataset(){
+  return {
+    claims: [
+      {id:"H1", cat:"Pain", text:"\"Mid-size hospital systems with 200 to 500 beds are underserved by current care-coordination software\"",
+       fw:"BLAC: Underserved", fw2:"VPD: Customer pain", status:"assumed", ev:["HE1"], tn:[], cf:[], exp:[],
+       note:"Based on a single conversation with a care coordination director. Needs broader sampling across multiple health systems.",
+       prov:{src:"beacon-health-overview.pdf · page 2", extracted:"AI extraction · pass 1", creator:"AI auto-extraction", confidence:0.6,
+             srcQuote:"Existing care-coordination platforms are built for large academic medical centers and are too complex or too costly for mid-size community hospital systems.",
+             trail:[{when:"2025-04-11 10:00", who:"AI extraction", what:"Extracted from overview document"}]},
+       crit:"Underserved is a reasonable framing here, but the claim needs to specify what current solutions actually fail to do, not just that they exist at the wrong price point. Pricing and capability gaps are different problems with different solutions."},
+      {id:"H2", cat:"Pain", text:"\"Care coordinators spend 6 or more hours per week on manual handoff documentation\"",
+       fw:"BLAC: Blatant", fw2:"VPD: Pain severity", status:"assumed", ev:["HE2"], tn:[], cf:[], exp:[],
+       note:"N=1 source. Needs time-motion study or broader survey to confirm magnitude.",
+       prov:{src:"Interview · care coordination director", extracted:"Manual entry", creator:"Founder", confidence:1.0,
+             srcQuote:"She estimated her team spends at least six hours a week just on handoff paperwork between shifts and departments.",
+             trail:[{when:"2025-04-15 13:00", who:"Founder (manual)", what:"Added from discovery interview"}]},
+       crit:"Self-reported time estimates are commonly inflated or deflated depending on recency and frustration level at time of interview. A logged time-motion study across multiple coordinators would strengthen this considerably."}
+    ],
+    evidence: [
+      {id:"HE1", claims:["H1"], text:"Care coordination director confirmed existing tools are either built for large academic centers or are spreadsheet-based with no real coordination features.", src:"Discovery interview · 2025", type:"attitudinal", cls:"qualifies", str:1,
+       prov:{src:"Discovery interview notes", extracted:"Manual entry", creator:"Founder", confidence:1.0,
+             srcQuote:"We either use a system built for a 900-bed academic center that nobody fully uses, or we are back to a shared spreadsheet.",
+             trail:[{when:"2025-04-15 13:10", who:"Founder (manual)", what:"Logged from interview"}]}},
+      {id:"HE2", claims:["H2"], text:"Director estimate of 6+ hours per week on manual handoff documentation per coordinator.", src:"Discovery interview · 2025", type:"attitudinal", cls:"qualifies", str:1,
+       prov:{src:"Discovery interview notes", extracted:"Manual entry", creator:"Founder", confidence:1.0,
+             srcQuote:"At least six hours a week, probably more during flu season when handoff volume goes up.",
+             trail:[{when:"2025-04-15 13:12", who:"Founder (manual)", what:"Logged from interview"}]}}
+    ],
+    tensions: [],
+    counterfactuals: [],
+    experiments: [],
+    sources: [
+      {name:"beacon-health-overview.pdf", added:"2025-04-11", size:"1.1 MB"}
+    ]
+  };
+}
+
+const DS_ALPHA_CLAIMS = [
+  {id:'C01', cat:'Pain', text:'"FEL-stage equipment sizing requires 12–20 hours of manual effort per estimate at mining EPCM firms"',
+   fw:'BLAC: Blatant', fw2:'VPD: Customer pain', status:'assumed', ev:['E01'], tn:[], cf:[], exp:[],
+   note:'N=1 (owner-side reporter, not EPCM). Needs N≥8 from EPCM estimators with time-sheet data, not recall.',
+   prov:{src:'alphaval-deck-v3.pdf · slide 4 · "The Problem"', extracted:'AI extraction · pass 1 · 2025-06-18T10:14', creator:'AI auto-extraction', confidence:0.84,
+         srcQuote:'"Currently, senior estimators spend 15+ hours per FEL estimate on manual equipment sizing — looking up vendor catalogues, cross-referencing material specs, and reviewing historical project data."',
+         trail:[
+           {when:'2025-06-18 10:14', who:'AI extraction', what:'Extracted from deck v3, slide 4'},
+           {when:'2025-06-18 10:32', who:'Sid (manual)', what:'Edited "15+" → "12–20 hours" to reflect interview range'}
+         ]},
+   crit:`This claim has specificity and measurement problems:<ul><li><strong>The unit is undefined.</strong> 12–20 hours per what? Per equipment type, per full estimate, per project phase? A SAG mill and a pump skid are different orders of effort.</li><li><strong>Source is unclear.</strong> Is this from interviews (attitudinal) or time-sheet analysis (behavioral)?</li><li><strong>EPCM size variance.</strong> A Worley team is not comparable to a 4-person boutique. "Mining EPCMs" covers a range.</li></ul><em>Falsification: if EPCMs use standardised sizing databases that reduce this to &lt;4 hours, the pain claim collapses.</em>`},
+
+  {id:'C02', cat:'Pain', text:'"Sizing errors of 15–25% commonly occur in FEL estimates, often due to manual vendor lookup processes"',
+   fw:'BLAC: Critical', fw2:'VPD: Pain severity', status:'disputed', ev:['E02','E03'], tn:[], cf:['CF01'], exp:['EXP02'],
+   note:'AACE Class 4–5 norms (−30% to +50%) mean 25% may be within expected range. Must distinguish avoidable errors from expected accuracy.',
+   prov:{src:'alphaval-deck-v3.pdf · slide 5 · "Cost of inaccuracy"', extracted:'AI extraction · pass 1 · 2025-06-18T10:14', creator:'AI auto-extraction', confidence:0.71,
+         srcQuote:'"Sizing inaccuracies of 20%+ are common at the FEL stage, often driving cost overruns during procurement when actual equipment specifications differ from the estimate base."',
+         trail:[{when:'2025-06-18 10:14', who:'AI extraction', what:'Extracted from deck v3, slide 5'}]},
+   crit:`This conflates expected accuracy ranges with avoidable errors. Class 4–5 is designed to be rough.`},
+
+  {id:'C03', cat:'Pain', text:'"Current estimation deliverables lack the audit trail required for NI 43-101 / SK 1300 / JORC disclosure without significant manual documentation effort"',
+   fw:'BLAC: Blatant', fw2:'Regulatory driver', status:'supported', ev:['E04','E05'], tn:[], cf:[], exp:[],
+   note:'NI 43-101 Item 22 supports traceability need. Nuance: manual Excel documentation technically satisfies the standard.',
+   prov:{src:'alphaval-deck-v3.pdf · slide 6 + Danilo interview notes', extracted:'AI extraction · pass 2 · 2025-06-18T10:16', creator:'AI auto-extraction', confidence:0.91,
+         srcQuote:'"Provenance and audit trail are core to investor-grade estimates. NI 43-101 requires Qualified Persons to disclose all assumptions, which is hard to retrofit from spreadsheet-only workflows."',
+         trail:[{when:'2025-06-18 10:16', who:'AI extraction', what:'Extracted from deck + interview cross-ref'}]},
+   crit:`Directionally correct but the regulation technically allows manual documentation. Reframe to "due diligence demands traceable methodology" rather than "legally requires software audit trail."`},
+
+  {id:'C04', cat:'Alternatives', text:'"Excel and in-house spreadsheets are the primary estimation tool for FEL-stage work at mid-size mining EPCM firms (50–500 staff)"',
+   fw:'Lean Canvas', fw2:'Existing alternatives', status:'assumed', ev:['E06'], tn:['T04'], cf:[], exp:[],
+   note:'Partially qualified by N=3. Self-selection risk: interviewees may skew toward Excel-using firms.',
+   prov:{src:'Danilo interview · iLab network outreach', extracted:'Manual entry by Sid', creator:'Sid', confidence:1.0,
+         srcQuote:'"All 3 of the EPCM contacts I spoke to said they use Excel for FEL-1 and FEL-2 work because dedicated tools take too long to set up."',
+         trail:[{when:'2025-06-15 14:20', who:'Sid (manual)', what:'Added based on Danilo network outreach'}]},
+   crit:`Self-selection risk: your interview sample may skew toward firms that use Excel.`},
+
+  {id:'C05', cat:'Alternatives', text:'"Dedicated tools (ACCE, Cleopatra Enterprise) are used for Class 2–3 estimates but are impractical for FEL-stage work due to setup time and licensing cost"',
+   fw:'Lean Canvas', fw2:'Alternatives · Moat', status:'assumed', ev:['E07'], tn:['T04'], cf:[], exp:[],
+   note:'N=1, owner-side reporter. Needs direct confirmation from EPCM estimators who have used both tool types.',
+   prov:{src:'Matthew Baker · design partner interview', extracted:'Manual entry by Sid · 2025-06-12', creator:'Sid', confidence:1.0,
+         srcQuote:'"ACCE is only used for Class 2–3 estimates at the larger firms. Smaller and mid-size firms don\'t hold the licences."',
+         trail:[{when:'2025-06-12 16:40', who:'Sid (manual)', what:'Added from Matthew Baker interview transcript'}]},
+   crit:`N=1, owner-side reporter. Needs direct EPCM confirmation.`},
+
+  {id:'C06', cat:'Solution', text:'"Alpha-Val reduces equipment sizing time from 15+ hours to 2–3 hours per FEL estimate"',
+   fw:'4U: Unworkable (current)', fw2:'Lean Canvas: Solution', status:'assumed', ev:['E08'], tn:[], cf:[], exp:[],
+   note:'SOW extraction has been demonstrated but end-to-end time savings have not been formally measured. Requires a timed pilot study.',
+   prov:{src:'alphaval-deck-v3.pdf · slide 8 · "Solution"', extracted:'AI extraction · pass 1 · 2025-06-18T10:14', creator:'AI auto-extraction', confidence:0.78,
+         srcQuote:'"Alpha-Val automates the equipment sizing pipeline, reducing 15+ hours of manual work to 2–3 hours of AI-assisted output with engineer review."',
+         trail:[{when:'2025-06-18 10:14', who:'AI extraction', what:'Extracted from deck v3, slide 8'}]},
+   crit:`End-to-end time savings have not been formally measured.`},
+
+  {id:'C07', cat:'Solution', text:'"Alpha-Val\'s LLM-based sizing achieves accuracy within ±15% of expert estimator output for standard mining equipment"',
+   fw:'4U: Unworkable (current)', fw2:'Technical quality', status:'disputed', ev:['E09'], tn:['T03'], cf:['CF02'], exp:['EXP02'],
+   note:'⚠ P0 risk. Matthew flagged sizing accuracy as trust-gating. No external demos until accuracy hardens.',
+   prov:{src:'Internal product spec doc · v0.4', extracted:'Manual entry by Shubham', creator:'Shubham', confidence:1.0,
+         srcQuote:'Target: equipment sizing within ±15% of expert review for standard process equipment (pumps, motors, vessels, heat exchangers). Excluded: SAG mills, HPGRs (Phase 2).',
+         trail:[{when:'2025-06-10 09:00', who:'Shubham (manual)', what:'Added from product spec'},{when:'2025-06-17 17:45', who:'Sid (manual)', what:'Status changed: assumed → disputed (Matthew pilot feedback)'}]},
+   crit:`Pilot feedback directly contradicts this. Sizing bugs identified must be resolved before external demos.`,
+   warn:true},
+
+  {id:'C08', cat:'Solution', text:'"Alpha-Val produces TIC sheets with full provenance tracking that meets the spirit of NI 43-101 / SK 1300 / JORC disclosure requirements"',
+   fw:'BLAC: Blatant', fw2:'Unique value prop', status:'gap', ev:['E04','E10'], tn:['T05'], cf:['CF04'], exp:['EXP03'],
+   note:'⚠ Compliance claim not formally verified. No QP review completed.',
+   prov:{src:'alphaval-deck-v3.pdf · slide 10 · "Differentiator"', extracted:'AI extraction · pass 1 · 2025-06-18T10:14', creator:'AI auto-extraction', confidence:0.66,
+         srcQuote:'"Alpha-Val\'s provenance graph captures every assumption, source citation, and calculation path — making outputs disclosure-ready under NI 43-101 and equivalent standards."',
+         trail:[{when:'2025-06-18 10:14', who:'AI extraction', what:'Extracted from deck v3, slide 10'},{when:'2025-06-18 11:02', who:'Sid (manual)', what:'Status changed: assumed → critical gap'}]},
+   crit:`No QP has reviewed Alpha-Val output. Must qualify "designed to support" rather than "compliant with" until verified.`,
+   warn:true},
+
+  {id:'C09', cat:'Persona', text:'"Senior estimators at EPCM firms (P1) are the primary end users who would operate Alpha-Val in their estimation workflow"',
+   fw:'Skok: MVS (P1)', fw2:'VPD: Customer job', status:'assumed', ev:['E11'], tn:['T01'], cf:[], exp:[],
+   note:'Logically implied but not directly validated with EPCM estimators. MVS decision unresolved vs C10.',
+   prov:{src:'Inferred from product UX · Sid analysis', extracted:'Manual entry by Sid', creator:'Sid', confidence:1.0,
+         srcQuote:'Inferred from intended product workflow: estimator-driven equipment selection and sizing validation.',
+         trail:[{when:'2025-06-08 11:00', who:'Sid (manual)', what:'Created from internal MVS analysis'}]},
+   crit:`Not directly validated with EPCM estimators. MVS decision unresolved.`},
+
+  {id:'C10', cat:'Persona', text:'"Owner PMs / Technical Leads (P2) are the economic buyer who authorises, budgets for, and pays for Alpha-Val"',
+   fw:'Skok: MVS (P2)', fw2:'Lean Canvas: Customer', status:'assumed', ev:['E12'], tn:['T01','T02'], cf:['CF03'], exp:['EXP01'],
+   note:'N=1 (Matthew Baker). Directionally strong. Needs replication with 2+ owner PMs.',
+   prov:{src:'Matthew Baker · pilot closeout', extracted:'Manual entry by Sid · 2025-06-15', creator:'Sid', confidence:1.0,
+         srcQuote:'"I have $25K of discretionary spend at the project level. I sign for tools like this myself."',
+         trail:[{when:'2025-06-15 14:30', who:'Sid (manual)', what:'Added from Matthew Baker pilot closeout transcript'}]},
+   crit:`N=1. High quality but needs replication.`},
+
+  {id:'C11', cat:'Persona', text:'"EPCM firms are difficult early adopters: procurement cycles, billable-hour business model, and IP concerns create structural adoption friction"',
+   fw:'Lean Canvas: Channels', fw2:'Skok: Poisoned well', status:'supported', ev:['E13','E14'], tn:[], cf:[], exp:[],
+   note:'Directly validated. MVS should lean toward owner-side (P2) as primary beachhead.',
+   prov:{src:'Danilo interview + internal analysis', extracted:'Manual entry by Sid', creator:'Sid', confidence:1.0,
+         srcQuote:'"EPCMs bill by hour. A tool that cuts hours cuts their revenue. That\'s the structural problem."',
+         trail:[{when:'2025-06-09 10:15', who:'Sid (manual)', what:'Added from Danilo interview'}]},
+   crit:`Strongly validated. Implication: MVS = owner-side (P2).`},
+
+  {id:'C12', cat:'Persona', text:'"The addressable market includes 200–500 active mining EPCM firms across North America and Australia"',
+   fw:'Lean Canvas: Market', fw2:'Skok: Market sizing', status:'assumed', ev:[], tn:[], cf:[], exp:[],
+   note:'No primary research. Needs desk research: PDAC, ENR rankings, SIC code analysis.',
+   prov:{src:'alphaval-deck-v3.pdf · slide 12 · "Market"', extracted:'AI extraction · pass 1 · 2025-06-18T10:14', creator:'AI auto-extraction', confidence:0.42,
+         srcQuote:'"Our addressable market is the global mining EPCM sector, estimated at 200–500 active firms…"',
+         trail:[{when:'2025-06-18 10:14', who:'AI extraction', what:'Extracted; low confidence (no source citation in deck)'}]},
+   crit:`No primary research. Market size not stress-tested.`},
+
+  {id:'C13', cat:'Commercial', text:'"Design partners (owner-side PMs) will commit to $25K pilot engagements — 3 signed LOIs before seed close"',
+   fw:'Lean Canvas: Revenue', fw2:'Commercial model', status:'assumed', ev:['E15'], tn:['T02'], cf:[], exp:[],
+   note:'Matthew expressed intent. No LOI signed. Intent ≠ commitment.',
+   prov:{src:'Internal seed plan v2', extracted:'Manual entry by Sid', creator:'Sid', confidence:1.0,
+         srcQuote:'Seed milestone: 3 signed LOIs from design partners at $25K each pre-close.',
+         trail:[{when:'2025-06-05 09:30', who:'Sid (manual)', what:'Created from seed plan'}]},
+   crit:`Matthew\'s intent isn\'t a signed LOI. Hardest to validate — requires a written commitment.`},
+
+  {id:'C14', cat:'Commercial', text:'"End-state pricing of $15K–30K/year is acceptable to project owners or EPCM firms as the eventual buyer"',
+   fw:'4U: Urgent', fw2:'Lean Canvas: Revenue', status:'gap', ev:['E15'], tn:['T02'], cf:[], exp:[],
+   note:'⚠ E15 qualifies only — attitudinal, wrong persona. No behavioural WTP evidence exists.',
+   prov:{src:'alphaval-deck-v3.pdf · slide 14 · "Pricing"', extracted:'AI extraction · pass 1 · 2025-06-18T10:14', creator:'AI auto-extraction', confidence:0.58,
+         srcQuote:'"Annual SaaS pricing of $15K–30K per seat, aligned with current market for engineering software in this segment."',
+         trail:[{when:'2025-06-18 10:14', who:'AI extraction', what:'Extracted from deck v3, slide 14'},{when:'2025-06-18 11:05', who:'Sid (manual)', what:'Status: assumed → critical gap (no behavioural WTP)'}]},
+   crit:`No behavioural WTP evidence. Price has not been tested via signed commitment.`,
+   warn:true}
+];const DS_ALPHA_EVIDENCE = [
+  {id:'E01', claims:['C01'], text:'"Matthew Baker reported that EPCM estimators typically spend 12–18 hours on equipment sizing per FEL estimate."', src:'Matthew Baker · Owner PM, Pathfinder · Jun 2025', type:'attitudinal', cls:'qualifies', str:1,
+   prov:{src:'Matthew Baker interview · audio transcript · 2025-06-15 · 00:14:30–00:15:48', extracted:'Sid (manual transcript review)', creator:'Sid', confidence:1.0,
+         srcQuote:'"From what I see — and I commission three or four of these a year — the EPCM team will spend at least twelve to eighteen hours just on equipment sizing. Sometimes more if the SOW is sparse."',
+         trail:[{when:'2025-06-15 17:20', who:'Sid (manual)', what:'Added from interview transcript line 287'}]}},
+  {id:'E02', claims:['C02','C07'], text:'Matthew Baker flagged sizing accuracy as insufficient — identified as trust-gating P0 risk before further demos.', src:'Matthew Baker · pilot closeout · Jun 2025', type:'behavioral', cls:'contradicts', str:3,
+   prov:{src:'Pilot closeout session notes · 2025-06-17', extracted:'Sid (manual notes)', creator:'Sid', confidence:1.0,
+         srcQuote:'Matthew (verbatim): "Before we line up any more owner-side intros, you need to sort the sizing. I won\'t put my name on intros if accuracy is where it is now."',
+         trail:[{when:'2025-06-17 17:50', who:'Sid (manual)', what:'Captured from pilot closeout session'}]}},
+  {id:'E03', claims:['C02'], text:'AACE RP 47R-11: Class 5 accuracy −50% to +100%; Class 4 −30% to +50%. 20–25% may fall within expected bounds.', src:'AACE International RP 47R-11 · 2022', type:'document', cls:'qualifies', str:3,
+   prov:{src:'AACE RP 47R-11 (2022) · Section 4 · Table 1', extracted:'Manual research by Sid', creator:'Sid', confidence:1.0,
+         srcQuote:'AACE Recommended Practice 47R-11, Section 4.2: "Class 5 estimates carry expected accuracy of −50% to +100%; Class 4 of −30% to +50%."',
+         trail:[{when:'2025-06-18 09:00', who:'Sid (manual)', what:'Added during deck review'}]}},
+  {id:'E04', claims:['C03','C08'], text:'NI 43-101 Form 43-101F1 Item 22.1 requires QP to disclose assumptions and sources in cost estimates.', src:'OSC NI 43-101 · 2011', type:'document', cls:'supports', str:3,
+   prov:{src:'Ontario Securities Commission · NI 43-101 Form 43-101F1 (2011)', extracted:'Manual research', creator:'Sid', confidence:1.0,
+         srcQuote:'NI 43-101F1 Item 22.1: "The technical report must include sufficient detail on capital and operating cost estimates to allow a reader to understand the basis for the estimates, including the major assumptions and sources used."',
+         trail:[{when:'2025-06-08 14:00', who:'Sid (manual)', what:'Primary regulatory source added'}]}},
+  {id:'E05', claims:['C03'], text:'Danilo emphasised source tracking and methodology citations as essential for corporate approval and investor review.', src:'Danilo · alpha tester interview · 2025', type:'attitudinal', cls:'supports', str:2,
+   prov:{src:'Danilo interview notes · 2025-06-09', extracted:'Sid (manual)', creator:'Sid', confidence:1.0,
+         srcQuote:'Danilo: "Owners care about source tracking because their PMs get grilled by the investment committee. If you can\'t show provenance, the estimate doesn\'t survive review."',
+         trail:[{when:'2025-06-09 11:30', who:'Sid (manual)', what:'Added from Danilo interview'}]}},
+  {id:'E06', claims:['C04'], text:'All 3 EPCM contacts confirmed Excel use for FEL-1/FEL-2 because dedicated tools take too long to set up.', src:'3 unnamed EPCM contacts · via Danilo · 2025', type:'attitudinal', cls:'qualifies', str:1,
+   prov:{src:'Danilo network outreach summary · 2025-06-15', extracted:'Sid (manual)', creator:'Sid', confidence:0.9,
+         srcQuote:'Danilo summary: "All 3 contacts use Excel for FEL-1 and FEL-2. They have ACCE licences for Class 2-3 work but find it too heavy for early-stage scoping."',
+         trail:[{when:'2025-06-15 16:00', who:'Sid (manual)', what:'Added from Danilo summary (anonymised contacts)'}]}},
+  {id:'E07', claims:['C05'], text:'Matthew Baker: ACCE only used for Class 2–3 at larger firms; smaller firms don\'t hold licences.', src:'Matthew Baker · interview · Jun 2025', type:'attitudinal', cls:'supports', str:1,
+   prov:{src:'Matthew Baker interview transcript · 2025-06-15 · 00:22:10', extracted:'Sid (manual)', creator:'Sid', confidence:1.0,
+         srcQuote:'"ACCE is for Worley and SNC. Mid-size shops can\'t justify the seat cost — they\'re back to Excel."',
+         trail:[{when:'2025-06-15 17:25', who:'Sid (manual)', what:'Added from interview'}]}},
+  {id:'E08', claims:['C06'], text:'Pathfinder pilot: equipment list extracted from real SOW. End-to-end time savings vs. manual not formally measured.', src:'Pathfinder pilot · internal · Jun 2025', type:'behavioral', cls:'qualifies', str:2,
+   prov:{src:'Internal pilot log · Pathfinder copper project', extracted:'Shubham + Sid', creator:'Shubham', confidence:1.0,
+         srcQuote:'Pilot log entry 2025-06-12: Successfully extracted 47 equipment line items from Pathfinder SOW. Time-to-extract: 8 minutes (vs. manual estimate 4–6 hours). However, full estimate workflow time savings not measured end-to-end.',
+         trail:[{when:'2025-06-12 14:20', who:'Shubham (manual)', what:'Pilot log entry'}]}},
+  {id:'E09', claims:['C07'], text:'Pilot closeout: sizing accuracy flagged as trust-gating risk before further demos or referrals.', src:'Matthew Baker · pilot closeout · Jun 2025', type:'behavioral', cls:'contradicts', str:3,
+   prov:{src:'Pilot closeout session · 2025-06-17 · session notes', extracted:'Sid (manual)', creator:'Sid', confidence:1.0,
+         srcQuote:'Matthew: "Three of the equipment sizes are wrong. That\'s a deal-breaker for any investor-facing estimate. Fix that before you talk to anyone else."',
+         trail:[{when:'2025-06-17 17:55', who:'Sid (manual)', what:'Captured from closeout'}]}},
+  {id:'E10', claims:['C08'], text:'No Qualified Person has reviewed Alpha-Val output and confirmed NI 43-101 disclosure compliance.', src:'Internal gap · identified Jun 2025', type:'analytical', cls:'contradicts', str:3,
+   prov:{src:'Internal gap analysis · Sid · 2025-06-18', extracted:'Sid (manual)', creator:'Sid', confidence:1.0,
+         srcQuote:'Gap log: "Compliance claim made in deck without QP review. Required action: arrange QP review of Pathfinder output before any further pitch use of compliance language."',
+         trail:[{when:'2025-06-18 11:00', who:'Sid (manual)', what:'Added during deck audit'}]}},
+  {id:'E11', claims:['C09'], text:'Danilo emphasised estimator workflow integration as critical — disruption to report formats = rejection.', src:'Danilo · 2025', type:'attitudinal', cls:'supports', str:2,
+   prov:{src:'Danilo interview · 2025-06-09', extracted:'Sid (manual)', creator:'Sid', confidence:1.0,
+         srcQuote:'Danilo: "If you change the report format, senior estimators will throw you out. They have a way they do things and the deliverable looks a certain way."',
+         trail:[{when:'2025-06-09 11:40', who:'Sid (manual)', what:'Added from Danilo interview'}]}},
+  {id:'E12', claims:['C10'], text:'Matthew Baker confirmed $25K discretionary authority and direct purchase initiation.', src:'Matthew Baker · interview · Jun 2025', type:'behavioral', cls:'supports', str:2,
+   prov:{src:'Matthew Baker interview · 2025-06-15 · 00:31:00–00:33:20', extracted:'Sid (manual)', creator:'Sid', confidence:1.0,
+         srcQuote:'"I sign off on tools up to twenty-five thousand without going to committee. I would buy this myself and give the EPCM access — they wouldn\'t be the ones procuring it."',
+         trail:[{when:'2025-06-15 17:30', who:'Sid (manual)', what:'Added from interview · key behavioural evidence for P2'}]}},
+  {id:'E13', claims:['C11'], text:'Danilo: EPCMs bill by engineering hours. A tool that cuts hours cuts their revenue.', src:'Danilo · 2025', type:'attitudinal', cls:'supports', str:2,
+   prov:{src:'Danilo interview · 2025-06-09', extracted:'Sid (manual)', creator:'Sid', confidence:1.0,
+         srcQuote:'Danilo: "EPCMs bill by hour. A tool that cuts hours cuts their revenue. That\'s the structural problem you\'re fighting."',
+         trail:[{when:'2025-06-09 11:50', who:'Sid (manual)', what:'Added from Danilo interview · structural framing'}]}},
+  {id:'E14', claims:['C11'], text:'Internal analysis: EPCM = "poisoned early adopter." MVS should be owner-side.', src:'Internal · Sid/Shubham · 2025', type:'analytical', cls:'supports', str:2,
+   prov:{src:'Internal MVS strategy memo · 2025-06-10', extracted:'Sid (manual)', creator:'Sid', confidence:1.0,
+         srcQuote:'MVS memo: "Triangulating Matthew, Danilo, and the EPCM billable-hour structure, owner-side (P2) is the more defensible MVS. EPCM channel is poisoned by their revenue model."',
+         trail:[{when:'2025-06-10 16:00', who:'Sid (manual)', what:'Added from internal memo'}]}},
+  {id:'E15', claims:['C13','C14'], text:'Matthew Baker: $15–25K range "sounds reasonable" + referral to Jay Roberg (Albemarle).', src:'Matthew Baker · pilot closeout · Jun 2025', type:'attitudinal', cls:'qualifies', str:1,
+   prov:{src:'Pilot closeout · 2025-06-17', extracted:'Sid (manual)', creator:'Sid', confidence:1.0,
+         srcQuote:'Matthew: "Fifteen to twenty-five is reasonable for what this would do. I\'d talk to Jay about it — let me make the intro."',
+         trail:[{when:'2025-06-17 18:00', who:'Sid (manual)', what:'Captured · intent only, not LOI'}]}}
+];const DS_ALPHA_TENSIONS = [
+  {id:'T01', title:'Persona split: User ≠ Buyer', claims:['C09','C10'], type:'per', pri:'p0', status:'assumed',
+   desc:'C09 names EPCM estimators as primary users (P1). C10 names Owner PMs as economic buyer (P2). Different people, organisations, sales motions, success criteria. Unresolved MVS decision gates hero copy, pitch sequencing, and pilot criteria.',
+   path:'Commit MVS = P2 (owner PM) based on C11 + E12. Design P1 as secondary user.',
+   prov:{src:'Auto-detected by AI · cross-claim analysis', extracted:'AI tension detection · 2025-06-18T10:18', creator:'AI auto-detection', confidence:0.92,
+         srcQuote:'Cross-claim analysis: C09 (P1 user) and C10 (P2 buyer) imply distinct accountability + budget pathways but share product surface. Persona conflict flagged for review.',
+         trail:[{when:'2025-06-18 10:18', who:'AI tension detection', what:'Auto-detected from C09 + C10 analysis'},{when:'2025-06-18 11:10', who:'Sid (manual)', what:'Confirmed as P0 — gates MVS decision'}]}},
+  {id:'T02', title:'Buyer persona vs. revenue target', claims:['C10','C13','C14'], type:'com', pri:'p1', status:'partial',
+   desc:'C10 says Owner PMs are buyers. C13 targets 3 LOIs at $25K. C14 prices at $15K–30K/year. Consistent only if all LOIs come from owner-side. Some materials have implied EPCM targets — inconsistent commercial model.',
+   path:'Clarify all LOI outreach targets owner PMs. Update deck and LOI templates to reflect owner-side GTM.',
+   prov:{src:'Auto-detected · AI cross-claim analysis', extracted:'AI tension detection · 2025-06-18T10:18', creator:'AI auto-detection', confidence:0.78,
+         srcQuote:'Cross-claim analysis: C13 LOI target ambiguous between EPCM and Owner channels; pricing in C14 not segmented by persona.',
+         trail:[{when:'2025-06-18 10:18', who:'AI tension detection', what:'Auto-detected'}]}},
+  {id:'T03', title:'Accuracy claim vs. pilot evidence', claims:['C07'], type:'tec', pri:'p0', status:'disputed',
+   desc:'C07 asserts ±15% accuracy. E09 (Matthew pilot feedback) directly contradicts. Trust-gating risk: claim made in materials before product supports it.',
+   path:'No external demos until sizing bugs resolved. Remove or qualify C07 in all external materials. Shubham\'s technical demo gate = formal verification.',
+   prov:{src:'Auto-detected · claim vs. evidence', extracted:'AI tension detection · 2025-06-18T10:19', creator:'AI auto-detection', confidence:0.95,
+         srcQuote:'Claim C07 (target ±15%) directly contradicted by E09 (pilot feedback: 3 wrong sizes). Status mismatch flagged.',
+         trail:[{when:'2025-06-18 10:19', who:'AI tension detection', what:'Auto-detected'},{when:'2025-06-18 11:15', who:'Sid (manual)', what:'Marked P0 — blocking external demos'}]}},
+  {id:'T04', title:'Alternatives framing: Excel vs. dedicated tools', claims:['C04','C05'], type:'fra', pri:'p2', status:'resolvable',
+   desc:'C04 (Excel primary) and C05 (dedicated tools impractical at FEL) are partially true but invite challenge as separate claims. Investors will ask about ACCE/Cleopatra.',
+   path:'Merge into one scoped claim: "For FEL-stage work at mid-size firms, Excel is the effective alternative because dedicated tools are impractical at this stage." Validate with 5+ EPCM estimators.',
+   prov:{src:'Auto-detected · framing consistency check', extracted:'AI tension detection · 2025-06-18T10:19', creator:'AI auto-detection', confidence:0.71,
+         srcQuote:'C04 and C05 cover overlapping competitive terrain. Combined framing may be more defensible than separate claims.',
+         trail:[{when:'2025-06-18 10:19', who:'AI tension detection', what:'Auto-detected'}]}},
+  {id:'T05', title:'Compliance claim vs. no QP verification', claims:['C08'], type:'risk', pri:'p1', status:'disputed',
+   desc:'C08 implies NI 43-101 / SK 1300 / JORC compliance. E10 records no QP has reviewed Alpha-Val output. Potential securities disclosure liability — claim damages trust with the exact buyer most likely to pay.',
+   path:'Immediately qualify materials: "designed to support" not "compliant with." Arrange QP review near-term.',
+   prov:{src:'Auto-detected · risk classification', extracted:'AI tension detection · 2025-06-18T10:19', creator:'AI auto-detection', confidence:0.88,
+         srcQuote:'C08 (NI 43-101 compliance) lacks supporting QP review evidence. Classified as disclosure risk requiring language qualification.',
+         trail:[{when:'2025-06-18 10:19', who:'AI tension detection', what:'Auto-detected · flagged risk'},{when:'2025-06-18 11:20', who:'Sid (manual)', what:'Confirmed P1 — materials require qualification'}]}}
+];
+
+// ═══════════════════════════════════════════════
+// COUNTERFACTUALS — "what would have to be true for this claim to be false"
+// ═══════════════════════════════════════════════
+const DS_ALPHA_COUNTERFACTUALS = [
+  {id:'CF01', claims:['C02'], statement:'Sizing variance of 20–25% turns out to fall consistently within the AACE Class 4–5 expected accuracy band, meaning EPCMs do not perceive it as an error at all.',
+   severity:'invalidate', status:'confirmed',
+   prov:{src:'Derived from AI critique falsification condition', extracted:'AI critique pass', creator:'AI auto-discovery', confidence:0.8,
+         srcQuote:'Falsification condition generated during critique of C02: if EPCMs are comfortable with 20% variance because it is within Class 4-5 norms, this is not a pain point.',
+         trail:[{when:'2025-06-18 10:20', who:'AI auto-discovery', what:'Generated from claim critique'},{when:'2025-06-18 11:30', who:'Sid (manual)', what:'Status set to confirmed — E03 (AACE standard) supports this counterfactual directly'}]}},
+  {id:'CF02', claims:['C07'], statement:'Sizing accuracy on real pilot projects falls well outside ±15%, and the gap is structural (model limitation) rather than a fixable bug.',
+   severity:'invalidate', status:'investigating',
+   prov:{src:'Derived from AI critique + pilot feedback', extracted:'AI critique pass', creator:'AI auto-discovery', confidence:0.9,
+         srcQuote:'Falsification condition generated during critique of C07, reinforced by E09 (Matthew pilot feedback: 3 wrong sizes).',
+         trail:[{when:'2025-06-18 10:20', who:'AI auto-discovery', what:'Generated from claim critique'}]}},
+  {id:'CF03', claims:['C10'], statement:'Matthew Baker is an outlier — most owner-side PMs at similarly sized firms do not have discretionary budget authority and must route purchases through EPCM-recommended vendor lists.',
+   severity:'weaken', status:'proposed',
+   prov:{src:'Manual entry', extracted:'Sid (manual)', creator:'Sid', confidence:1.0,
+         srcQuote:'Single-source risk: only one owner PM has been interviewed. Worth checking whether his discretionary authority is typical or unusual for his role.',
+         trail:[{when:'2025-06-19 09:00', who:'Sid (manual)', what:'Added — flagged single-source risk on C10'}]}},
+  {id:'CF04', claims:['C08'], statement:'A Qualified Person reviews Alpha-Val output and finds the provenance graph does not actually satisfy NI 43-101 disclosure norms in practice — for example, the assumption chain is traceable but not in a format QPs find usable.',
+   severity:'invalidate', status:'proposed',
+   prov:{src:'Derived from AI critique falsification condition', extracted:'AI critique pass', creator:'AI auto-discovery', confidence:0.75,
+         srcQuote:'C08 is a critical gap: no QP has reviewed output. The counterfactual that would invalidate it is a QP review that finds the format unusable, not just untested.',
+         trail:[{when:'2025-06-18 11:35', who:'AI auto-discovery', what:'Generated alongside critical-gap flag on C08'}]}}
+];
+
+// ═══════════════════════════════════════════════
+// EXPERIMENTS — derived from tensions, counterfactuals, and disputed/gap claims
+// ═══════════════════════════════════════════════
+const DS_ALPHA_EXPERIMENTS = [
+  {id:'EXP01', title:'Owner-side budget authority replication', claims:['C10'],
+   derivedFrom:{tensions:['T01'], counterfactuals:['CF03'], claims:[]},
+   hypothesis:'At least 2 additional owner PMs at mid-size mining companies confirm discretionary purchase authority similar to Matthew Baker, without requiring EPCM sign-off.',
+   method:'Customer interview', timeline:'3 weeks', metric:'2 of 3 additional owner PMs confirm independent budget authority ≥$15K',
+   status:'proposed',
+   reasoning:'Derived from Tension T01 (persona split is P0-blocking) combined with Counterfactual CF03 (Matthew may be a single-source outlier). Resolving T01 requires knowing whether C10 generalizes beyond N=1.',
+   prov:{src:'AI synthesis · cross-entity reasoning', extracted:'AI experiment synthesis', creator:'AI auto-discovery', confidence:0.85,
+         srcQuote:'Synthesis: T01 is blocking the MVS decision. C10 rests on N=1 (Matthew). CF03 directly questions whether Matthew is representative. The highest-leverage experiment is replication, not further analysis.',
+         trail:[{when:'2025-06-19 09:15', who:'AI experiment synthesis', what:'Generated from T01 + CF03 + C10'}]}},
+  {id:'EXP02', title:'Sizing accuracy benchmark on 3 closed estimates', claims:['C07'],
+   derivedFrom:{tensions:['T03'], counterfactuals:['CF02'], claims:[]},
+   hypothesis:'Re-run Alpha-Val sizing against 3 already-completed EPCM estimates with known actual costs; measure whether error is a fixable data issue or a structural model gap.',
+   method:'Paid pilot', timeline:'4 weeks', metric:'Mean absolute sizing error ≤15% across all 3 estimates, with no single item exceeding 30%',
+   status:'proposed',
+   reasoning:'Tension T03 is P0-blocking — no further external demos until resolved. Counterfactual CF02 raises the possibility that the gap is structural, which would be a much bigger problem than a data bug. This experiment is designed to distinguish the two before committing further engineering time.',
+   prov:{src:'AI synthesis · cross-entity reasoning', extracted:'AI experiment synthesis', creator:'AI auto-discovery', confidence:0.92,
+         srcQuote:'Synthesis: T03 blocks all external demos. E09 shows real failures but does not diagnose root cause. CF02 names the worst-case interpretation. A controlled benchmark against known-actual costs is the fastest way to distinguish bug from structural limitation.',
+         trail:[{when:'2025-06-19 09:18', who:'AI experiment synthesis', what:'Generated from T03 + CF02 + E09'}]}},
+  {id:'EXP03', title:'QP review of one full Alpha-Val output', claims:['C08'],
+   derivedFrom:{tensions:['T05'], counterfactuals:['CF04'], claims:[]},
+   hypothesis:'A retained Qualified Person reviews one complete Alpha-Val TIC sheet and provenance trail and confirms (or identifies gaps in) its usability for NI 43-101 disclosure purposes.',
+   method:'Demo + pricing conversation', timeline:'6 weeks', metric:'Written QP opinion confirming the output is usable as disclosure-supporting documentation, with any required format changes specified',
+   status:'proposed',
+   reasoning:'T05 is a compliance risk, not just an unresolved claim — qualifying language alone does not generate positive evidence for C08. Counterfactual CF04 names the specific failure mode worth testing. A real QP review is the only evidence type that can move C08 out of critical-gap status.',
+   prov:{src:'AI synthesis · cross-entity reasoning', extracted:'AI experiment synthesis', creator:'AI auto-discovery', confidence:0.81,
+         srcQuote:'Synthesis: T05 flags disclosure risk. E10 records absence of QP review. CF04 specifies the failure mode. Direct QP engagement is the only path to resolving C08 with positive evidence rather than just risk mitigation.',
+         trail:[{when:'2025-06-19 09:20', who:'AI experiment synthesis', what:'Generated from T05 + CF04 + E10'}]}}
+];
+
+// ═══════════════════════════════════════════════
+// DASHBOARD DATA
+// ═══════════════════════════════════════════════
+let nextAnId = 4;
+const ANALYSES = [
+  {id:"A1", name:"Alpha-Val — Business Thesis", created:"2025-06-08", updated:"2025-06-18", docs:3},
+  {id:"A2", name:"Northwind SaaS — Pricing Validation", created:"2025-05-02", updated:"2025-05-20", docs:2},
+  {id:"A3", name:"Beacon Health — Market Sizing", created:"2025-04-11", updated:"2025-04-30", docs:1}
+];
+
+const DATASETS = {
+  A1: {claims: DS_ALPHA_CLAIMS, evidence: DS_ALPHA_EVIDENCE, tensions: DS_ALPHA_TENSIONS,
+       counterfactuals: DS_ALPHA_COUNTERFACTUALS, experiments: DS_ALPHA_EXPERIMENTS,
+       sources:[{name:"alphaval-deck-v3.pdf", added:"2025-06-08", size:"3.1 MB"},
+                {name:"Danilo interview transcript.docx", added:"2025-06-09", size:"95 KB"},
+                {name:"Matthew Baker interview transcript.docx", added:"2025-06-15", size:"110 KB"}]},
+  A2: makeGenericDataset(),
+  A3: makeHealthDataset()
+};
+
+const DASH_STATE = {sortKey:"updated", sortDir:"desc"};
+const STATE = {tab:"claims", panTab:"detail", selId:null, view:"populated", currentAnId:null};
+
+// ═══════════════════════════════════════════════
+// NAVIGATION: DASHBOARD <-> ANALYSIS
+// ═══════════════════════════════════════════════
+function goDash(){
+  document.getElementById("view-dashboard").style.display = "block";
+  document.getElementById("view-analysis").style.display = "none";
+  document.getElementById("gcrumb").style.display = "none";
+  closePan();
+  renderDash();
+}
+
+function openAnalysis(id){
+  STATE.currentAnId = id;
+  const an = ANALYSES.find(a=>a.id===id);
+  if(!an)return;
+  document.getElementById("view-dashboard").style.display = "none";
+  document.getElementById("view-analysis").style.display = "flex";
+  document.getElementById("gcrumb").style.display = "flex";
+  document.getElementById("gcrumb-name").textContent = an.name;
+  document.getElementById("an-title").value = an.name;
+  document.getElementById("meta-created").textContent = fmtDate(an.created);
+  document.getElementById("meta-updated").textContent = fmtDate(an.updated);
+  document.getElementById("meta-docs").textContent = an.docs;
+  document.getElementById("extract-banner").classList.remove("on");
+
+  const ds = DATASETS[id];
+  STATE.view = (ds.claims.length===0) ? "empty" : "populated";
+  STATE.tab = "claims";
+  document.querySelectorAll(".tab").forEach(el=>el.classList.remove("on"));
+  document.getElementById("tab-claims").classList.add("on");
+  updateFiltbarActions("claims");
+  closePan();
+  render();
+}
+
+// ═══════════════════════════════════════════════
+// ESCAPE HELPER — safe HTML display of free user text
+// ═══════════════════════════════════════════════
+function escapeHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════════════════════
+// GUIDE MODAL
+// ═══════════════════════════════════════════════
+function openGuideModal(){ document.getElementById('modal-guide').classList.add('on'); }
+function closeGuideModal(){ document.getElementById('modal-guide').classList.remove('on'); }
+
+// ═══════════════════════════════════════════════
+// NEW ANALYSIS GATE MODAL
+// ═══════════════════════════════════════════════
+let naState = { name:'', tab:'upload', pendingFiles:[], pendingClaim:null, draftClaimText:'', draftClaimCat:'Pain' };
+
+function openNewAnalysisModal(){
+  naState = { name:'', tab:'upload', pendingFiles:[], pendingClaim:null, draftClaimText:'', draftClaimCat:'Pain' };
+  document.getElementById('na-name').value = '';
+  document.getElementById('na-tab-upload').classList.add('on');
+  document.getElementById('na-tab-claim').classList.remove('on');
+  naState.tab = 'upload';
+  renderNaBody();
+  naCheckReady();
+  document.getElementById('modal-newanalysis').classList.add('on');
+}
+function closeNewAnalysisModal(){
+  document.getElementById('modal-newanalysis').classList.remove('on');
+}
+
+function naSwitchTab(t){
+  naState.tab = t;
+  document.getElementById('na-tab-upload').classList.toggle('on', t==='upload');
+  document.getElementById('na-tab-claim').classList.toggle('on', t==='claim');
+  renderNaBody();
+}
+
+function renderNaBody(){
+  const body = document.getElementById('na-body');
+  if(naState.tab==='upload'){
+    body.innerHTML = `
+      <div class="dropzone" onclick="document.getElementById('na-file-input').click()" id="na-dropzone"
+           ondragover="event.preventDefault();this.style.borderColor='#1a1a1a'"
+           ondragleave="this.style.borderColor=''"
+           ondrop="naHandleDrop(event)">
+        <div class="dropzone-icon">⤓</div>
+        <div class="dropzone-txt">Drag files here, or click to browse</div>
+        <div class="dropzone-sub">PDF, DOCX, MD, TXT · multiple files supported · max 10MB each</div>
+      </div>
+      <input type="file" id="na-file-input" multiple style="display:none;" onchange="naHandleFileSelect(event)"/>
+      <div id="na-pending-files"></div>`;
+    naRenderPendingFiles();
+  } else {
+    body.innerHTML = `
+      <div class="sec-l" style="margin-top:10px;">Claim text</div>
+      <textarea id="na-claim-text" rows="3" placeholder="State the claim as a falsifiable assertion…"></textarea>
+      <div class="sec-l" style="margin-bottom:5px;margin-top:8px;">Category</div>
+      <select id="na-claim-cat" style="width:100%;">
+        <option value="Pain">Problem · Pain</option>
+        <option value="Alternatives">Alternatives</option>
+        <option value="Solution">Solution</option>
+        <option value="Persona">Market · Persona</option>
+        <option value="Commercial">Commercial</option>
+      </select>
+      <button class="btn btn-sm" style="margin-top:9px;" onclick="naSubmitClaim()">Add claim →</button>
+      <div id="na-claim-added" style="margin-top:10px;"></div>`;
+    if(naState.pendingClaim){
+      const pc = naState.pendingClaim;
+      document.getElementById('na-claim-added').innerHTML =
+        `<div class="airev-result">✓ Claim added: "${escapeHtml(pc.text)}" — category ${pc.cat}, source: ${pc.sourceType}.</div>`;
+    }
+  }
+}
+
+function naHandleFileSelect(ev){
+  const files = Array.from(ev.target.files || []);
+  files.forEach(f=>naState.pendingFiles.push({name:f.name, size:fmtBytes(f.size)}));
+  naRenderPendingFiles();
+  naCheckReady();
+  ev.target.value = '';
+}
+function naHandleDrop(ev){
+  ev.preventDefault();
+  ev.currentTarget.style.borderColor = '';
+  const files = Array.from(ev.dataTransfer.files || []);
+  files.forEach(f=>naState.pendingFiles.push({name:f.name, size:fmtBytes(f.size)}));
+  naRenderPendingFiles();
+  naCheckReady();
+}
+function naRenderPendingFiles(){
+  const el = document.getElementById('na-pending-files');
+  if(!el) return;
+  if(naState.pendingFiles.length===0){ el.innerHTML=''; return; }
+  el.innerHTML = naState.pendingFiles.map((f,i)=>`
+    <div class="file-row">
+      <div class="file-icon">+</div>
+      <div class="file-meta"><div class="file-name">${escapeHtml(f.name)}</div><div class="file-sub">${f.size} · ready to upload</div></div>
+      <button class="file-remove" onclick="naRemovePendingFile(${i})">×</button>
+    </div>`).join('');
+}
+function naRemovePendingFile(i){ naState.pendingFiles.splice(i,1); naRenderPendingFiles(); naCheckReady(); }
+
+function naSubmitClaim(){
+  const textEl = document.getElementById('na-claim-text');
+  const text = textEl.value.trim();
+  if(!text){ textEl.focus(); return; }
+  const cat = document.getElementById('na-claim-cat').value;
+  naState.draftClaimText = text;
+  naState.draftClaimCat = cat;
+  const body = document.getElementById('na-body');
+  body.innerHTML = `<div style="display:flex;align-items:center;color:var(--ink-3);font-size:12.5px;padding:18px 0;"><span class="spinner"></span>Analysing and classifying…</div>`;
+  setTimeout(()=>{
+    body.innerHTML = `<div class="airev-q">What is the source of this claim — a document, something you observed or were told, or your own inference?</div>
+      <div class="qp-row">
+        <button class="qp-btn" onclick="naFinalizeClaim('document')">📄 A document</button>
+        <button class="qp-btn" onclick="naFinalizeClaim('observed')">👂 Observed / told</button>
+        <button class="qp-btn" onclick="naFinalizeClaim('inference')">🧠 My inference</button>
+      </div>`;
+  }, 1000);
+}
+function naFinalizeClaim(sourceType){
+  naState.pendingClaim = { text: naState.draftClaimText, cat: naState.draftClaimCat, sourceType };
+  renderNaBody();
+  naCheckReady();
+}
+
+function naCheckReady(){
+  naState.name = document.getElementById('na-name').value.trim();
+  const nameOk = naState.name.length > 0;
+  const contentOk = naState.pendingFiles.length>0 || !!naState.pendingClaim;
+
+  const nameRow = document.getElementById('na-check-name');
+  const contentRow = document.getElementById('na-check-content');
+  nameRow.classList.toggle('ok', nameOk);
+  contentRow.classList.toggle('ok', contentOk);
+  document.getElementById('na-check-name-icon').textContent = nameOk ? '✓' : '○';
+  document.getElementById('na-check-content-icon').textContent = contentOk ? '✓' : '○';
+
+  document.getElementById('na-submit').disabled = !(nameOk && contentOk);
+}
+
+function createAnalysisFromModal(){
+  if(document.getElementById('na-submit').disabled) return;
+  const name = naState.name;
+  if(!name) return;
+
+  const id = "A"+nextAnId; nextAnId++;
+  const today = todayStr();
+  const ds = {claims:[], evidence:[], tensions:[], counterfactuals:[], experiments:[], sources:[]};
+
+  if(naState.pendingClaim){
+    const pc = naState.pendingClaim;
+    const fwMap = {Pain:'BLAC: Blatant', Alternatives:'Lean Canvas: Alternatives', Solution:'4U: Unworkable (current)', Persona:'Skok: MVS', Commercial:'Lean Canvas: Revenue'};
+    const creatorMap = {document:'AI auto-extraction (user-flagged document)', observed:'Sid (manual, observed/told)', inference:'Sid (manual, inference)'};
+    const srcMap = {document:'User-provided, document-based', observed:'User-provided, observed/told', inference:'User-provided, inference'};
+    const cid = 'CM'+Date.now().toString().slice(-5);
+    ds.claims.push({
+      id:cid, cat:pc.cat, text:'"'+pc.text+'"', fw:fwMap[pc.cat]||'Lean Canvas: General', fw2:'Manually added', status:'assumed', ev:[], tn:[], cf:[], exp:[],
+      note:'Added during analysis creation. AI has classified the source type; this claim has not yet been challenged in depth.',
+      prov:{src:srcMap[pc.sourceType], extracted:'Manual entry, AI-reviewed', creator:creatorMap[pc.sourceType], confidence:1.0,
+            srcQuote:pc.text,
+            trail:[{when:today+' '+nowTimeStr(), who:'Sid (manual)', what:'Added during analysis creation'},
+                   {when:today+' '+nowTimeStr(), who:'AI auto-discovery', what:'Source type classified as: '+pc.sourceType}]},
+      crit:'This claim has not yet been critiqued in depth. Once evidence is attached, AI will generate a full challenge with a falsification condition.'
+    });
+  }
+
+  if(naState.pendingFiles.length>0){
+    ds.sources = naState.pendingFiles.map(f=>({name:f.name, added:today, size:f.size}));
+  }
+
+  ANALYSES.unshift({id, name, created:today, updated:today, docs: ds.sources.length});
+  DATASETS[id] = ds;
+
+  const needsExtraction = naState.pendingFiles.length>0 && ds.claims.length===0;
+
+  closeNewAnalysisModal();
+  openAnalysis(id);
+
+  if(needsExtraction){
+    STATE.view = "processing";
+    render();
+    setTimeout(()=>{const b=document.getElementById('proc-fill'); if(b) b.style.width='100%';},80);
+    setTimeout(()=>{
+      const fresh = makeGenericDataset();
+      ds.claims = fresh.claims; ds.evidence = fresh.evidence; ds.tensions = fresh.tensions;
+      ds.counterfactuals = fresh.counterfactuals; ds.experiments = fresh.experiments;
+      STATE.view = "populated";
+      render();
+      document.getElementById("extract-banner").classList.add("on");
+    }, 2200);
+  }
+}
+
+function onTitleEdit(val){
+  const an = ANALYSES.find(a=>a.id===STATE.currentAnId);
+  if(an){ an.name = val || "Untitled Analysis"; document.getElementById("gcrumb-name").textContent = an.name; }
+}
+
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function nowTimeStr(){
+  const d = new Date();
+  return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+function fmtDate(s){
+  const d = new Date(s+"T00:00:00");
+  return d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+}
+
+// ═══════════════════════════════════════════════
+// DASHBOARD RENDER + SORT
+// ═══════════════════════════════════════════════
+function sortDash(key){
+  if(DASH_STATE.sortKey===key){ DASH_STATE.sortDir = DASH_STATE.sortDir==="asc"?"desc":"asc"; }
+  else { DASH_STATE.sortKey = key; DASH_STATE.sortDir = (key==="name")?"asc":"desc"; }
+  renderDash();
+}
+
+function renderDash(){
+  document.getElementById("dash-count").textContent = ANALYSES.length+" analyses";
+  const {sortKey, sortDir} = DASH_STATE;
+  const sorted = [...ANALYSES].sort((a,b)=>{
+    let av=a[sortKey], bv=b[sortKey];
+    if(sortKey==="docs"){ av=Number(av); bv=Number(bv); }
+    if(av<bv) return sortDir==="asc"?-1:1;
+    if(av>bv) return sortDir==="asc"?1:-1;
+    return 0;
+  });
+
+  ["name","created","updated","docs"].forEach(k=>{
+    const th = document.getElementById("th-"+k);
+    const ar = document.getElementById("ar-"+k);
+    th.classList.toggle("sortcol", k===sortKey);
+    ar.textContent = k===sortKey ? (sortDir==="asc"?"▲":"▼") : "";
+  });
+
+  if(sorted.length===0){
+    document.getElementById("dash-tbody").innerHTML = `<tr><td colspan="5"><div class="empty-dash">No analyses yet. Click "+ New Analysis" to get started.</div></td></tr>`;
+    return;
+  }
+
+  document.getElementById("dash-tbody").innerHTML = sorted.map(a=>`
+    <tr>
+      <td><span class="an-name" onclick="openAnalysis('${a.id}')">${a.name}</span></td>
+      <td><span class="an-date">${fmtDate(a.created)}</span></td>
+      <td><span class="an-date">${fmtDate(a.updated)}</span></td>
+      <td><span class="an-docs"><span class="an-docs-n">${a.docs}</span> file${a.docs!==1?"s":""}</span></td>
+      <td>
+        <div class="row-menu-wrap">
+          <button class="row-menu-btn" onclick="event.stopPropagation();toggleRowMenu('${a.id}')">⋮</button>
+          <div class="row-menu" id="rm-${a.id}">
+            <div class="row-menu-item" onclick="openAnalysis('${a.id}')">📂 Open</div>
+            <div class="row-menu-item danger" onclick="askDelete('${a.id}')">🗑 Delete</div>
+          </div>
+        </div>
+      </td>
+    </tr>`).join("");
+}
+
+function toggleRowMenu(id){
+  document.querySelectorAll(".row-menu").forEach(m=>{ if(m.id!=="rm-"+id) m.classList.remove("on"); });
+  document.getElementById("rm-"+id).classList.toggle("on");
+  setTimeout(()=>document.addEventListener("click", function h(){document.querySelectorAll(".row-menu").forEach(m=>m.classList.remove("on"));document.removeEventListener("click",h);}, {once:true}), 10);
+}
+
+let pendingDeleteId = null;
+function askDelete(id){
+  pendingDeleteId = id;
+  const an = ANALYSES.find(a=>a.id===id);
+  document.getElementById("del-target-name").textContent = (an?an.name:"") + " — all its claims, evidence, and tensions will be permanently removed. This cannot be undone.";
+  document.getElementById("modal-delconfirm").classList.add("on");
+}
+function closeDelConfirm(){ document.getElementById("modal-delconfirm").classList.remove("on"); pendingDeleteId=null; }
+function confirmDelete(){
+  const idx = ANALYSES.findIndex(a=>a.id===pendingDeleteId);
+  if(idx>-1) ANALYSES.splice(idx,1);
+  delete DATASETS[pendingDeleteId];
+  closeDelConfirm();
+  renderDash();
+}
+
+// ═══════════════════════════════════════════════
+// UPLOAD / SOURCES MODAL
+// ═══════════════════════════════════════════════
+let pendingNewFiles = [];
+let tempSources = [];
+
+function openUploadModal(){
+  pendingNewFiles = [];
+  const ds = DATASETS[STATE.currentAnId];
+  tempSources = ds.sources.map(s=>({...s}));
+  renderPendingFiles();
+  renderExistingSources();
+  document.getElementById("modal-upload").classList.add("on");
+}
+function closeUploadModal(){
+  document.getElementById("modal-upload").classList.remove("on");
+  pendingNewFiles = [];
+  tempSources = [];
+}
+
+function handleFileSelect(ev){
+  const files = Array.from(ev.target.files || []);
+  files.forEach(f=>pendingNewFiles.push({name:f.name, size:fmtBytes(f.size)}));
+  renderPendingFiles();
+  ev.target.value = "";
+}
+function handleDrop(ev){
+  ev.preventDefault();
+  ev.currentTarget.style.borderColor = "";
+  const files = Array.from(ev.dataTransfer.files || []);
+  files.forEach(f=>pendingNewFiles.push({name:f.name, size:fmtBytes(f.size)}));
+  renderPendingFiles();
+}
+function fmtBytes(b){
+  if(b < 1024) return b + " B";
+  if(b < 1024*1024) return (b/1024).toFixed(0) + " KB";
+  return (b/(1024*1024)).toFixed(1) + " MB";
+}
+
+function renderPendingFiles(){
+  const el = document.getElementById("pending-files");
+  if(pendingNewFiles.length===0){ el.innerHTML = ""; return; }
+  el.innerHTML = pendingNewFiles.map((f,i)=>`
+    <div class="file-row">
+      <div class="file-icon">+</div>
+      <div class="file-meta"><div class="file-name">${f.name}</div><div class="file-sub">${f.size} · ready to upload</div></div>
+      <button class="file-remove" onclick="removePendingFile(${i})">×</button>
+    </div>`).join("");
+}
+function removePendingFile(i){ pendingNewFiles.splice(i,1); renderPendingFiles(); }
+
+function renderExistingSources(){
+  const el = document.getElementById("existing-sources");
+  if(tempSources.length===0){ el.innerHTML = '<div class="upload-empty">No source documents attached yet.</div>'; return; }
+  el.innerHTML = tempSources.map((s,i)=>`
+    <div class="file-row">
+      <div class="file-icon existing">📄</div>
+      <div class="file-meta"><div class="file-name">${s.name}</div><div class="file-sub">${s.size} · added ${fmtDate(s.added)}</div></div>
+      <button class="file-remove" onclick="removeExistingSource(${i})">×</button>
+    </div>`).join("");
+}
+function removeExistingSource(i){ tempSources.splice(i,1); renderExistingSources(); }
+
+function saveUploadModal(){
+  const ds = DATASETS[STATE.currentAnId];
+  const an = ANALYSES.find(a=>a.id===STATE.currentAnId);
+  const hadZeroClaims = ds.claims.length===0;
+  const addingNew = pendingNewFiles.length>0;
+
+  ds.sources = tempSources.concat(pendingNewFiles.map(f=>({name:f.name, added:todayStr(), size:f.size})));
+  an.docs = ds.sources.length;
+  an.updated = todayStr();
+  document.getElementById("meta-docs").textContent = an.docs;
+  document.getElementById("meta-updated").textContent = fmtDate(an.updated);
+
+  closeUploadModal();
+
+  if(addingNew && hadZeroClaims){
+    STATE.view = "processing";
+    render();
+    setTimeout(()=>{document.getElementById("proc-fill").style.width="100%"},80);
+    setTimeout(()=>{
+      const fresh = makeGenericDataset();
+      ds.claims = fresh.claims; ds.evidence = fresh.evidence; ds.tensions = fresh.tensions;
+      ds.counterfactuals = fresh.counterfactuals; ds.experiments = fresh.experiments;
+      STATE.view = "populated";
+      render();
+      document.getElementById("extract-banner").classList.add("on");
+    }, 2200);
+  } else if(addingNew){
+    render();
+    document.getElementById("extract-banner").innerHTML = `✓ ${pendingNewFiles.length} new document(s) added to this analysis <button class="btn btn-sm btn-gh" style="margin-left:auto;" onclick="dismissBanner()">Dismiss</button>`;
+    document.getElementById("extract-banner").classList.add("on");
+  } else {
+    render();
+  }
+}
+
+// ─────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────
+function curDS(){ return DATASETS[STATE.currentAnId]; }
+function CLAIMS_(){ return curDS().claims; }
+function EVIDENCE_(){ return curDS().evidence; }
+function TENSIONS_(){ return curDS().tensions; }
+function CF_(){ return curDS().counterfactuals; }
+function EXP_(){ return curDS().experiments; }
+
+const bCls = s => ({assumed:'b-asm',supported:'b-sup',disputed:'b-dis',validated:'b-val',revised:'b-rev',gap:'b-gap'}[s]||'b-asm');
+const bLbl = s => ({assumed:'Assumed',supported:'Supported',disputed:'Disputed',validated:'Validated',revised:'Revised',gap:'Critical gap'}[s]||s);
+const evCls = c => ({supports:'b-sup',contradicts:'b-dis',qualifies:'b-asm'}[c]||'b-asm');
+const evLbl = c => c.charAt(0).toUpperCase()+c.slice(1);
+const tnTypeCls = t => ({per:'tt-per',com:'tt-com',tec:'tt-tec',fra:'tt-fra',risk:'tt-risk'}[t]||'tt-fra');
+const tnTypeLbl = t => ({per:'Persona',com:'Commercial',tec:'Technical',fra:'Framing',risk:'Risk'}[t]||t);
+const strDots = n => '<div class="str">'+[1,2,3].map(i=>`<div class="sd ${i<=n?'on':''}"></div>`).join('')+'</div>';
+const cfStatusCls = s => ({proposed:'b-asm',investigating:'b-rev',confirmed:'b-dis',['ruled-out']:'b-sup'}[s]||'b-asm');
+const cfStatusLbl = s => ({proposed:'Proposed',investigating:'Investigating',confirmed:'Confirmed',['ruled-out']:'Ruled out'}[s]||s);
+const provPill = id => `<span class="prov" onclick="openProv('${id}')">📎 src</span>`;
+const provMini = id => `<button class="prov-mini" title="View provenance" onclick="event.stopPropagation();openProv('${id}')">📎</button>`;
+
+// ─────────────────────────────────────────
+// MAIN RENDERER
+// ─────────────────────────────────────────
+function render(){
+  if(STATE.view==='empty'){renderEmpty();return}
+  if(STATE.view==='processing'){renderProc();return}
+  if(STATE.tab==='claims') renderClaims();
+  else if(STATE.tab==='evidence') renderEvidence();
+  else if(STATE.tab==='tensions') renderTensions();
+  else if(STATE.tab==='counterfactuals') renderCounterfactuals();
+  else if(STATE.tab==='experiments') renderExperiments();
+  else if(STATE.tab==='canvas') renderCanvas();
+  updateTabCounts();
+}
+
+function updateTabCounts(){
+  if(!STATE.currentAnId || !DATASETS[STATE.currentAnId]) return;
+  const ds = curDS();
+  document.getElementById('cnt-claims').textContent = ds.claims.length;
+  document.getElementById('cnt-evidence').textContent = ds.evidence.length;
+  document.getElementById('cnt-tensions').textContent = ds.tensions.length;
+  document.getElementById('cnt-counterfactuals').textContent = ds.counterfactuals.length;
+  document.getElementById('cnt-experiments').textContent = ds.experiments.length;
+}
+
+function renderEmpty(){
+  document.getElementById('main-area').innerHTML = `
+    <div class="empty">
+      <div class="empty-card">
+        <div class="empty-icon">⊕</div>
+        <div class="empty-title">Start a new validation session</div>
+        <div class="empty-sub">Upload your pitch deck, lean canvas, or business plan and we'll extract claims automatically. Or add your first claim manually.</div>
+        <div class="empty-actions">
+          <button class="btn btn-p" onclick="openUploadModal()">📎 Upload document</button>
+          <button class="btn" onclick="openAddModal('claim')">+ Add claim manually</button>
+        </div>
+        <div class="empty-divider">— or —</div>
+        <div style="font-size:11.5px;color:var(--ink-3);margin-bottom:12px;">Start from a guided interview · 6 questions · ~8 min</div>
+        <button class="btn btn-gh">Begin interview →</button>
+        <div class="empty-formats" style="margin-top:18px;">Accepted formats: PDF, DOCX, MD, TXT · max 10MB</div>
+      </div>
+    </div>`;
+}
+
+function renderProc(){
+  document.getElementById('main-area').innerHTML = `
+    <div class="proc">
+      <div style="font-size:13px;color:var(--ink-2);margin-bottom:6px;">Analysing uploaded documents…</div>
+      <div class="proc-bar"><div class="proc-fill" id="proc-fill"></div></div>
+      <div class="proc-step done"><div class="proc-tick">✓</div>Reading document structure</div>
+      <div class="proc-step done"><div class="proc-tick">✓</div>Identifying implicit assumptions and claims</div>
+      <div class="proc-step cur"><div class="proc-tick"></div>Mapping claims to BLAC / 4U / VPD / Lean Canvas frameworks</div>
+      <div class="proc-step"><div class="proc-tick"></div>Auto-detecting cross-claim tensions</div>
+      <div class="proc-step"><div class="proc-tick"></div>Generating AI critiques for each claim</div>
+    </div>`;
+}
+
+function renderCanvas(){
+  document.getElementById('main-area').innerHTML = `
+    <div class="canvas-soon">
+      <div class="canvas-soon-inner">
+        <div class="canvas-illust">⊙—⊙<br/>&nbsp;&nbsp;|&nbsp;&nbsp;<br/>⊙</div>
+        <div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:8px;">Connection Canvas</div>
+        <div style="font-size:12.5px;color:var(--ink-3);margin-bottom:12px;line-height:1.6;">Visualise claims and tensions as nodes, with evidence as connecting edges. Spot clusters, gaps, and isolated assumptions at a glance.</div>
+        <div style="font-size:11px;color:var(--ink-4);font-family:monospace;letter-spacing:.06em;">PLANNED · v0.5</div>
+      </div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────
+// CLAIMS TABLE
+// ─────────────────────────────────────────
+function renderClaims(){
+  const cats = {Pain:'Problem · Pain claims', Alternatives:'Alternatives · Competitive landscape', Solution:'Solution · Product capability', Persona:'Market · Persona', Commercial:'Commercial · Revenue model'};
+  let html = `<table><thead><tr><th>ID</th><th>Claim</th><th>Counterfactuals</th><th>Category</th><th>Framework</th><th>Status</th><th>Evidence</th><th>Tensions</th><th>Experiments</th><th>Source</th><th></th></tr></thead><tbody>`;
+  let lastCat = null;
+  CLAIMS_().forEach(c=>{
+    if(c.cat!==lastCat){
+      html += `<tr><td colspan="11" style="padding:9px 11px 4px;font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--ink-4);background:#fafaf5;border-bottom:1px solid var(--line-2);text-transform:uppercase;">${cats[c.cat]||c.cat}</td></tr>`;
+      lastCat = c.cat;
+    }
+    const sel = STATE.selId===c.id?' sel':'';
+    const warn = c.warn?' row-warn':'';
+    const cfList = c.cf||[], expList = c.exp||[];
+    html += `<tr class="${sel}${warn}" onclick="openPan('${c.id}','claim')">
+      <td class="id-cell">${c.id}</td>
+      <td><div class="txt-cell">${c.text}</div></td>
+      <td>${cfList.length?cfList.map(id=>`<span class="ref" onclick="event.stopPropagation();openPan('${id}','counterfactual')">${id}</span>`).join(''):'<span style="font-size:10px;color:var(--ink-4);">—</span>'}</td>
+      <td><span class="fw-tag">${c.cat}</span></td>
+      <td><span class="fw-tag">${c.fw}</span><br/><span class="fw-tag" style="font-size:9.5px;">${c.fw2}</span></td>
+      <td><span class="cell-edit" onclick="event.stopPropagation();ddStatus(event,'${c.id}')"><span class="bdg ${bCls(c.status)}">${bLbl(c.status)}</span></span></td>
+      <td>${c.ev.length?c.ev.map(e=>`<span class="ref" onclick="event.stopPropagation();openPan('${e}','evidence')">${e}</span>`).join(''):'<span style="font-size:10px;color:var(--ink-4);font-style:italic;">none</span>'}</td>
+      <td>${c.tn.length?c.tn.map(t=>`<span class="ref" onclick="event.stopPropagation();openPan('${t}','tension')">${t}</span>`).join(''):'<span style="font-size:10px;color:var(--ink-4);">—</span>'}</td>
+      <td>${expList.length?expList.map(id=>`<span class="ref" onclick="event.stopPropagation();openPan('${id}','experiment')">${id}</span>`).join(''):'<span style="font-size:10px;color:var(--ink-4);">—</span>'}</td>
+      <td>${provMini(c.id)}</td>
+      <td><button class="del-btn" title="Delete claim" onclick="event.stopPropagation();askDeleteItem(event,'claim','${c.id}')">🗑</button></td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  document.getElementById('main-area').innerHTML = html;
+}
+
+// ─────────────────────────────────────────
+// EVIDENCE TABLE
+// ─────────────────────────────────────────
+function renderEvidence(){
+  let html = `<table><thead><tr><th>ID</th><th>Claims</th><th>Evidence</th><th>Source · Date</th><th>Type</th><th>Classification</th><th>Strength</th><th>Source</th><th></th></tr></thead><tbody>`;
+  EVIDENCE_().forEach(e=>{
+    const sel = STATE.selId===e.id?' sel':'';
+    html += `<tr class="${sel}" onclick="openPan('${e.id}','evidence')">
+      <td class="id-cell">${e.id}</td>
+      <td>${e.claims.map(c=>`<span class="ref" onclick="event.stopPropagation();openPan('${c}','claim')">${c}</span>`).join('')}</td>
+      <td><div class="txt-cell">${e.text}</div></td>
+      <td style="font-size:10.5px;color:var(--ink-3);max-width:170px;">${e.src}</td>
+      <td><span class="cell-edit" onclick="event.stopPropagation();ddType(event,'${e.id}')"><span class="chip t-${e.type==='behavioral'?'beh':e.type==='attitudinal'?'att':e.type==='document'?'doc':'ana'}">${e.type}</span></span></td>
+      <td><span class="cell-edit" onclick="event.stopPropagation();ddClass(event,'${e.id}')"><span class="bdg ${evCls(e.cls)}">${evLbl(e.cls)}</span></span></td>
+      <td>${strDots(e.str)}</td>
+      <td>${provMini(e.id)}</td>
+      <td><button class="del-btn" title="Delete evidence" onclick="event.stopPropagation();askDeleteItem(event,'evidence','${e.id}')">🗑</button></td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  document.getElementById('main-area').innerHTML = html;
+}
+
+// ─────────────────────────────────────────
+// TENSIONS TABLE
+// ─────────────────────────────────────────
+function renderTensions(){
+  let html = `<table><thead><tr><th>ID</th><th>Title</th><th>Claims</th><th>Description</th><th>Type</th><th>Priority</th><th>Status</th><th>Source</th><th></th></tr></thead><tbody>`;
+  TENSIONS_().forEach(t=>{
+    const sel = STATE.selId===t.id?' sel':'';
+    html += `<tr class="${sel}" onclick="openPan('${t.id}','tension')">
+      <td class="id-cell">${t.id}</td>
+      <td style="font-weight:600;font-size:12px;max-width:140px;">${t.title}</td>
+      <td>${t.claims.map(c=>`<span class="ref" onclick="event.stopPropagation();openPan('${c}','claim')">${c}</span>`).join('')}</td>
+      <td><div class="txt-cell" style="font-style:normal;font-size:11.5px;color:var(--ink-2);max-width:380px;">${t.desc.substring(0,180)}…</div></td>
+      <td><span class="t-type ${tnTypeCls(t.type)}">${tnTypeLbl(t.type)}</span></td>
+      <td><span class="pri pri-${t.pri}">${t.pri.toUpperCase()}</span></td>
+      <td><span class="bdg ${bCls(t.status==='partial'?'revised':t.status==='resolvable'?'asm':t.status)}">${t.status==='partial'?'Partial':t.status==='resolvable'?'Resolvable':bLbl(t.status)}</span></td>
+      <td>${provMini(t.id)}</td>
+      <td><button class="del-btn" title="Delete tension" onclick="event.stopPropagation();askDeleteItem(event,'tension','${t.id}')">🗑</button></td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  document.getElementById('main-area').innerHTML = html;
+}
+
+// ─────────────────────────────────────────
+// COUNTERFACTUALS TABLE
+// ─────────────────────────────────────────
+function renderCounterfactuals(){
+  const list = CF_();
+  if(list.length===0){
+    document.getElementById('main-area').innerHTML = `
+      <div class="empty">
+        <div class="empty-card" style="max-width:460px;padding:36px 32px;">
+          <div class="empty-icon">⟲</div>
+          <div class="empty-title" style="font-size:15px;">No counterfactuals yet</div>
+          <div class="empty-sub" style="font-size:12px;margin-bottom:18px;">Counterfactuals are discovered automatically from claim critiques, or you can add one yourself.</div>
+          <button class="btn btn-p btn-sm" onclick="openAddModal('counterfactual')">+ Add counterfactual</button>
+        </div>
+      </div>`;
+    return;
+  }
+  let html = `<table><thead><tr><th>ID</th><th>Claims</th><th>Statement</th><th>Severity</th><th>Status</th><th>Source</th><th></th></tr></thead><tbody>`;
+  list.forEach(c=>{
+    const sel = STATE.selId===c.id?' sel':'';
+    const sevLbl = c.severity==='invalidate' ? 'Invalidates' : 'Weakens';
+    const sevCls = c.severity==='invalidate' ? 'sev-inv' : 'sev-weak';
+    html += `<tr class="${sel}" onclick="openPan('${c.id}','counterfactual')">
+      <td class="id-cell">${c.id}</td>
+      <td>${c.claims.map(cl=>`<span class="ref" onclick="event.stopPropagation();openPan('${cl}','claim')">${cl}</span>`).join('')}</td>
+      <td><div class="txt-cell" style="font-style:normal;color:var(--ink-2);">${c.statement}</div></td>
+      <td><span class="${sevCls}">${sevLbl}</span></td>
+      <td><span class="bdg ${cfStatusCls(c.status)}">${cfStatusLbl(c.status)}</span></td>
+      <td>${provMini(c.id)}</td>
+      <td><button class="del-btn" title="Delete counterfactual" onclick="event.stopPropagation();askDeleteItem(event,'counterfactual','${c.id}')">🗑</button></td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  document.getElementById('main-area').innerHTML = html;
+}
+
+// ─────────────────────────────────────────
+// EXPERIMENTS TABLE
+// ─────────────────────────────────────────
+function renderExperiments(){
+  const list = EXP_();
+  if(list.length===0){
+    document.getElementById('main-area').innerHTML = `
+      <div class="empty">
+        <div class="empty-card" style="max-width:480px;padding:36px 32px;">
+          <div class="empty-icon">✦</div>
+          <div class="empty-title" style="font-size:15px;">No experiments yet</div>
+          <div class="empty-sub" style="font-size:12px;margin-bottom:18px;">AI can review your P0/P1 tensions, confirmed counterfactuals, and disputed claims to propose experiments — or add one yourself.</div>
+          <button class="btn gen-exp-btn btn-sm" onclick="generateExperiments()">✦ Generate experiments</button>
+        </div>
+      </div>`;
+    return;
+  }
+  let html = `<div style="padding:11px 16px;display:flex;justify-content:flex-end;border-bottom:1px solid var(--line-2);background:var(--surf-2);">
+      <button class="btn gen-exp-btn btn-sm" onclick="generateExperiments()">✦ Generate more experiments</button>
+    </div>
+    <table><thead><tr><th>ID</th><th>Title &amp; hypothesis</th><th>Derived from</th><th>Method</th><th>Timeline</th><th>Status</th><th>Source</th><th></th></tr></thead><tbody>`;
+  list.forEach(x=>{
+    const sel = STATE.selId===x.id?' sel':'';
+    const df = x.derivedFrom || {tensions:[],counterfactuals:[],claims:[]};
+    const chips = [
+      ...df.tensions.map(t=>`<span class="ref" onclick="event.stopPropagation();openPan('${t}','tension')" style="background:var(--warn-bg);border-color:var(--warn-soft);color:var(--warn);">${t}</span>`),
+      ...df.counterfactuals.map(c=>`<span class="ref" onclick="event.stopPropagation();openPan('${c}','counterfactual')" style="background:#faf2dc;border-color:#d9bf70;color:var(--gold);">${c}</span>`)
+    ].join('');
+    html += `<tr class="${sel}" onclick="openPan('${x.id}','experiment')">
+      <td class="id-cell">${x.id}</td>
+      <td><div class="txt-cell" style="font-style:normal;color:var(--ink);font-weight:600;font-size:12px;">${x.title}</div><div class="txt-cell" style="margin-top:3px;font-size:11px;">${x.hypothesis}</div></td>
+      <td><div class="derive-chips">${chips||'<span style="font-size:10px;color:var(--ink-4);">—</span>'}</div></td>
+      <td><span class="exp-method-chip">${x.method}</span></td>
+      <td style="font-size:11.5px;color:var(--ink-3);white-space:nowrap;">${x.timeline}</td>
+      <td><span class="bdg ${bCls(x.status==='proposed'?'asm':x.status)}">${x.status}</span></td>
+      <td>${provMini(x.id)}</td>
+      <td><button class="del-btn" title="Delete experiment" onclick="event.stopPropagation();askDeleteItem(event,'experiment','${x.id}')">🗑</button></td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  document.getElementById('main-area').innerHTML = html;
+}
+function swTab(t){
+  STATE.tab = t;
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('on'));
+  document.getElementById('tab-'+t).classList.add('on');
+  updateFiltbarActions(t);
+  closePan();
+  render();
+}
+
+function updateFiltbarActions(t){
+  const el = document.getElementById('filtbar-actions');
+  if(t==='claims') el.innerHTML = `<button class="btn btn-sm" onclick="openAddModal('claim')">+ Add claim</button>`;
+  else if(t==='evidence') el.innerHTML = `<button class="btn btn-sm" onclick="openAddModal('evidence')">+ Add evidence</button>`;
+  else if(t==='tensions') el.innerHTML = `<button class="btn btn-sm" onclick="openAddModal('tension')">+ Add tension</button>`;
+  else if(t==='counterfactuals') el.innerHTML = `<button class="btn btn-sm" onclick="openAddModal('counterfactual')">+ Add counterfactual</button>`;
+  else if(t==='experiments') el.innerHTML = `<button class="btn gen-exp-btn btn-sm" onclick="generateExperiments()">✦ Generate experiments</button>`;
+  else el.innerHTML = '';
+}
+
+// ─────────────────────────────────────────
+// SIDE PANEL
+// ─────────────────────────────────────────
+function idKind(id){
+  if(id.startsWith('CF')) return 'counterfactual';
+  if(id.startsWith('EXP')) return 'experiment';
+  if(id.startsWith('GE')) return 'evidence';
+  if(id.startsWith('GT')) return 'tension';
+  if(id.startsWith('HE')) return 'evidence';
+  if(id.startsWith('G')) return 'claim';
+  if(id.startsWith('H')) return 'claim';
+  if(id.startsWith('C')) return 'claim';
+  if(id.startsWith('E')) return 'evidence';
+  if(id.startsWith('T')) return 'tension';
+  return null;
+}
+function findEntity(id){
+  const kind = idKind(id);
+  if(kind==='claim') return CLAIMS_().find(x=>x.id===id);
+  if(kind==='evidence') return EVIDENCE_().find(x=>x.id===id);
+  if(kind==='tension') return TENSIONS_().find(x=>x.id===id);
+  if(kind==='counterfactual') return CF_().find(x=>x.id===id);
+  if(kind==='experiment') return EXP_().find(x=>x.id===id);
+  return null;
+}
+
+function openPan(id, type){
+  STATE.selId = id;
+  const entity = findEntity(id);
+  if(!entity)return;
+  STATE.panEntity = entity;
+  STATE.panType = type || idKind(id);
+  document.getElementById('pan-id').textContent = id;
+  document.getElementById('pan-title').textContent = ({claim:'Claim detail',evidence:'Evidence detail',tension:'Tension detail',counterfactual:'Counterfactual detail',experiment:'Experiment detail'})[STATE.panType];
+  document.getElementById('panel').classList.add('on');
+  STATE.panTab = 'detail';
+  document.querySelectorAll('.pan-tab').forEach(el=>el.classList.remove('on'));
+  document.getElementById('ptab-detail').classList.add('on');
+  renderPan();
+  render();
+}
+
+function openProv(id){
+  openPan(id, idKind(id));
+  swPanTab('prov');
+}
+
+function closePan(){
+  document.getElementById('panel').classList.remove('on');
+  STATE.selId = null;
+  render();
+}
+
+function swPanTab(t){
+  STATE.panTab = t;
+  document.querySelectorAll('.pan-tab').forEach(el=>el.classList.remove('on'));
+  document.getElementById('ptab-'+t).classList.add('on');
+  renderPan();
+}
+
+function renderPan(){
+  const e = STATE.panEntity;
+  if(!e)return;
+  const body = document.getElementById('pan-body');
+  const foot = document.getElementById('pan-foot');
+
+  if(STATE.panType==='claim'){
+    document.getElementById('ptab-ev-cnt').textContent = e.ev.length;
+    document.getElementById('ptab-tn-cnt').textContent = e.tn.length;
+    if(STATE.panTab==='detail'){
+      body.innerHTML = `
+        <div class="sec">
+          <div class="sec-l">Claim text</div>
+          <textarea rows="3">${e.text.replace(/^"|"$/g,'')}</textarea>
+        </div>
+        <div class="sec">
+          <div class="sec-l">Classification</div>
+          <div class="kv"><div class="kv-k">Category</div><div class="kv-v"><select><option ${e.cat==='Pain'?'selected':''}>Problem · Pain</option><option ${e.cat==='Alternatives'?'selected':''}>Alternatives</option><option ${e.cat==='Solution'?'selected':''}>Solution</option><option ${e.cat==='Persona'?'selected':''}>Market · Persona</option><option ${e.cat==='Commercial'?'selected':''}>Commercial</option></select></div></div>
+          <div class="kv"><div class="kv-k">Framework</div><div class="kv-v"><span class="fw-tag">${e.fw} · ${e.fw2}</span></div></div>
+          <div class="kv"><div class="kv-k">Status</div><div class="kv-v"><span class="bdg ${bCls(e.status)}">${bLbl(e.status)}</span></div></div>
+        </div>
+        <div class="sec">
+          <div class="ai-l">AI critic</div>
+          <div class="ai-block">${e.crit||'No critique generated yet.'}</div>
+        </div>
+        <div class="sec">
+          <div class="sec-l">Internal note</div>
+          <div style="font-size:11.5px;color:var(--ink-3);line-height:1.5;">${e.note||'—'}</div>
+        </div>
+        <div class="sec">
+          <div class="sec-l">Counterfactuals (${(e.cf||[]).length})</div>
+          ${(e.cf||[]).length ? e.cf.map(id=>`<span class="ref" onclick="openPan('${id}','counterfactual')">${id}</span>`).join(' ') : '<span style="font-size:11px;color:var(--ink-4);font-style:italic;">None identified yet.</span>'}
+        </div>
+        <div class="sec">
+          <div class="sec-l">Experiments (${(e.exp||[]).length})</div>
+          ${(e.exp||[]).length ? e.exp.map(id=>`<span class="ref" onclick="openPan('${id}','experiment')">${id}</span>`).join(' ') : '<span style="font-size:11px;color:var(--ink-4);font-style:italic;">None proposed yet.</span>'}
+        </div>`;
+      foot.innerHTML = `<button class="btn btn-warn btn-sm">Mark disputed</button><button class="btn btn-sm">Revise</button><div style="flex:1;"></div><button class="btn btn-p btn-sm">Save changes</button>`;
+    } else if(STATE.panTab==='ev'){
+      const evList = e.ev.map(id=>EVIDENCE_().find(x=>x.id===id)).filter(Boolean);
+      body.innerHTML = `
+        <div class="sec">
+          <div class="sec-l">Attached evidence (${evList.length})</div>
+          ${evList.map(ev=>`<div class="ev-card"><div>${ev.text}</div><div class="ev-card-meta"><span class="chip t-${ev.type==='behavioral'?'beh':ev.type==='attitudinal'?'att':ev.type==='document'?'doc':'ana'}">${ev.type}</span><span class="bdg ${evCls(ev.cls)}" style="font-size:9.5px;">${evLbl(ev.cls)}</span>${strDots(ev.str)}<span style="font-size:10px;color:var(--ink-4);margin-left:auto;">${ev.id}</span></div></div>`).join('')||'<div style="font-size:11.5px;color:var(--ink-4);font-style:italic;">No evidence attached yet.</div>'}
+        </div>
+        <div class="sec">
+          <div class="sec-l">Add evidence</div>
+          <textarea rows="3" placeholder="Paste quote, data point, or observation…"></textarea>
+          <div style="margin-top:8px;display:flex;gap:6px;"><button class="btn btn-p btn-sm">Submit · AI classifies</button><button class="btn btn-sm btn-gh">+ Link existing</button></div>
+        </div>`;
+      foot.innerHTML = `<button class="btn btn-sm" onclick="swPanTab('detail')">← Detail</button>`;
+    } else if(STATE.panTab==='tn'){
+      const tnList = e.tn.map(id=>TENSIONS_().find(x=>x.id===id)).filter(Boolean);
+      body.innerHTML = `
+        <div class="sec">
+          <div class="sec-l">Related tensions (${tnList.length})</div>
+          ${tnList.map(t=>`<div class="ev-card" style="border-left-color:var(--warn);"><div style="font-weight:600;font-size:12px;margin-bottom:3px;">${t.id} · ${t.title}</div><div style="font-size:11px;color:var(--ink-3);">${t.desc.substring(0,140)}…</div><div class="ev-card-meta"><span class="t-type ${tnTypeCls(t.type)}">${tnTypeLbl(t.type)}</span><span class="pri pri-${t.pri}">${t.pri.toUpperCase()}</span></div></div>`).join('')||'<div style="font-size:11.5px;color:var(--ink-4);font-style:italic;">No tensions involve this claim.</div>'}
+        </div>`;
+      foot.innerHTML = `<button class="btn btn-sm" onclick="swPanTab('detail')">← Detail</button>`;
+    } else if(STATE.panTab==='prov'){
+      renderProvenance(e);
+      foot.innerHTML = `<button class="btn btn-sm" onclick="swPanTab('detail')">← Detail</button>`;
+    }
+  } else if(STATE.panType==='evidence'){
+    document.getElementById('ptab-ev-cnt').textContent = '—';
+    document.getElementById('ptab-tn-cnt').textContent = '—';
+    if(STATE.panTab==='detail'){
+      body.innerHTML = `
+        <div class="sec">
+          <div class="sec-l">Evidence text</div>
+          <textarea rows="3">${e.text}</textarea>
+        </div>
+        <div class="sec">
+          <div class="sec-l">Classification</div>
+          <div class="kv"><div class="kv-k">Type</div><div class="kv-v"><select><option ${e.type==='behavioral'?'selected':''}>Behavioral</option><option ${e.type==='attitudinal'?'selected':''}>Attitudinal</option><option ${e.type==='document'?'selected':''}>Document</option><option ${e.type==='analytical'?'selected':''}>Analytical</option></select></div></div>
+          <div class="kv"><div class="kv-k">Classification</div><div class="kv-v"><select><option ${e.cls==='supports'?'selected':''}>Supports</option><option ${e.cls==='contradicts'?'selected':''}>Contradicts</option><option ${e.cls==='qualifies'?'selected':''}>Qualifies</option></select></div></div>
+          <div class="kv"><div class="kv-k">Strength</div><div class="kv-v"><select><option ${e.str===1?'selected':''}>Weak · 1</option><option ${e.str===2?'selected':''}>Moderate · 2</option><option ${e.str===3?'selected':''}>Strong · 3</option></select></div></div>
+        </div>
+        <div class="sec">
+          <div class="sec-l">Linked claims</div>
+          ${e.claims.map(c=>`<span class="ref" onclick="openPan('${c}','claim')">${c}</span>`).join(' ')}
+        </div>
+        <div class="sec">
+          <div class="sec-l">Source</div>
+          <input type="text" value="${e.src}"/>
+        </div>`;
+      foot.innerHTML = `<button class="btn btn-warn btn-sm">Reclassify</button><div style="flex:1;"></div><button class="btn btn-p btn-sm">Save</button>`;
+    } else if(STATE.panTab==='prov'){
+      renderProvenance(e);
+      foot.innerHTML = `<button class="btn btn-sm" onclick="swPanTab('detail')">← Detail</button>`;
+    } else {
+      body.innerHTML = '<div style="font-size:11.5px;color:var(--ink-4);">Not applicable for evidence.</div>';
+      foot.innerHTML = `<button class="btn btn-sm" onclick="swPanTab('detail')">← Detail</button>`;
+    }
+  } else if(STATE.panType==='tension'){
+    document.getElementById('ptab-ev-cnt').textContent = '—';
+    document.getElementById('ptab-tn-cnt').textContent = '—';
+    if(STATE.panTab==='detail'){
+      body.innerHTML = `
+        <div class="sec">
+          <div class="sec-l">Title</div>
+          <input type="text" value="${e.title}"/>
+        </div>
+        <div class="sec">
+          <div class="sec-l">Description</div>
+          <textarea rows="5">${e.desc}</textarea>
+        </div>
+        <div class="sec">
+          <div class="sec-l">Involved claims</div>
+          ${e.claims.map(c=>`<span class="ref" onclick="openPan('${c}','claim')">${c}</span>`).join(' ')}
+        </div>
+        <div class="sec">
+          <div class="sec-l">Classification</div>
+          <div class="kv"><div class="kv-k">Type</div><div class="kv-v"><span class="t-type ${tnTypeCls(e.type)}">${tnTypeLbl(e.type)}</span></div></div>
+          <div class="kv"><div class="kv-k">Priority</div><div class="kv-v"><span class="pri pri-${e.pri}">${e.pri.toUpperCase()}</span></div></div>
+          <div class="kv"><div class="kv-k">Status</div><div class="kv-v"><span class="bdg ${bCls(e.status==='partial'?'revised':e.status==='resolvable'?'asm':e.status)}">${e.status}</span></div></div>
+        </div>
+        <div class="sec">
+          <div class="sec-l">Decision path</div>
+          <div class="ai-block" style="border-left-color:var(--warn);">${e.path}</div>
+        </div>`;
+      foot.innerHTML = `<button class="btn btn-warn btn-sm">Confirm tension</button><button class="btn btn-sm">Defer</button><div style="flex:1;"></div><button class="btn btn-p btn-sm">Resolve</button>`;
+    } else if(STATE.panTab==='prov'){
+      renderProvenance(e);
+      foot.innerHTML = `<button class="btn btn-sm" onclick="swPanTab('detail')">← Detail</button>`;
+    } else {
+      body.innerHTML = '<div style="font-size:11.5px;color:var(--ink-4);">Not applicable for tensions.</div>';
+      foot.innerHTML = `<button class="btn btn-sm" onclick="swPanTab('detail')">← Detail</button>`;
+    }
+  } else if(STATE.panType==='counterfactual'){
+    document.getElementById('ptab-ev-cnt').textContent = '—';
+    document.getElementById('ptab-tn-cnt').textContent = '—';
+    if(STATE.panTab==='detail'){
+      const sevLbl = e.severity==='invalidate' ? 'Would invalidate claim' : 'Would weaken claim';
+      const sevCls = e.severity==='invalidate' ? 'sev-inv' : 'sev-weak';
+      body.innerHTML = `
+        <div class="sec">
+          <div class="sec-l">Statement</div>
+          <textarea rows="4">${e.statement}</textarea>
+        </div>
+        <div class="sec">
+          <div class="sec-l">Linked claims</div>
+          ${e.claims.map(c=>`<span class="ref" onclick="openPan('${c}','claim')">${c}</span>`).join(' ')}
+        </div>
+        <div class="sec">
+          <div class="sec-l">Classification</div>
+          <div class="kv"><div class="kv-k">Severity</div><div class="kv-v"><span class="${sevCls}">${sevLbl}</span></div></div>
+          <div class="kv"><div class="kv-k">Status</div><div class="kv-v"><span class="bdg ${cfStatusCls(e.status)}">${cfStatusLbl(e.status)}</span></div></div>
+        </div>`;
+      foot.innerHTML = `<button class="btn btn-warn btn-sm">Mark confirmed</button><button class="btn btn-sm">Rule out</button><div style="flex:1;"></div><button class="btn btn-p btn-sm">Save</button>`;
+    } else if(STATE.panTab==='prov'){
+      renderProvenance(e);
+      foot.innerHTML = `<button class="btn btn-sm" onclick="swPanTab('detail')">← Detail</button>`;
+    } else {
+      body.innerHTML = '<div style="font-size:11.5px;color:var(--ink-4);">Not applicable for counterfactuals.</div>';
+      foot.innerHTML = `<button class="btn btn-sm" onclick="swPanTab('detail')">← Detail</button>`;
+    }
+  } else if(STATE.panType==='experiment'){
+    document.getElementById('ptab-ev-cnt').textContent = '—';
+    document.getElementById('ptab-tn-cnt').textContent = '—';
+    if(STATE.panTab==='detail'){
+      const df = e.derivedFrom || {tensions:[],counterfactuals:[],claims:[]};
+      body.innerHTML = `
+        <div class="sec">
+          <div class="sec-l">Title</div>
+          <input type="text" value="${e.title}"/>
+        </div>
+        <div class="sec">
+          <div class="sec-l">Hypothesis</div>
+          <textarea rows="3">${e.hypothesis}</textarea>
+        </div>
+        <div class="sec">
+          <div class="sec-l">Derived from</div>
+          <div class="kv"><div class="kv-k">Tensions</div><div class="kv-v">${df.tensions.length?df.tensions.map(t=>`<span class="ref" onclick="openPan('${t}','tension')">${t}</span>`).join(' '):'<span style="color:var(--ink-4);font-style:italic;font-size:11px;">none</span>'}</div></div>
+          <div class="kv"><div class="kv-k">Counterfactuals</div><div class="kv-v">${df.counterfactuals.length?df.counterfactuals.map(c=>`<span class="ref" onclick="openPan('${c}','counterfactual')">${c}</span>`).join(' '):'<span style="color:var(--ink-4);font-style:italic;font-size:11px;">none</span>'}</div></div>
+          <div class="kv"><div class="kv-k">Claims tested</div><div class="kv-v">${e.claims.map(c=>`<span class="ref" onclick="openPan('${c}','claim')">${c}</span>`).join(' ')}</div></div>
+        </div>
+        <div class="sec">
+          <div class="sec-l">Design</div>
+          <div class="kv"><div class="kv-k">Method</div><div class="kv-v">${e.method}</div></div>
+          <div class="kv"><div class="kv-k">Timeline</div><div class="kv-v">${e.timeline}</div></div>
+          <div class="kv"><div class="kv-k">Success metric</div><div class="kv-v">${e.metric}</div></div>
+          <div class="kv"><div class="kv-k">Status</div><div class="kv-v"><span class="bdg ${bCls(e.status==='proposed'?'asm':e.status)}">${e.status}</span></div></div>
+        </div>
+        <div class="sec">
+          <div class="ai-l">AI reasoning — why this experiment</div>
+          <div class="ai-block">${e.reasoning}</div>
+        </div>`;
+      foot.innerHTML = `<button class="btn btn-sm">Mark running</button><button class="btn btn-sm">Mark complete</button><div style="flex:1;"></div><button class="btn btn-p btn-sm">Save</button>`;
+    } else if(STATE.panTab==='prov'){
+      renderProvenance(e);
+      foot.innerHTML = `<button class="btn btn-sm" onclick="swPanTab('detail')">← Detail</button>`;
+    } else {
+      body.innerHTML = '<div style="font-size:11.5px;color:var(--ink-4);">Not applicable for experiments.</div>';
+      foot.innerHTML = `<button class="btn btn-sm" onclick="swPanTab('detail')">← Detail</button>`;
+    }
+  }
+}
+
+function renderProvenance(e){
+  const p = e.prov;
+  document.getElementById('pan-body').innerHTML = `
+    <div class="sec">
+      <div class="sec-l">Origin</div>
+      <div class="kv"><div class="kv-k">Source</div><div class="kv-v" style="font-family:monospace;font-size:11px;">${p.src}</div></div>
+      <div class="kv"><div class="kv-k">Extracted by</div><div class="kv-v">${p.creator}</div></div>
+      <div class="kv"><div class="kv-k">When</div><div class="kv-v" style="font-family:monospace;font-size:11px;">${p.extracted}</div></div>
+      <div class="kv"><div class="kv-k">Confidence</div><div class="kv-v"><div style="display:inline-block;width:80px;height:5px;background:#e6e0cc;border-radius:2px;vertical-align:middle;"><div style="height:100%;background:var(--ink);width:${p.confidence*100}%;border-radius:2px;"></div></div> <span style="font-family:monospace;font-size:11px;color:var(--ink-3);">${(p.confidence*100).toFixed(0)}%</span></div></div>
+    </div>
+    <div class="sec">
+      <div class="sec-l">Source quote / context</div>
+      <div class="src-block">${p.srcQuote}</div>
+    </div>
+    <div class="sec">
+      <div class="sec-l">Modification trail</div>
+      <div class="trail">
+        ${p.trail.map((t,i)=>`<div class="trail-item${i===p.trail.length-1?' curr':''}"><div class="trail-when">${t.when}</div><div class="trail-what">${t.what}</div><div class="trail-who">${t.who}</div></div>`).join('')}
+      </div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────
+// DROPDOWNS
+// ─────────────────────────────────────────
+function ddStatus(ev, id){ddPop(ev,['Assumed','Supported','Disputed','Validated','Revised','Critical gap'],v=>{const c=CLAIMS_().find(x=>x.id===id);c.status=v.toLowerCase().replace('critical gap','gap');render();})}
+function ddType(ev, id){ddPop(ev,['behavioral','attitudinal','document','analytical'],v=>{const e=EVIDENCE_().find(x=>x.id===id);e.type=v;render();})}
+function ddClass(ev, id){ddPop(ev,['supports','contradicts','qualifies'],v=>{const e=EVIDENCE_().find(x=>x.id===id);e.cls=v;render();})}
+function ddPop(ev, opts, cb){
+  ev.preventDefault();
+  const dd = document.getElementById('dd');
+  dd.innerHTML = opts.map(o=>`<div class="dd-opt" onclick="window._ddPick('${o}')">${o}</div>`).join('');
+  const r = ev.target.getBoundingClientRect();
+  dd.style.display = 'block';
+  dd.style.left = r.left+'px';
+  dd.style.top = (r.bottom+4)+'px';
+  window._ddCb = cb;
+  window._ddPick = v=>{dd.style.display='none';window._ddCb(v)};
+  setTimeout(()=>{document.addEventListener('click',hideDD,{once:true})},10);
+}
+function hideDD(){document.getElementById('dd').style.display='none'}
+
+// ─────────────────────────────────────────
+// EMPTY / UPLOAD / ADD
+// ─────────────────────────────────────────
+function dismissBanner(){document.getElementById('extract-banner').classList.remove('on')}
+
+// ═══════════════════════════════════════════════
+// GENERIC ADD-ITEM MODAL (Claims, Evidence, Tensions, Counterfactuals)
+// ═══════════════════════════════════════════════
+let pendingAdd = null;
+
+function openAddModal(type){
+  window._addType = type;
+  const titleEl = document.getElementById('add-modal-title');
+  const subEl = document.getElementById('add-modal-sub');
+  const bodyEl = document.getElementById('add-modal-body');
+  const submitBtn = document.getElementById('add-modal-submit');
+  const claims = CLAIMS_();
+  const claimOpts = claims.map(c=>`<option value="${c.id}">${c.id} — ${c.text.replace(/^"|"$/g,'').substring(0,55)}</option>`).join('');
+  const noClaims = '<option value="">No claims yet — add a claim first</option>';
+
+  if(type==='claim'){
+    titleEl.textContent = 'Add a claim manually';
+    subEl.textContent = 'Claims you add manually are reviewed by AI before they are finalised.';
+    bodyEl.innerHTML = `
+      <div class="sec-l" style="margin-bottom:5px;">Claim text</div>
+      <textarea id="af-text" rows="3" placeholder="State the claim as a falsifiable assertion…"></textarea>
+      <div class="sec-l" style="margin-bottom:5px;margin-top:10px;">Category</div>
+      <select id="af-cat" style="width:100%;">
+        <option value="Pain">Problem · Pain</option>
+        <option value="Alternatives">Alternatives</option>
+        <option value="Solution">Solution</option>
+        <option value="Persona">Market · Persona</option>
+        <option value="Commercial">Commercial</option>
+      </select>`;
+    submitBtn.textContent = 'Add claim';
+  } else if(type==='evidence'){
+    titleEl.textContent = 'Add evidence manually';
+    subEl.textContent = 'AI classifies new evidence against the claim it relates to automatically.';
+    bodyEl.innerHTML = `
+      <div class="sec-l" style="margin-bottom:5px;">Relates to claim</div>
+      <select id="af-claim" style="width:100%;">${claimOpts || noClaims}</select>
+      <div class="sec-l" style="margin-bottom:5px;margin-top:10px;">Evidence text</div>
+      <textarea id="af-text" rows="3" placeholder="Paste a quote, data point, or observation…"></textarea>
+      <div class="sec-l" style="margin-bottom:5px;margin-top:10px;">Source</div>
+      <input type="text" id="af-src" placeholder="e.g. Interview · Jane Doe · 2025-06-19"/>`;
+    submitBtn.textContent = 'Add evidence';
+  } else if(type==='tension'){
+    titleEl.textContent = 'Add a tension manually';
+    subEl.textContent = 'AI types and prioritises new tensions automatically.';
+    bodyEl.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><div class="sec-l" style="margin-bottom:5px;">Claim A</div><select id="af-claimA" style="width:100%;">${claimOpts || noClaims}</select></div>
+        <div><div class="sec-l" style="margin-bottom:5px;">Claim B</div><select id="af-claimB" style="width:100%;">${claimOpts || noClaims}</select></div>
+      </div>
+      <div class="sec-l" style="margin-bottom:5px;margin-top:10px;">Description</div>
+      <textarea id="af-text" rows="3" placeholder="Describe how these claims conflict…"></textarea>`;
+    submitBtn.textContent = 'Add tension';
+  } else if(type==='counterfactual'){
+    titleEl.textContent = 'Add a counterfactual manually';
+    subEl.textContent = 'A counterfactual states what would have to be true for a claim to be false.';
+    bodyEl.innerHTML = `
+      <div class="sec-l" style="margin-bottom:5px;">Relates to claim</div>
+      <select id="af-claim" style="width:100%;">${claimOpts || noClaims}</select>
+      <div class="sec-l" style="margin-bottom:5px;margin-top:10px;">Statement</div>
+      <textarea id="af-text" rows="3" placeholder="What would have to be true for this claim to be false?"></textarea>`;
+    submitBtn.textContent = 'Add counterfactual';
+  }
+  document.getElementById('modal-add').classList.add('on');
+}
+
+function closeAdd(){ document.getElementById('modal-add').classList.remove('on'); }
+
+function submitAddModal(){
+  const type = window._addType;
+  const textEl = document.getElementById('af-text');
+  const text = textEl ? textEl.value.trim() : '';
+  if(!text){ textEl && textEl.focus(); return; }
+  document.getElementById('modal-add').classList.remove('on');
+
+  if(type==='claim'){
+    const cat = document.getElementById('af-cat').value;
+    reviewNewClaim(text, cat);
+  } else if(type==='evidence'){
+    const claimId = document.getElementById('af-claim').value;
+    const src = document.getElementById('af-src').value.trim() || 'Manual entry';
+    if(!claimId){ return; }
+    reviewNewEvidence(claimId, text, src);
+  } else if(type==='tension'){
+    const claimA = document.getElementById('af-claimA').value;
+    const claimB = document.getElementById('af-claimB').value;
+    if(!claimA){ return; }
+    reviewNewTension(claimA, claimB, text);
+  } else if(type==='counterfactual'){
+    const claimId = document.getElementById('af-claim').value;
+    if(!claimId){ return; }
+    reviewNewCounterfactual(claimId, text);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// AI REVIEW MODAL — shared spinner + result helpers
+// ═══════════════════════════════════════════════
+function showAIReviewing(){
+  document.getElementById('airev-title').textContent = 'Reviewing your entry…';
+  document.getElementById('airev-body').innerHTML = `<div style="display:flex;align-items:center;color:var(--ink-3);font-size:12.5px;"><span class="spinner"></span>Analysing and classifying…</div>`;
+  document.getElementById('airev-foot').innerHTML = '';
+  document.getElementById('modal-airev').classList.add('on');
+}
+function closeAIReview(){ document.getElementById('modal-airev').classList.remove('on'); }
+
+function switchToTab(t){
+  STATE.tab = t;
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('on'));
+  document.getElementById('tab-'+t).classList.add('on');
+  updateFiltbarActions(t);
+}
+
+// ── Claims: AI asks a clarifying question ──
+function reviewNewClaim(text, cat){
+  pendingAdd = {text, cat};
+  showAIReviewing();
+  setTimeout(()=>{
+    document.getElementById('airev-title').textContent = 'One quick question';
+    document.getElementById('airev-body').innerHTML = `<div class="airev-q">What is the source of this claim — a document, something you observed or were told, or your own inference?</div>
+      <div class="qp-row">
+        <button class="qp-btn" onclick="finalizeNewClaim('document')">📄 A document</button>
+        <button class="qp-btn" onclick="finalizeNewClaim('observed')">👂 Observed / told</button>
+        <button class="qp-btn" onclick="finalizeNewClaim('inference')">🧠 My inference</button>
+      </div>`;
+  }, 1000);
+}
+function finalizeNewClaim(sourceType){
+  const {text, cat} = pendingAdd;
+  const id = 'CM'+Date.now().toString().slice(-5);
+  const fwMap = {Pain:'BLAC: Blatant', Alternatives:'Lean Canvas: Alternatives', Solution:'4U: Unworkable (current)', Persona:'Skok: MVS', Commercial:'Lean Canvas: Revenue'};
+  const creatorMap = {document:'AI auto-extraction (user-flagged document)', observed:'Sid (manual, observed/told)', inference:'Sid (manual, inference)'};
+  const srcMap = {document:'User-provided, document-based', observed:'User-provided, observed/told', inference:'User-provided, inference'};
+  const newClaim = {
+    id, cat, text: '"'+text+'"', fw: fwMap[cat]||'Lean Canvas: General', fw2:'Manually added', status:'assumed', ev:[], tn:[], cf:[], exp:[],
+    note:'Manually added. AI has classified the source type; this claim has not yet been challenged in depth.',
+    prov:{src: srcMap[sourceType], extracted:'Manual entry, AI-reviewed', creator:creatorMap[sourceType], confidence:1.0,
+          srcQuote:text,
+          trail:[{when:todayStr()+' '+nowTimeStr(), who:'Sid (manual)', what:'Added manually'},
+                 {when:todayStr()+' '+nowTimeStr(), who:'AI auto-discovery', what:'Source type classified as: '+sourceType}]},
+    crit:'This claim has not yet been critiqued in depth. Once evidence is attached, AI will generate a full challenge with a falsification condition.'
+  };
+  curDS().claims.push(newClaim);
+  STATE.view = 'populated';
+  closeAIReview();
+  switchToTab('claims');
+  render();
+  openPan(id,'claim');
+  pendingAdd = null;
+}
+
+// ── Evidence: AI auto-classifies ──
+function reviewNewEvidence(claimId, text, src){
+  pendingAdd = {claimId, text, src};
+  showAIReviewing();
+  setTimeout(()=>{
+    const lower = text.toLowerCase();
+    let cls = 'supports';
+    if(/\bnot\b|\bnever\b|\bno\b|contradict|fail/.test(lower)) cls = 'contradicts';
+    else if(/\bbut\b|\bonly\b|partial|however|\bsome\b/.test(lower)) cls = 'qualifies';
+    let etype = 'attitudinal';
+    if(/data|measured|logged|survey|recorded|signed|confirmed/.test(lower)) etype = 'behavioral';
+    if(/regulat|standard|\bform\b|\bact\b|rp \d|recommended practice/.test(lower)) etype = 'document';
+    pendingAdd.cls = cls; pendingAdd.etype = etype;
+    document.getElementById('airev-title').textContent = 'Classification complete';
+    document.getElementById('airev-body').innerHTML = `<div class="airev-result"><b>Classified as ${evLbl(cls)}</b> (${etype}). Strength set to Weak until corroborated by additional sources. You can reclassify this any time from the Evidence tab.</div>`;
+    document.getElementById('airev-foot').innerHTML = `<button class="btn btn-p btn-sm" onclick="finalizeNewEvidence()">Done</button>`;
+  }, 1100);
+}
+function finalizeNewEvidence(){
+  const {claimId, text, src, cls, etype} = pendingAdd;
+  const id = 'EM'+Date.now().toString().slice(-5);
+  const newEv = {id, claims:[claimId], text, src, type:etype, cls, str:1,
+    prov:{src:'Manual entry', extracted:'Manual entry, AI-classified', creator:'Sid', confidence:1.0,
+          srcQuote:text,
+          trail:[{when:todayStr()+' '+nowTimeStr(), who:'Sid (manual)', what:'Added manually'},
+                 {when:todayStr()+' '+nowTimeStr(), who:'AI auto-classification', what:'Classified as '+cls+' / '+etype}]}};
+  curDS().evidence.push(newEv);
+  const cl = CLAIMS_().find(c=>c.id===claimId);
+  if(cl){ cl.ev = cl.ev||[]; if(!cl.ev.includes(id)) cl.ev.push(id); }
+  closeAIReview();
+  switchToTab('evidence');
+  render();
+  openPan(id,'evidence');
+  pendingAdd = null;
+}
+
+// ── Tensions: AI auto-classifies ──
+function reviewNewTension(claimA, claimB, text){
+  pendingAdd = {claimA, claimB, text};
+  showAIReviewing();
+  setTimeout(()=>{
+    const lower = text.toLowerCase();
+    let ttype = 'fra';
+    if(/pay|price|revenue|budget|\bcost\b/.test(lower)) ttype = 'com';
+    else if(/accura|technical|\bbug\b|sizing|\bmodel\b/.test(lower)) ttype = 'tec';
+    else if(/persona|buyer|\buser\b|customer/.test(lower)) ttype = 'per';
+    else if(/\brisk\b|complian|legal|disclos/.test(lower)) ttype = 'risk';
+    let pri = 'p2';
+    if(/block|critical|\bp0\b/.test(lower)) pri = 'p0';
+    else if(/important|\bp1\b|high/.test(lower)) pri = 'p1';
+    pendingAdd.ttype = ttype; pendingAdd.pri = pri;
+    document.getElementById('airev-title').textContent = 'Classification complete';
+    document.getElementById('airev-body').innerHTML = `<div class="airev-result"><b>Typed as ${tnTypeLbl(ttype)}</b>, priority <b>${pri.toUpperCase()}</b>. You can change either from the Tensions tab.</div>`;
+    document.getElementById('airev-foot').innerHTML = `<button class="btn btn-p btn-sm" onclick="finalizeNewTension()">Done</button>`;
+  }, 1100);
+}
+function finalizeNewTension(){
+  const {claimA, claimB, text, ttype, pri} = pendingAdd;
+  const id = 'TM'+Date.now().toString().slice(-5);
+  const claimsArr = (claimB && claimB!==claimA) ? [claimA, claimB] : [claimA];
+  const newT = {id, title: text.substring(0,40)+(text.length>40?'…':''), claims:claimsArr, type:ttype, pri, status:'assumed',
+    desc:text, path:'Not yet resolved — review and choose a resolution path.',
+    prov:{src:'Manual entry', extracted:'Manual entry, AI-classified', creator:'Sid', confidence:1.0,
+          srcQuote:text,
+          trail:[{when:todayStr()+' '+nowTimeStr(), who:'Sid (manual)', what:'Added manually'},
+                 {when:todayStr()+' '+nowTimeStr(), who:'AI auto-classification', what:'Typed as '+ttype+', priority '+pri}]}};
+  curDS().tensions.push(newT);
+  claimsArr.forEach(cid=>{ const cl=CLAIMS_().find(c=>c.id===cid); if(cl){ cl.tn = cl.tn||[]; if(!cl.tn.includes(id)) cl.tn.push(id); } });
+  closeAIReview();
+  switchToTab('tensions');
+  render();
+  openPan(id,'tension');
+  pendingAdd = null;
+}
+
+// ── Counterfactuals: AI asks a clarifying question ──
+function reviewNewCounterfactual(claimId, text){
+  pendingAdd = {claimId, text};
+  showAIReviewing();
+  setTimeout(()=>{
+    document.getElementById('airev-title').textContent = 'One quick question';
+    document.getElementById('airev-body').innerHTML = `<div class="airev-q">If this turned out to be true, would it invalidate the claim entirely, or just weaken it?</div>
+      <div class="qp-row">
+        <button class="qp-btn" onclick="finalizeNewCF('invalidate')">⛔ Would invalidate it</button>
+        <button class="qp-btn" onclick="finalizeNewCF('weaken')">◐ Would just weaken it</button>
+      </div>`;
+  }, 1000);
+}
+function finalizeNewCF(severity){
+  const {claimId, text} = pendingAdd;
+  const id = 'CFM'+Date.now().toString().slice(-5);
+  const newCF = {id, claims:[claimId], statement:text, severity, status:'proposed',
+    prov:{src:'Manual entry', extracted:'Manual entry, AI-reviewed', creator:'Sid', confidence:1.0,
+          srcQuote:text,
+          trail:[{when:todayStr()+' '+nowTimeStr(), who:'Sid (manual)', what:'Added manually'},
+                 {when:todayStr()+' '+nowTimeStr(), who:'AI auto-discovery', what:'Severity classified as: '+severity}]}};
+  curDS().counterfactuals.push(newCF);
+  const cl = CLAIMS_().find(c=>c.id===claimId);
+  if(cl){ cl.cf = cl.cf||[]; if(!cl.cf.includes(id)) cl.cf.push(id); }
+  closeAIReview();
+  switchToTab('counterfactuals');
+  render();
+  openPan(id,'counterfactual');
+  pendingAdd = null;
+}
+
+// ═══════════════════════════════════════════════
+// GENERATE EXPERIMENTS — AI synthesis from tensions + counterfactuals
+// ═══════════════════════════════════════════════
+function generateExperiments(){
+  const ds = curDS();
+  const usedTensionIds = new Set(ds.experiments.flatMap(e=>(e.derivedFrom&&e.derivedFrom.tensions)||[]));
+  const usedCfIds = new Set(ds.experiments.flatMap(e=>(e.derivedFrom&&e.derivedFrom.counterfactuals)||[]));
+  const candidateTension = ds.tensions.find(t=>(t.pri==='p0'||t.pri==='p1') && !usedTensionIds.has(t.id));
+  const candidateCf = ds.counterfactuals.find(c=>(c.status==='confirmed'||c.status==='investigating') && !usedCfIds.has(c.id));
+
+  if(!candidateTension && !candidateCf){
+    document.getElementById('extract-banner').innerHTML = `ℹ No new experiments to propose — all P0/P1 tensions and active counterfactuals already have an experiment linked. <button class="btn btn-sm btn-gh" style="margin-left:auto;" onclick="dismissBanner()">Dismiss</button>`;
+    document.getElementById('extract-banner').classList.add('on');
+    return;
+  }
+
+  const relatedClaims = new Set();
+  if(candidateTension) candidateTension.claims.forEach(c=>relatedClaims.add(c));
+  if(candidateCf) candidateCf.claims.forEach(c=>relatedClaims.add(c));
+  const claimsArr = Array.from(relatedClaims);
+  const newId = 'EXPG'+Date.now().toString().slice(-5);
+  const titleSrc = candidateTension ? candidateTension.title : candidateCf.statement.substring(0,55)+'…';
+
+  const exp = {
+    id:newId,
+    title:'Investigate: '+titleSrc,
+    claims:claimsArr,
+    derivedFrom:{tensions:candidateTension?[candidateTension.id]:[], counterfactuals:candidateCf?[candidateCf.id]:[], claims:[]},
+    hypothesis:'Gather direct evidence to resolve whether this '+(candidateTension?'tension':'counterfactual')+' holds, using a structured test rather than continued analysis.',
+    method:'Customer interview', timeline:'3 weeks',
+    metric:'Clear directional evidence (supports or contradicts) gathered from at least 2 independent sources',
+    status:'proposed',
+    reasoning:'Synthesised from '+(candidateTension?('Tension '+candidateTension.id):'')+(candidateTension&&candidateCf?' and ':'')+(candidateCf?('Counterfactual '+candidateCf.id):'')+'. This was the highest-priority unaddressed item with no experiment currently proposed against it.',
+    prov:{src:'AI synthesis · cross-entity reasoning', extracted:'AI experiment synthesis', creator:'AI auto-discovery', confidence:0.7,
+          srcQuote:'Synthesis pass scanned active P0/P1 tensions and confirmed/investigating counterfactuals without an existing linked experiment, and proposed the highest-priority gap.',
+          trail:[{when:todayStr()+' '+nowTimeStr(), who:'AI experiment synthesis', what:'Generated via Generate Experiments action'}]}
+  };
+  ds.experiments.push(exp);
+  claimsArr.forEach(cid=>{
+    const cl = ds.claims.find(x=>x.id===cid);
+    if(cl){ cl.exp = cl.exp||[]; if(!cl.exp.includes(newId)) cl.exp.push(newId); }
+  });
+  switchToTab('experiments');
+  render();
+  openPan(newId,'experiment');
+}
+
+// ═══════════════════════════════════════════════
+// GENERIC DELETE — works across all 5 entity tables
+// ═══════════════════════════════════════════════
+let pendingDeleteItem = null;
+
+function askDeleteItem(ev, type, id){
+  ev.stopPropagation();
+  pendingDeleteItem = {type, id};
+  const pop = document.getElementById('del-item-pop');
+  pop.innerHTML = `<div class="dcp-txt">Delete <strong>${id}</strong>? This removes it from anything that references it. This cannot be undone.</div>
+    <div class="dcp-row"><button class="btn btn-sm" onclick="closeDelItemPop()">Cancel</button><button class="btn btn-warn btn-sm" onclick="confirmDeleteItem()">Delete</button></div>`;
+  const r = ev.target.getBoundingClientRect();
+  pop.style.display = 'block';
+  const left = Math.max(8, Math.min(window.innerWidth-228, r.left-170));
+  pop.style.left = left+'px';
+  pop.style.top = (r.bottom+6)+'px';
+  setTimeout(()=>document.addEventListener('click', outsideDelPop, {once:true}), 10);
+}
+function outsideDelPop(e){
+  const pop = document.getElementById('del-item-pop');
+  if(pop.style.display!=='none' && !pop.contains(e.target)) closeDelItemPop();
+}
+function closeDelItemPop(){
+  document.getElementById('del-item-pop').style.display = 'none';
+  pendingDeleteItem = null;
+}
+function confirmDeleteItem(){
+  if(!pendingDeleteItem) return;
+  const {type, id} = pendingDeleteItem;
+  const ds = curDS();
+  if(type==='claim'){
+    ds.claims = ds.claims.filter(x=>x.id!==id);
+    ds.evidence.forEach(e=>{ e.claims = e.claims.filter(c=>c!==id); });
+    ds.tensions.forEach(t=>{ t.claims = t.claims.filter(c=>c!==id); });
+    ds.counterfactuals.forEach(c=>{ c.claims = c.claims.filter(x=>x!==id); });
+    ds.experiments.forEach(x=>{ x.claims = x.claims.filter(c=>c!==id); });
+  } else if(type==='evidence'){
+    ds.evidence = ds.evidence.filter(x=>x.id!==id);
+    ds.claims.forEach(c=>{ c.ev = (c.ev||[]).filter(e=>e!==id); });
+  } else if(type==='tension'){
+    ds.tensions = ds.tensions.filter(x=>x.id!==id);
+    ds.claims.forEach(c=>{ c.tn = (c.tn||[]).filter(t=>t!==id); });
+    ds.experiments.forEach(x=>{ if(x.derivedFrom) x.derivedFrom.tensions = (x.derivedFrom.tensions||[]).filter(t=>t!==id); });
+  } else if(type==='counterfactual'){
+    ds.counterfactuals = ds.counterfactuals.filter(x=>x.id!==id);
+    ds.claims.forEach(c=>{ c.cf = (c.cf||[]).filter(x=>x!==id); });
+    ds.experiments.forEach(x=>{ if(x.derivedFrom) x.derivedFrom.counterfactuals = (x.derivedFrom.counterfactuals||[]).filter(c=>c!==id); });
+  } else if(type==='experiment'){
+    ds.experiments = ds.experiments.filter(x=>x.id!==id);
+    ds.claims.forEach(c=>{ c.exp = (c.exp||[]).filter(x=>x!==id); });
+  }
+  if(STATE.selId===id) closePan();
+  closeDelItemPop();
+  render();
+}
+
+
+
+// ═══════════════════════════════════════════════
+// WORKFLOW MODAL
+// ═══════════════════════════════════════════════
+function openWorkflowModal(){ document.getElementById('modal-workflow').classList.add('on'); }
+function closeWorkflowModal(){ document.getElementById('modal-workflow').classList.remove('on'); }
+
+// ═══════════════════════════════════════════════
+// INIT — start at dashboard
+// ═══════════════════════════════════════════════
+renderDash();
+</script>
+</body>
+</html>

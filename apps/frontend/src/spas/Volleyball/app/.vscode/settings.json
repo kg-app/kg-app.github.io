@@ -1,0 +1,6 @@
+{
+  "liveServer.settings.port": 5500,
+  "liveServer.settings.root": "/",
+  "liveServer.settings.file": "app.html",
+  "liveServer.settings.middleware": [{ "id": "dev-middleware.js" }]
+}

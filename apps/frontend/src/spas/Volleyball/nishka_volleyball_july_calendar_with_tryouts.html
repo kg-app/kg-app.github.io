@@ -1,0 +1,186 @@
+<div style="font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif);">
+<div class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;">Calendar timeline of Nishka's volleyball activities from July 3 through August 2, 2026, including club academy events in blue, group training in teal, private training in coral, tryouts in purple, and Panther Creek High School events in hatched amber, plotted by day and time of day, with labels and hover tooltips.</div>
+<div style="display:flex; gap:16px; margin:0 0 16px; font-size:12px; color:var(--text-secondary, #52514e); flex-wrap:wrap;">
+  <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#378ADD;"></span>Academy / camp event</span>
+  <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#1D9E75;"></span>Group training</span>
+  <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#D85A30;"></span>Private training</span>
+  <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#7F77DD;"></span>Tryouts</span>
+  <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background-color:#F2A623;background-image:repeating-linear-gradient(45deg, rgba(65,36,2,0.3) 0, rgba(65,36,2,0.3) 2px, transparent 2px, transparent 6px);"></span>School (PCHS)</span>
+</div>
+<div id="cal" style="position:relative; overflow-x:auto; padding-bottom:4px;"></div>
+</div>
+<script>
+const events = [
+  {date:'7/3', day:'Fri', start:14, end:15, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/6', day:'Mon', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/6', day:'Mon', start:15, end:16, type:'group', name:"Romel's session (group)", label:'Romel'},
+  {date:'7/6', day:'Mon', start:18, end:19, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/6', day:'Mon', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/7', day:'Tue', start:15, end:16, type:'group', name:"Romel's session (group)", label:'Romel'},
+  {date:'7/7', day:'Tue', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/8', day:'Wed', start:15, end:16, type:'group', name:"Romel's session (group)", label:'Romel'},
+  {date:'7/8', day:'Wed', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/9', day:'Thu', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/10', day:'Fri', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/10', day:'Fri', start:16, end:17, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/10', day:'Fri', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/11', day:'Sat', start:9.5, end:11, type:'event', name:'N1 Academy: Open Gym', label:'Open gym'},
+  {date:'7/12', day:'Sun', start:11, end:12, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/13', day:'Mon', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/13', day:'Mon', start:15, end:16, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/13', day:'Mon', start:18, end:19, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/13', day:'Mon', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/14', day:'Tue', start:16, end:17, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/14', day:'Tue', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/15', day:'Wed', start:16, end:17, type:'group', name:"Romel's session (group)", label:'Romel'},
+  {date:'7/15', day:'Wed', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/16', day:'Thu', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/17', day:'Fri', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/17', day:'Fri', start:14, end:15, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/17', day:'Fri', start:15, end:16, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/17', day:'Fri', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/18', day:'Sat', start:9.5, end:11, type:'event', name:'N1 Academy: Open Gym', label:'Open gym'},
+  {date:'7/19', day:'Sun', start:11, end:12, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/20', day:'Mon', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/20', day:'Mon', start:14, end:15, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/20', day:'Mon', start:15, end:16, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/22', day:'Wed', start:18, end:19, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/24', day:'Fri', start:19, end:20, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/25', day:'Sat', start:13.5, end:16, type:'event', name:'N1 VB Acdmy Camp', label:'Camp'},
+  {date:'7/26', day:'Sun', start:13.5, end:16, type:'event', name:'N1 VB Acdmy Camp', label:'Camp'},
+  {date:'7/27', day:'Mon', start:18, end:19, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/27', day:'Mon', start:9, end:11, type:'school', name:'PCHS school tryouts', label:'Tryout'},
+  {date:'7/28', day:'Tue', start:9, end:11, type:'school', name:'PCHS school tryouts', label:'Tryout'},
+  {date:'7/29', day:'Wed', start:18.5, end:19.5, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/31', day:'Fri', start:18, end:20, type:'tryout', name:'Academy Tryouts - Session 1', label:'Academy'},
+  {date:'8/1', day:'Sat', start:9, end:11.5, type:'tryout', name:'Triangle Tryouts - Session 1', label:'Triangle'},
+  {date:'8/1', day:'Sat', start:17, end:18.5, type:'tryout', name:'Academy Tryouts - Session 2', label:'Academy'},
+  {date:'8/2', day:'Sun', start:9.5, end:11.5, type:'tryout', name:'Triangle Tryouts - Session 2', label:'Triangle'}
+];
+
+const colors = {event:'#378ADD', group:'#1D9E75', private:'#D85A30', tryout:'#7F77DD', school:'#F2A623'};
+const textColors = {event:'#042C53', group:'#04342C', private:'#4A1B0C', tryout:'#26215C', school:'#412402'};
+const typeLabels = {event:'Event', group:'Group training', private:'Private training', tryout:'Tryout', school:'School (PCHS)'};
+const order = ['7/3','7/6','7/7','7/8','7/9','7/10','7/11','7/12','7/13','7/14','7/15','7/16','7/17','7/18','7/19','7/20','7/22','7/24','7/25','7/26','7/27','7/28','7/29','7/31','8/1','8/2'];
+const days = [...new Set(events.map(e=>e.date))].sort((a,b)=>order.indexOf(a)-order.indexOf(b));
+
+function fmt(h){
+  const hh = Math.floor(h);
+  const mm = Math.round((h-hh)*60);
+  const period = hh < 12 ? 'AM' : 'PM';
+  const hour12 = hh % 12 === 0 ? 12 : hh % 12;
+  const mmStr = mm === 0 ? '00' : String(mm).padStart(2,'0');
+  return hour12 + ':' + mmStr + ' ' + period;
+}
+
+const startHour = 9, endHour = 20.5, pxPerHour = 30;
+const totalHeight = (endHour-startHour)*pxPerHour;
+const colWidth = 56, axisWidth = 44, gap = 6;
+
+const cal = document.getElementById('cal');
+cal.style.height = (totalHeight+34)+'px';
+cal.style.minWidth = (axisWidth + days.length*(colWidth+gap))+'px';
+
+const borderColor = 'var(--border, #e1e0d9)';
+const mutedColor = 'var(--text-muted, #898781)';
+const secondaryColor = 'var(--text-secondary, #52514e)';
+
+for(let h=startHour; h<=endHour; h+=2){
+  const lbl = document.createElement('div');
+  lbl.textContent = h<12 ? h+'am' : (h===12 ? '12pm' : (h-12)+'pm');
+  lbl.style.cssText = `position:absolute;left:0;top:${(h-startHour)*pxPerHour-6}px;width:${axisWidth-6}px;font-size:11px;color:${mutedColor};text-align:right;`;
+  cal.appendChild(lbl);
+
+  const line = document.createElement('div');
+  line.style.cssText = `position:absolute;left:${axisWidth}px;top:${(h-startHour)*pxPerHour}px;width:${days.length*(colWidth+gap)}px;height:1px;background:${borderColor};`;
+  cal.appendChild(line);
+}
+
+const tooltip = document.createElement('div');
+tooltip.style.cssText = `position:fixed;pointer-events:none;background:#262625;color:#f5f4f0;font-size:11px;line-height:1.5;padding:6px 9px;border-radius:6px;opacity:0;transition:opacity 0.06s ease;z-index:1000;max-width:220px;white-space:pre-line;`;
+document.body.appendChild(tooltip);
+
+function layoutDay(dayEvents){
+  const sorted = [...dayEvents].sort((a,b)=>a.start-b.start);
+  const clusters = [];
+  let current = [];
+  let currentEnd = -Infinity;
+  sorted.forEach(e=>{
+    if(current.length===0 || e.start < currentEnd){
+      current.push(e);
+      currentEnd = Math.max(currentEnd, e.end);
+    } else {
+      clusters.push(current);
+      current = [e];
+      currentEnd = e.end;
+    }
+  });
+  if(current.length) clusters.push(current);
+
+  clusters.forEach(cluster=>{
+    const columnEnds = [];
+    cluster.forEach(e=>{
+      let placed = false;
+      for(let c=0;c<columnEnds.length;c++){
+        if(columnEnds[c] <= e.start){
+          e.col = c;
+          columnEnds[c] = e.end;
+          placed = true;
+          break;
+        }
+      }
+      if(!placed){
+        e.col = columnEnds.length;
+        columnEnds.push(e.end);
+      }
+    });
+    cluster.forEach(e=> e.totalCols = columnEnds.length);
+  });
+  return sorted;
+}
+
+days.forEach((d,i)=>{
+  const x = axisWidth + i*(colWidth+gap);
+  const col = document.createElement('div');
+  col.style.cssText = `position:absolute;left:${x}px;top:0;width:${colWidth}px;height:${totalHeight}px;border-left:0.5px solid ${borderColor};`;
+  cal.appendChild(col);
+
+  const label = document.createElement('div');
+  label.textContent = d;
+  label.style.cssText = `position:absolute;left:${x}px;top:${totalHeight+8}px;width:${colWidth}px;font-size:11px;color:${secondaryColor};text-align:center;`;
+  cal.appendChild(label);
+
+  const dayEvents = layoutDay(events.filter(e=>e.date===d));
+  dayEvents.forEach(e=>{
+    const top = (e.start-startHour)*pxPerHour;
+    const h = Math.max((e.end-e.start)*pxPerHour, 14);
+    const innerGap = 2;
+    const w = (colWidth - 4 - (e.totalCols-1)*innerGap) / e.totalCols;
+    const left = 2 + e.col*(w+innerGap);
+    const bar = document.createElement('div');
+    let bg = `background-color:${colors[e.type]};`;
+    if(e.type === 'school'){
+      bg += `background-image:repeating-linear-gradient(45deg, rgba(65,36,2,0.3) 0, rgba(65,36,2,0.3) 2px, transparent 2px, transparent 6px);`;
+    }
+    bar.style.cssText = `position:absolute;left:${x+left}px;top:${top}px;width:${w}px;height:${h}px;${bg}border-radius:3px;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;cursor:default;padding:1px;`;
+    const span = document.createElement('span');
+    span.textContent = e.label;
+    span.style.cssText = `font-size:11px;font-weight:500;color:${textColors[e.type]};line-height:1.1;word-break:break-word;`;
+    bar.appendChild(span);
+
+    const tipText = e.name + ' (' + typeLabels[e.type] + ')\n' + e.day + ' ' + e.date + '\n' + fmt(e.start) + ' - ' + fmt(e.end);
+    bar.addEventListener('mouseenter', () => {
+      tooltip.textContent = tipText;
+      const rect = bar.getBoundingClientRect();
+      tooltip.style.left = (rect.left + rect.width/2) + 'px';
+      tooltip.style.top = (rect.top - 8) + 'px';
+      tooltip.style.transform = 'translate(-50%, -100%)';
+      tooltip.style.opacity = '1';
+    });
+    bar.addEventListener('mouseleave', () => {
+      tooltip.style.opacity = '0';
+    });
+    cal.appendChild(bar);
+  });
+});
+</script>

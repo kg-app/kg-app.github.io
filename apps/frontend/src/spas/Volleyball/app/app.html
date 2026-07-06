@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Inline path-fix: redirect app.html/<uuid> → app.html?share=<uuid> before any JS loads -->
+<script>(function(){var m=location.pathname.match(/^(.*\.html)\/([^/]*)\/?$/i);if(!m)return;var base=m[1],rest=(m[2]||'').replace(/\/$/,'');if(rest&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(rest)){location.replace(base+'?share='+encodeURIComponent(rest)+location.search+location.hash);}else{location.replace(base+location.search+location.hash);}})();</script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SportSquad — Practice Schedules</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231a1a1a'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='system-ui,sans-serif' font-size='16' font-weight='700' fill='%23fff'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/light.css" />
+<script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f5f5;--surf:#fff;--surf-2:#fafafa;--line:#d8d8d8;--line-2:#e8e8e8;
+  --ink:#1a1a1a;--ink-2:#444;--ink-3:#777;--ink-4:#aaa;--ink-5:#ccc;
+  --acc:#2a2a2a;
+  --warn:#a04020;--warn-soft:#d9a090;--warn-bg:#f5e5e0;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:13px;line-height:1.5;display:flex;flex-direction:column}
+
+/* ── auth-pending: hide content until Firebase resolves ── */
+body.auth-pending #app,
+body.auth-pending #sign-in,
+body.auth-pending #share-err{visibility:hidden}
+
+/* ─── global top bar ─── */
+.gbar{height:48px;background:var(--ink);color:#fff;display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;z-index:20}
+.gbrand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;letter-spacing:-.3px;cursor:pointer;color:#fff;text-decoration:none}
+.gbrand-box{width:24px;height:24px;background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:11px;font-weight:800}
+.gcrumb{font-size:12px;color:#bbb;display:flex;align-items:center;gap:6px}
+.gcrumb .sep{color:#666}.gcrumb .curr{color:#fff;font-weight:500}
+.gbar-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.gbtn{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border:1.5px solid #fff;background:#fff;color:var(--ink);font-size:12.5px;font-weight:600;cursor:pointer;border-radius:3px;font-family:inherit}
+.gbtn:hover{background:#eee}
+#sync-status{font-size:11px;opacity:.7}
+#sync-status.ok{color:#86efac}
+#sync-status.warn{color:#fde68a}
+#sync-status.err{color:#fca5a5}
+
+/* ─── avatar / user menu ─── */
+.gav{width:26px;height:26px;border-radius:50%;background:#555;border:1.5px solid #777;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#ddd;cursor:pointer;user-select:none;flex-shrink:0}
+#user-menu-wrap{position:relative}
+#user-menu-panel{position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid #e0e0e0;border-radius:5px;box-shadow:0 6px 20px rgba(0,0,0,.12);min-width:170px;padding:4px;z-index:50}
+#user-menu-panel[hidden]{display:none}
+.umenu-item{width:100%;padding:7px 11px;text-align:left;background:none;border:none;font-size:12.5px;color:#333;cursor:pointer;border-radius:3px;display:block;font-family:inherit}
+.umenu-item:hover{background:#f0f0f0}
+.umenu-item.danger{color:#b91c1c}
+#user-name{font-size:11px;padding:6px 11px;color:#777;display:block;border-bottom:1px solid #eee;margin-bottom:3px}
+
+/* ─── readonly banner ─── */
+#ro-banner{background:#1e40af;color:#fff;padding:8px 18px;font-size:12.5px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+#ro-banner[hidden]{display:none}
+#ro-banner button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 12px;border-radius:3px;cursor:pointer;font-size:12px;font-family:inherit}
+#ro-banner button:hover{background:rgba(255,255,255,.25)}
+
+/* ─── sign-in empty state ─── */
+#sign-in{flex:1;display:flex;align-items:center;justify-content:center}
+#sign-in[hidden]{display:none!important}
+.signin-card{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:36px 32px;max-width:360px;width:100%;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.signin-card h2{font-size:18px;margin-bottom:6px}
+.signin-card p{font-size:13px;color:#666;margin-bottom:20px;line-height:1.5}
+.btn-google{background:#4285f4;color:#fff;border:none;border-radius:4px;padding:9px 18px;font-size:13px;cursor:pointer;width:100%;margin-bottom:8px;font-family:inherit}
+.btn-google:hover{background:#3367d6}
+.btn-sec{background:#fff;border:1px solid #d0d0d0;border-radius:4px;padding:8px 18px;font-size:13px;cursor:pointer;width:100%;color:#333;font-family:inherit}
+.btn-sec:hover{background:#f5f5f5}
+#sign-in-error{font-size:12px;color:#b91c1c;background:#fee2e2;border:1px solid #fecaca;border-radius:4px;padding:8px 10px;margin-bottom:12px;line-height:1.45;text-align:left}
+#sign-in-error[hidden]{display:none}
+
+/* ─── share error ─── */
+#share-err{flex:1;display:flex;align-items:center;justify-content:center}
+#share-err[hidden]{display:none!important}
+.err-card{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:36px 32px;max-width:360px;width:100%;text-align:center}
+.err-card h2{color:#b91c1c;margin-bottom:8px}
+.err-card p{font-size:13px;color:#666;line-height:1.5;margin-bottom:18px}
+
+/* ─── main app ─── */
+#app{flex:1;overflow:hidden;display:flex;flex-direction:column}
+#app[hidden]{display:none}
+
+/* ─── Generic buttons ─── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 15px;border:1px solid var(--line);background:#fff;font-size:12.5px;cursor:pointer;border-radius:3px;font-family:inherit;color:var(--ink-2);white-space:nowrap}
+.btn:hover{background:#f5f5f5;border-color:var(--ink-4)}
+.btn-p{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn-p:hover{background:var(--acc)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-warn{color:var(--warn);border-color:var(--warn-soft)}.btn-warn:hover{background:var(--warn-bg)}
+
+/* ─── auth modal ─── */
+.modal-auth-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal-auth-bg[hidden]{display:none}
+.modal-box{background:#fff;border-radius:7px;padding:24px;width:340px;max-width:92vw}
+.modal-box h3{font-size:15px;margin-bottom:4px}
+.modal-sub{font-size:11.5px;color:#777;margin-bottom:14px;line-height:1.5}
+.auth-divider{text-align:center;font-size:11px;color:#aaa;margin:10px 0;position:relative}
+.auth-divider::before,.auth-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:#e0e0e0}
+.auth-divider::before{left:0}.auth-divider::after{right:0}
+.auth-row{margin-bottom:8px}
+.auth-row label{display:block;font-size:11px;font-weight:600;color:#555;margin-bottom:3px}
+.auth-row input{width:100%;padding:7px 10px;border:1px solid #d0d0d0;border-radius:4px;font-size:13px;font-family:inherit}
+.auth-row input:focus{outline:none;border-color:#4285f4}
+#auth-msg{font-size:11.5px;color:#b91c1c;min-height:1.2em;margin:6px 0}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+
+/* ─── toast ─── */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:5px;font-size:12.5px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:200}
+#toast.show{opacity:1}
+#toast[hidden]{display:none}
+
+/* ─── DASHBOARD ─── */
+.dash{flex:1;overflow-y:auto;background:var(--surf)}
+.dash-wrap{max-width:980px;margin:0 auto;padding:32px 28px 60px}
+.dash-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px}
+.dash-title{font-size:21px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
+.dash-sub{font-size:12.5px;color:var(--ink-3);margin-top:3px}
+table.dash-tbl{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.dash-tbl thead th{padding:11px 16px;text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.07em;color:var(--ink-4);text-transform:uppercase;background:var(--surf-2);border-bottom:1.5px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+.dash-tbl thead th:hover{color:var(--ink-2)}
+.dash-tbl thead th.sortcol{color:var(--ink)}
+.sort-arrow{font-size:9px;margin-left:3px;opacity:.7}
+.dash-tbl tbody td{padding:13px 16px;border-bottom:1px solid var(--line-2);color:var(--ink);vertical-align:middle}
+.dash-tbl tbody tr:last-child td{border-bottom:none}
+.dash-tbl tbody tr:hover td{background:#fafaf7}
+.an-name{font-weight:600;color:var(--ink);cursor:pointer;font-size:13.5px}
+.an-name:hover{text-decoration:underline}
+.an-date{font-size:12px;color:var(--ink-3);font-family:monospace}
+.an-docs{font-size:12.5px;color:var(--ink-2)}
+.an-docs-n{font-weight:700;color:var(--ink)}
+.row-menu-wrap{position:relative;display:inline-block}
+.row-menu-btn{width:26px;height:26px;border-radius:4px;border:1px solid transparent;background:none;cursor:pointer;font-size:15px;color:var(--ink-3);display:flex;align-items:center;justify-content:center;font-family:inherit}
+.row-menu-btn:hover{background:#eee;border-color:var(--line)}
+.row-menu{position:absolute;right:0;top:30px;background:#fff;border:1px solid var(--line);border-radius:4px;box-shadow:0 6px 20px rgba(0,0,0,.12);min-width:140px;z-index:50;display:none;padding:4px}
+.row-menu.on{display:block}
+.row-menu-item{padding:7px 11px;font-size:12.5px;cursor:pointer;border-radius:3px;display:flex;align-items:center;gap:7px;color:var(--ink-2)}
+.row-menu-item:hover{background:#f0f0f0}
+.row-menu-item.danger{color:var(--warn)}
+.row-menu-item.danger:hover{background:var(--warn-bg)}
+.empty-dash{padding:60px 20px;text-align:center;color:var(--ink-4);font-size:13px}
+
+/* ─── SCHEDULE VIEW ─── */
+#view-schedule{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.subhead{background:var(--surf);border-bottom:1.5px solid var(--line);padding:14px 18px 12px;flex-shrink:0}
+.subhead-top{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.sc-title-edit{font-size:18px;font-weight:700;color:var(--ink);border:1px solid transparent;border-radius:3px;padding:2px 6px;margin-left:-7px;cursor:text;background:none;font-family:inherit;min-width:120px;width:100%;max-width:520px}
+.sc-title-edit:hover{border-color:var(--line)}
+.sc-title-edit:focus{outline:none;border-color:var(--ink-3);background:#fafafa}
+.subhead-meta{font-size:11.5px;color:var(--ink-4);display:flex;align-items:center;gap:14px;margin-left:1px;flex-wrap:wrap;margin-bottom:14px}
+.subhead-meta b{color:var(--ink-3);font-weight:600}
+.subhead-actions{margin-left:auto;display:flex;gap:8px}
+.legend{display:flex;gap:16px;margin:0 0 12px;font-size:12px;color:var(--ink-3);flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend .sw{width:10px;height:10px;border-radius:2px;display:inline-block}
+.cal-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sc-body{flex:1;overflow:hidden;padding:14px 18px 18px;display:flex;flex-direction:column;min-height:0}
+#cal{position:relative;overflow:auto;overscroll-behavior:contain;flex:1;width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;background:var(--surf)}
+
+/* ─── modals ─── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:#fff;border-radius:6px;padding:24px;width:420px;max-width:90vw;max-height:88vh;overflow-y:auto}
+.modal h3{font-size:16px;margin-bottom:4px;color:var(--ink)}
+.modal input[type=text]{width:100%;border:1px solid var(--line);border-radius:3px;padding:8px 10px;font-family:inherit;font-size:13px;color:var(--ink);background:#fff;outline:none;margin-top:10px}
+.modal input:focus{border-color:var(--ink-3)}
+</style>
+</head>
+<body class="auth-pending">
+
+<!-- ═══════════ GLOBAL TOP BAR ═══════════ -->
+<div class="gbar">
+  <div class="gbrand" id="brand-link">
+    <div class="gbrand-box">S</div>
+    SportSquad
+  </div>
+  <div class="gcrumb" id="gcrumb" style="display:none">
+    <span class="sep">/</span>
+    <span class="curr" id="gcrumb-name">—</span>
+  </div>
+  <div class="gbar-r">
+    <span id="sync-status"></span>
+    <button class="gbtn" id="btn-new-schedule">+ New Schedule</button>
+    <div id="user-menu-wrap">
+      <div class="gav" id="user-menu-btn">?</div>
+      <div id="user-menu-panel" hidden>
+        <span id="user-name"></span>
+        <button class="umenu-item" id="btn-copy-share">Copy share link</button>
+        <button class="umenu-item danger" id="btn-sign-out">Sign out</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ READONLY BANNER ═══════════ -->
+<div id="ro-banner" hidden>
+  Viewing a shared schedule (read-only)
+  <button onclick="openModal('modal-auth')">Sign in to edit</button>
+  <button id="btn-ro-copy" style="margin-left:auto">Copy link</button>
+</div>
+
+<!-- ═══════════ SIGN-IN ═══════════ -->
+<div id="sign-in" hidden>
+  <div class="signin-card">
+    <h2>SportSquad</h2>
+    <p>Sign in to save your practice schedules and share them with family.</p>
+    <div id="sign-in-error" hidden></div>
+    <button class="btn-google" id="btn-google-empty">Continue with Google</button>
+    <button class="btn-sec" onclick="openModal('modal-auth')">Sign in with email</button>
+  </div>
+</div>
+
+<!-- ═══════════ SHARE ERROR ═══════════ -->
+<div id="share-err" hidden>
+  <div class="err-card">
+    <h2>Link not found</h2>
+    <p>This share link may be invalid or the schedule is no longer shared.</p>
+    <button class="btn-p btn" onclick="openModal('modal-auth')">Sign in</button>
+  </div>
+</div>
+
+<!-- ═══════════ MAIN APP ═══════════ -->
+<div id="app" hidden>
+
+  <!-- ── DASHBOARD VIEW ── -->
+  <div class="dash" id="view-dashboard">
+    <div class="dash-wrap">
+      <div class="dash-head">
+        <div>
+          <div class="dash-title">Your schedules</div>
+          <div class="dash-sub" id="dash-count">0 schedules</div>
+        </div>
+      </div>
+      <table class="dash-tbl">
+        <thead>
+          <tr>
+            <th id="th-name" data-sort="name">Name<span class="sort-arrow" id="ar-name"></span></th>
+            <th id="th-created" data-sort="created">Date created<span class="sort-arrow" id="ar-created"></span></th>
+            <th id="th-updated" data-sort="updated">Last updated<span class="sort-arrow" id="ar-updated"></span></th>
+            <th id="th-count" data-sort="count">Attending<span class="sort-arrow" id="ar-count"></span></th>
+            <th style="width:50px;"></th>
+          </tr>
+        </thead>
+        <tbody id="dash-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── SCHEDULE VIEW ── -->
+  <div id="view-schedule" style="display:none">
+    <div class="subhead">
+      <div class="subhead-top">
+        <input type="text" class="sc-title-edit" id="sc-title" value="Untitled Schedule"/>
+      </div>
+      <div class="subhead-meta">
+        <span>Created <b id="meta-created">—</b></span>
+        <span>Updated <b id="meta-updated">—</b></span>
+        <span><b id="meta-count">0</b> selected</span>
+      </div>
+      <div class="legend">
+        <span><span class="sw" style="background:#378ADD;"></span>Academy / camp event</span>
+        <span><span class="sw" style="background:#1D9E75;"></span>Group training</span>
+        <span><span class="sw" style="background:#D85A30;"></span>Private training</span>
+        <span><span class="sw" style="background:#7F77DD;"></span>Tryouts</span>
+        <span><span class="sw" style="background-color:#F2A623;background-image:repeating-linear-gradient(45deg, rgba(65,36,2,0.3) 0, rgba(65,36,2,0.3) 2px, transparent 2px, transparent 6px);"></span>School (PCHS)</span>
+        <span><span class="sw" style="background:rgba(137,135,129,0.18);border:0.5px solid var(--line);"></span>Weekend</span>
+      </div>
+      <div class="cal-toolbar">
+        <sl-button id="toggleBtn" size="small"><sl-icon slot="prefix" name="arrow-left-right"></sl-icon>Switch to day rows</sl-button>
+        <span id="selCount" style="font-size:12px; color:var(--ink-4);">Click a block to mark it as attending</span>
+      </div>
+    </div>
+    <div class="sc-body">
+      <div id="cal"></div>
+      <div id="shadowTop" style="position:absolute; background:linear-gradient(to bottom, var(--surf-2) 0%, rgba(255,255,255,0) 100%); opacity:0; transition:opacity 0.15s ease; pointer-events:none; z-index:8;"></div>
+      <div id="shadowBottom" style="position:absolute; background:linear-gradient(to top, var(--surf-2) 0%, rgba(255,255,255,0) 100%); opacity:0; transition:opacity 0.15s ease; pointer-events:none; z-index:8;"></div>
+      <div id="shadowLeft" style="position:absolute; background:linear-gradient(to right, var(--surf-2) 0%, rgba(255,255,255,0) 100%); opacity:0; transition:opacity 0.15s ease; pointer-events:none; z-index:8;"></div>
+      <div id="shadowRight" style="position:absolute; background:linear-gradient(to left, var(--surf-2) 0%, rgba(255,255,255,0) 100%); opacity:0; transition:opacity 0.15s ease; pointer-events:none; z-index:8;"></div>
+    </div>
+  </div><!-- /view-schedule -->
+</div><!-- /app -->
+
+<!-- ═══════════ AUTH MODAL ═══════════ -->
+<div id="modal-auth" class="modal-auth-bg" hidden>
+  <div class="modal-box">
+    <h3>Sign in</h3>
+    <div class="modal-sub" id="auth-domain-hint"></div>
+    <button class="btn-google" id="btn-google">Continue with Google</button>
+    <div class="auth-divider">or email</div>
+    <div class="auth-row"><label for="auth-email">Email</label><input type="email" id="auth-email" autocomplete="email" placeholder="you@example.com"/></div>
+    <div class="auth-row"><label for="auth-pw">Password</label><input type="password" id="auth-pw" autocomplete="current-password" placeholder="••••••••"/></div>
+    <div id="auth-msg"></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-auth')">Cancel</button>
+      <button class="btn btn-p" id="btn-email-reg">Register</button>
+      <button class="btn btn-p" id="btn-email-in">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ NEW SCHEDULE MODAL ═══════════ -->
+<div class="modal-bg" id="modal-new">
+  <div class="modal">
+    <h3>Create new schedule</h3>
+    <div class="modal-sub">Give it a name — e.g. a person's name or team. It starts from the same base calendar and you mark attendance independently.</div>
+    <input type="text" id="new-name" placeholder="e.g. Nishka — Summer 2026"/>
+    <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" id="btn-close-new">Cancel</button>
+      <button class="btn btn-p" id="new-submit">Create →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ DELETE SCHEDULE CONFIRM ═══════════ -->
+<div class="modal-bg" id="modal-delconfirm">
+  <div class="modal" style="width:380px">
+    <h3>Delete this schedule?</h3>
+    <div class="modal-sub" id="del-target-name">This cannot be undone.</div>
+    <div style="margin-top:6px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" id="btn-close-delconfirm">Cancel</button>
+      <button class="btn btn-warn" id="btn-confirm-delete">Delete schedule</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" hidden></div>
+
+<!-- ═══════════ FIREBASE SDK ═══════════ -->
+<script src="firebase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+// FIREBASE INIT
+// ═══════════════════════════════════════════════════════════
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let currentUser      = null;
+let activeDocId      = null;
+let docList          = [];
+let saveTimer        = null;
+let cloudReady       = false;
+let readonlyMode     = false;
+let routeShareToken  = null;
+let activeShareToken = null;
+
+let STATE = { view: 'dashboard' };
+let selected = new Set();
+let currentScheduleName = '';
+const DASH_STATE = { sortKey: 'updated', sortDir: 'desc' };
+
+// ═══════════════════════════════════════════════════════════
+// CALENDAR DATA (fixed base schedule — shared by every named schedule)
+// ═══════════════════════════════════════════════════════════
+const allDays = [
+  {date:'7/1', day:'Wed'}, {date:'7/2', day:'Thu'}, {date:'7/3', day:'Fri'}, {date:'7/4', day:'Sat'},
+  {date:'7/5', day:'Sun'}, {date:'7/6', day:'Mon'}, {date:'7/7', day:'Tue'}, {date:'7/8', day:'Wed'},
+  {date:'7/9', day:'Thu'}, {date:'7/10', day:'Fri'}, {date:'7/11', day:'Sat'}, {date:'7/12', day:'Sun'},
+  {date:'7/13', day:'Mon'}, {date:'7/14', day:'Tue'}, {date:'7/15', day:'Wed'}, {date:'7/16', day:'Thu'},
+  {date:'7/17', day:'Fri'}, {date:'7/18', day:'Sat'}, {date:'7/19', day:'Sun'}, {date:'7/20', day:'Mon'},
+  {date:'7/21', day:'Tue'}, {date:'7/22', day:'Wed'}, {date:'7/23', day:'Thu'}, {date:'7/24', day:'Fri'},
+  {date:'7/25', day:'Sat'}, {date:'7/26', day:'Sun'}, {date:'7/27', day:'Mon'}, {date:'7/28', day:'Tue'},
+  {date:'7/29', day:'Wed'}, {date:'7/30', day:'Thu'}, {date:'7/31', day:'Fri'}, {date:'8/1', day:'Sat'},
+  {date:'8/2', day:'Sun'}, {date:'8/3', day:'Mon'}, {date:'8/4', day:'Tue'}, {date:'8/5', day:'Wed'},
+  {date:'8/6', day:'Thu'}, {date:'8/7', day:'Fri'}
+];
+
+const events = [
+  {date:'7/3', day:'Fri', start:14, end:15, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/6', day:'Mon', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/6', day:'Mon', start:15, end:16, type:'group', name:"Romel's session (group)", label:'Romel'},
+  {date:'7/6', day:'Mon', start:18, end:19, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/6', day:'Mon', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/7', day:'Tue', start:15, end:16, type:'group', name:"Romel's session (group)", label:'Romel'},
+  {date:'7/7', day:'Tue', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/8', day:'Wed', start:15, end:16, type:'group', name:"Romel's session (group)", label:'Romel'},
+  {date:'7/8', day:'Wed', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/9', day:'Thu', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/10', day:'Fri', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/10', day:'Fri', start:16, end:17, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/10', day:'Fri', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/11', day:'Sat', start:9.5, end:11, type:'event', name:'N1 Academy: Open Gym', label:'Open gym'},
+  {date:'7/12', day:'Sun', start:11, end:12, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/13', day:'Mon', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/13', day:'Mon', start:15, end:16, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/13', day:'Mon', start:18, end:19, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/13', day:'Mon', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/14', day:'Tue', start:16, end:17, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/14', day:'Tue', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/15', day:'Wed', start:16, end:17, type:'group', name:"Romel's session (group)", label:'Romel'},
+  {date:'7/15', day:'Wed', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/16', day:'Thu', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/16', day:'Thu', start:12.5, end:18.5, type:'event', name:'Tar Heel Elite Camp II', label:'THE'},
+  {date:'7/17', day:'Fri', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/17', day:'Fri', start:14, end:15, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/17', day:'Fri', start:15, end:16, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/17', day:'Fri', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/17', day:'Fri', start:9, end:14.5, type:'event', name:'Tar Heel Elite Camp II', label:'THE'},
+  {date:'7/18', day:'Sat', start:9.5, end:11, type:'event', name:'N1 Academy: Open Gym', label:'Open gym'},
+  {date:'7/19', day:'Sun', start:11, end:12, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/20', day:'Mon', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/20', day:'Mon', start:14, end:15, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/20', day:'Mon', start:15, end:16, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/22', day:'Wed', start:18, end:19, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/24', day:'Fri', start:19, end:20, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/25', day:'Sat', start:13.5, end:16, type:'event', name:'N1 VB Acdmy Camp', label:'Camp'},
+  {date:'7/26', day:'Sun', start:13.5, end:16, type:'event', name:'N1 VB Acdmy Camp', label:'Camp'},
+  {date:'7/27', day:'Mon', start:18, end:19, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/27', day:'Mon', start:9, end:11, type:'school', name:'PCHS school tryouts', label:'Tryout'},
+  {date:'7/28', day:'Tue', start:9, end:11, type:'school', name:'PCHS school tryouts', label:'Tryout'},
+  {date:'7/29', day:'Wed', start:18.5, end:19.5, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/31', day:'Fri', start:18, end:20, type:'tryout', name:'Academy Tryouts - Session 1', label:'Academy'},
+  {date:'8/1', day:'Sat', start:9, end:11.5, type:'tryout', name:'Triangle Tryouts - Session 1', label:'Triangle'},
+  {date:'8/1', day:'Sat', start:17, end:18.5, type:'tryout', name:'Academy Tryouts - Session 2', label:'Academy'},
+  {date:'8/2', day:'Sun', start:9.5, end:11.5, type:'tryout', name:'Triangle Tryouts - Session 2', label:'Triangle'}
+];
+
+const colors = {event:'#378ADD', group:'#1D9E75', private:'#D85A30', tryout:'#7F77DD', school:'#F2A623'};
+const textColors = {event:'#042C53', group:'#04342C', private:'#4A1B0C', tryout:'#26215C', school:'#412402'};
+const typeLabels = {event:'Event', group:'Group training', private:'Private training', tryout:'Tryout', school:'School (PCHS)'};
+const days = allDays;
+
+function fmt(h){
+  const hh = Math.floor(h);
+  const mm = Math.round((h-hh)*60);
+  const period = hh < 12 ? 'AM' : 'PM';
+  const hour12 = hh % 12 === 0 ? 12 : hh % 12;
+  const mmStr = mm === 0 ? '00' : String(mm).padStart(2,'0');
+  return hour12 + ':' + mmStr + ' ' + period;
+}
+function fmtHourLabel(h){
+  return h<12 ? h+'am' : (h===12 ? '12pm' : (h-12)+'pm');
+}
+function isWeekend(d){ return d.day === 'Sat' || d.day === 'Sun'; }
+
+const startHour = 9, endHour = 20.5, TOP_PAD = 10;
+const pxPerHourCols = 30, dayThickness = 56, timeAxisThickness = 40, dayLabelThicknessCols = 52, gapBetweenDays = 6;
+const dayLabelThicknessRows = 78, rowHeight = 56;
+const weekendBg = 'rgba(137,135,129,0.16)';
+
+const cal = document.getElementById('cal');
+const borderColor = 'var(--line, #e1e0d9)';
+const mutedColor = 'var(--ink-4, #898781)';
+const secondaryColor = 'var(--ink-3, #52514e)';
+const primaryColor = 'var(--ink, #0b0b0b)';
+const surfaceColor = 'var(--surf-2, #ffffff)';
+
+const tooltip = document.createElement('div');
+tooltip.style.cssText = `position:absolute;pointer-events:none;background:#262625;color:#f5f4f0;font-size:12px;line-height:1.45;padding:8px 10px;border-radius:8px;opacity:0;transition:opacity 0.06s ease;z-index:50;max-width:220px;`;
+document.body.appendChild(tooltip);
+
+function showTooltip(e, bar){
+  tooltip.innerHTML = '';
+  const t1 = document.createElement('div');
+  t1.textContent = e.name;
+  t1.style.cssText = 'font-weight:500; margin-bottom:3px;';
+  const t2 = document.createElement('div');
+  t2.textContent = typeLabels[e.type];
+  t2.style.cssText = 'opacity:0.75; margin-bottom:1px; font-size:11px;';
+  const t3 = document.createElement('div');
+  t3.textContent = e.day + ' ' + e.date + '  ·  ' + fmt(e.start) + ' - ' + fmt(e.end);
+  t3.style.cssText = 'opacity:0.75; font-size:11px;';
+  tooltip.appendChild(t1); tooltip.appendChild(t2); tooltip.appendChild(t3);
+
+  tooltip.style.top = '-9999px';
+  tooltip.style.left = '-9999px';
+  tooltip.style.transform = 'translate(-50%, 0)';
+  const th = tooltip.offsetHeight;
+
+  const rect = cal.getBoundingClientRect();
+  const barLeft = rect.left + bar.offsetLeft - cal.scrollLeft;
+  const barTop = rect.top + bar.offsetTop - cal.scrollTop;
+  const centerX = barLeft + bar.offsetWidth/2;
+  const aboveTop = barTop - th - 8;
+
+  const finalTop = aboveTop < 4 ? (barTop + bar.offsetHeight + 8) : aboveTop;
+  tooltip.style.left = (centerX + window.scrollX) + 'px';
+  tooltip.style.top = (finalTop + window.scrollY) + 'px';
+  tooltip.style.opacity = '1';
+}
+function hideTooltip(){ tooltip.style.opacity = '0'; }
+
+function layoutDay(dayEvents){
+  const sorted = [...dayEvents].sort((a,b)=>a.start-b.start);
+  const clusters = [];
+  let current = [];
+  let currentEnd = -Infinity;
+  sorted.forEach(e=>{
+    if(current.length===0 || e.start < currentEnd){
+      current.push(e);
+      currentEnd = Math.max(currentEnd, e.end);
+    } else {
+      clusters.push(current);
+      current = [e];
+      currentEnd = e.end;
+    }
+  });
+  if(current.length) clusters.push(current);
+
+  clusters.forEach(cluster=>{
+    const columnEnds = [];
+    cluster.forEach(e=>{
+      let placed = false;
+      for(let c=0;c<columnEnds.length;c++){
+        if(columnEnds[c] <= e.start){
+          e.col = c;
+          columnEnds[c] = e.end;
+          placed = true;
+          break;
+        }
+      }
+      if(!placed){
+        e.col = columnEnds.length;
+        columnEnds.push(e.end);
+      }
+    });
+    cluster.forEach(e=> e.totalCols = columnEnds.length);
+  });
+  return sorted;
+}
+
+function eventKey(e){ return e.date+'|'+e.start+'|'+e.label; }
+
+function updateSelectionVisuals(){
+  document.querySelectorAll('.cal-bar').forEach(bar=>{
+    const key = bar.dataset.key;
+    if(selected.size === 0){
+      bar.style.opacity = '1';
+      bar.style.boxShadow = 'none';
+    } else {
+      const isSel = selected.has(key);
+      bar.style.opacity = isSel ? '1' : '0.3';
+      bar.style.boxShadow = isSel ? `0 0 0 2px ${primaryColor}` : 'none';
+    }
+  });
+  const countEl = document.getElementById('selCount');
+  if (countEl) countEl.textContent = selected.size ? selected.size + ' selected (attending)' : 'Click a block to mark it as attending';
+  const mc = eid('meta-count'); if (mc) mc.textContent = selected.size;
+}
+
+function createBar(e, left, top, w, h){
+  const bar = document.createElement('div');
+  bar.className = 'cal-bar';
+  bar.dataset.key = eventKey(e);
+  let bg = `background-color:${colors[e.type]};`;
+  if(e.type === 'school'){
+    bg += `background-image:repeating-linear-gradient(45deg, rgba(65,36,2,0.3) 0, rgba(65,36,2,0.3) 2px, transparent 2px, transparent 6px);`;
+  }
+  bar.style.cssText = `position:absolute;left:${left}px;top:${top}px;width:${w}px;height:${h}px;${bg}border-radius:3px;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;cursor:${readonlyMode?'default':'pointer'};padding:1px;transition:opacity 0.15s ease;z-index:2;`;
+  const span = document.createElement('span');
+  span.textContent = e.label;
+  span.style.cssText = `font-size:11px;font-weight:500;color:${textColors[e.type]};line-height:1.15;word-break:break-word;pointer-events:none;`;
+  bar.appendChild(span);
+  bar.addEventListener('mouseenter', () => showTooltip(e, bar));
+  bar.addEventListener('mouseleave', hideTooltip);
+  bar.addEventListener('click', () => {
+    if (readonlyMode) return;
+    const key = eventKey(e);
+    if(selected.has(key)) selected.delete(key); else selected.add(key);
+    updateSelectionVisuals();
+    saveNow(); // attendance toggles save immediately, no debounce
+  });
+  cal.appendChild(bar);
+}
+
+function renderCols(){
+  cal.style.width = '100%';
+  const timeExtent = (endHour-startHour)*pxPerHourCols + TOP_PAD*2;
+  const contentHeight = timeExtent + dayLabelThicknessCols;
+  const contentWidth = timeAxisThickness + days.length*(dayThickness+gapBetweenDays);
+  cal.style.height = contentHeight+'px';
+
+  days.forEach((d,i)=>{
+    if(isWeekend(d)){
+      const x = timeAxisThickness + i*(dayThickness+gapBetweenDays);
+      const wknd = document.createElement('div');
+      wknd.style.cssText = `position:absolute; left:${x}px; top:${TOP_PAD}px; width:${dayThickness}px; height:${timeExtent-TOP_PAD}px; background:${weekendBg}; z-index:0;`;
+      cal.appendChild(wknd);
+    }
+  });
+
+  const axisCol = document.createElement('div');
+  axisCol.style.cssText = `position:sticky; left:0; top:0; width:${timeAxisThickness}px; height:${contentHeight}px; background:${surfaceColor}; z-index:6; flex-shrink:0;`;
+  cal.appendChild(axisCol);
+
+  for(let hh=startHour*2; hh<=endHour*2; hh++){
+    const h = hh/2;
+    const isHour = Number.isInteger(h);
+    const yPos = TOP_PAD + (h-startHour)*pxPerHourCols;
+    const line = document.createElement('div');
+    line.style.cssText = `position:absolute; left:${timeAxisThickness}px; top:${yPos}px; width:${contentWidth-timeAxisThickness}px; height:1px; background:${borderColor}; opacity:${isHour?1:0.45}; z-index:1;`;
+    cal.appendChild(line);
+    if(isHour){
+      const lbl = document.createElement('div');
+      lbl.textContent = fmtHourLabel(h);
+      lbl.style.cssText = `position:absolute; left:0; top:${yPos-6}px; width:${timeAxisThickness-6}px; font-size:11px; font-weight:500; color:${mutedColor}; text-align:right;`;
+      axisCol.appendChild(lbl);
+    }
+  }
+
+  days.forEach((d,i)=>{
+    const x = timeAxisThickness + i*(dayThickness+gapBetweenDays);
+    const colDiv = document.createElement('div');
+    colDiv.style.cssText = `position:absolute; left:${x}px; top:${TOP_PAD}px; width:${dayThickness}px; height:${timeExtent-TOP_PAD}px; border-left:0.5px solid ${borderColor}; z-index:1;`;
+    cal.appendChild(colDiv);
+
+    const label = document.createElement('div');
+    label.style.cssText = `position:absolute; left:${x}px; top:${timeExtent+6}px; width:${dayThickness}px; text-align:center; z-index:1;`;
+    const dateLine = document.createElement('div');
+    dateLine.textContent = d.date;
+    dateLine.style.cssText = `font-size:11px; font-weight:500; color:${secondaryColor};`;
+    const dowLine = document.createElement('div');
+    dowLine.textContent = d.day;
+    dowLine.style.cssText = `font-size:11px; font-weight:400; color:${mutedColor}; margin-top:1px;`;
+    label.appendChild(dateLine);
+    label.appendChild(dowLine);
+    cal.appendChild(label);
+
+    const dayEvents = layoutDay(events.filter(e=>e.date===d.date));
+    dayEvents.forEach(e=>{
+      const top = TOP_PAD + (e.start-startHour)*pxPerHourCols;
+      const h2 = Math.max((e.end-e.start)*pxPerHourCols, 14);
+      const innerGap = 2;
+      const w = (dayThickness-4-(e.totalCols-1)*innerGap)/e.totalCols;
+      const left = 2 + e.col*(w+innerGap);
+      createBar(e, x+left, top, w, h2);
+    });
+  });
+}
+
+function renderRows(){
+  cal.style.width = '100%';
+
+  const availableWidth = cal.clientWidth || 600;
+  const timeSpanHours = endHour - startHour;
+  const usableForTime = Math.max(availableWidth - dayLabelThicknessRows - TOP_PAD*2, 200);
+  const pxPerHourRows = Math.max(usableForTime / timeSpanHours, 22);
+
+  const timeExtent = timeSpanHours*pxPerHourRows + TOP_PAD*2;
+  const contentWidth = dayLabelThicknessRows + timeExtent;
+  const contentHeight = timeAxisThickness + days.length*(rowHeight+gapBetweenDays);
+  cal.style.height = contentHeight+'px';
+
+  days.forEach((d,i)=>{
+    if(isWeekend(d)){
+      const y = timeAxisThickness + i*(rowHeight+gapBetweenDays);
+      const wknd = document.createElement('div');
+      wknd.style.cssText = `position:absolute; left:${dayLabelThicknessRows}px; top:${y}px; width:${timeExtent}px; height:${rowHeight}px; background:${weekendBg}; z-index:0;`;
+      cal.appendChild(wknd);
+    }
+  });
+
+  const axisRow = document.createElement('div');
+  axisRow.style.cssText = `position:sticky; top:0; left:0; width:${contentWidth}px; height:${timeAxisThickness}px; background:${surfaceColor}; z-index:6;`;
+  cal.appendChild(axisRow);
+
+  const dayLabelCorner = document.createElement('div');
+  dayLabelCorner.style.cssText = `position:absolute; left:0; top:0; width:${dayLabelThicknessRows}px; height:${timeAxisThickness}px; background:${surfaceColor};`;
+  axisRow.appendChild(dayLabelCorner);
+
+  for(let hh=startHour*2; hh<=endHour*2; hh++){
+    const h = hh/2;
+    const isHour = Number.isInteger(h);
+    const xPos = dayLabelThicknessRows + TOP_PAD + (h-startHour)*pxPerHourRows;
+    const line = document.createElement('div');
+    line.style.cssText = `position:absolute; left:${xPos}px; top:${timeAxisThickness}px; width:1px; height:${contentHeight-timeAxisThickness}px; background:${borderColor}; opacity:${isHour?1:0.45}; z-index:1;`;
+    cal.appendChild(line);
+    if(isHour){
+      const lbl = document.createElement('div');
+      lbl.textContent = fmtHourLabel(h);
+      lbl.style.cssText = `position:absolute; left:${xPos-16}px; top:${timeAxisThickness-22}px; width:32px; font-size:11px; font-weight:500; color:${mutedColor}; text-align:center;`;
+      axisRow.appendChild(lbl);
+    }
+  }
+
+  days.forEach((d,i)=>{
+    const y = timeAxisThickness + i*(rowHeight+gapBetweenDays);
+    const rowDiv = document.createElement('div');
+    rowDiv.style.cssText = `position:absolute; left:${dayLabelThicknessRows}px; top:${y}px; width:${timeExtent}px; height:${rowHeight}px; border-top:0.5px solid ${borderColor}; z-index:1;`;
+    cal.appendChild(rowDiv);
+
+    const label = document.createElement('div');
+    label.textContent = d.date + ' ' + d.day;
+    label.style.cssText = `position:absolute; left:0; top:${y}px; width:${dayLabelThicknessRows-10}px; height:${rowHeight}px; display:flex; align-items:center; font-size:12px; font-weight:500; color:${secondaryColor}; z-index:1;`;
+    cal.appendChild(label);
+
+    const dayEvents = layoutDay(events.filter(e=>e.date===d.date));
+    dayEvents.forEach(e=>{
+      const left = dayLabelThicknessRows + TOP_PAD + (e.start-startHour)*pxPerHourRows;
+      const w2 = Math.max((e.end-e.start)*pxPerHourRows, 28);
+      const innerGap = 2;
+      const h2 = (rowHeight-4-(e.totalCols-1)*innerGap)/e.totalCols;
+      const top = y + 2 + e.col*(h2+innerGap);
+      createBar(e, left, top, w2, h2);
+    });
+  });
+}
+
+function positionShadows(){
+  const top = cal.offsetTop, left = cal.offsetLeft, w = cal.offsetWidth, h = cal.offsetHeight, s = 22;
+  eid('shadowTop').style.cssText += `left:${left}px; top:${top}px; width:${w}px; height:${s}px;`;
+  eid('shadowBottom').style.cssText += `left:${left}px; top:${top+h-s}px; width:${w}px; height:${s}px;`;
+  eid('shadowLeft').style.cssText += `left:${left}px; top:${top}px; width:${s}px; height:${h}px;`;
+  eid('shadowRight').style.cssText += `left:${left+w-s}px; top:${top}px; width:${s}px; height:${h}px;`;
+}
+function updateScrollShadows(){
+  const maxScrollLeft = cal.scrollWidth - cal.clientWidth;
+  const maxScrollTop = cal.scrollHeight - cal.clientHeight;
+  const tol = 2;
+  eid('shadowLeft').style.opacity = cal.scrollLeft > tol ? '1' : '0';
+  eid('shadowRight').style.opacity = (maxScrollLeft - cal.scrollLeft) > tol ? '1' : '0';
+  eid('shadowTop').style.opacity = cal.scrollTop > tol ? '1' : '0';
+  eid('shadowBottom').style.opacity = (maxScrollTop - cal.scrollTop) > tol ? '1' : '0';
+}
+cal.addEventListener('scroll', updateScrollShadows);
+
+let currentMode = 'cols';
+function renderCalendar(){
+  cal.innerHTML = '';
+  cal.style.maxHeight = currentMode === 'cols' ? '520px' : '';
+  if(currentMode === 'cols') renderCols(); else renderRows();
+  updateSelectionVisuals();
+  requestAnimationFrame(() => { positionShadows(); updateScrollShadows(); });
+}
+
+let resizeTimer = null;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>{ if(currentMode === 'rows') renderCalendar(); else { positionShadows(); updateScrollShadows(); } }, 150);
+});
+
+eid('toggleBtn').addEventListener('click', ()=>{
+  currentMode = currentMode === 'cols' ? 'rows' : 'cols';
+  eid('toggleBtn').innerHTML = currentMode === 'cols'
+    ? '<sl-icon slot="prefix" name="arrow-left-right"></sl-icon>Switch to day rows'
+    : '<sl-icon slot="prefix" name="arrow-left-right"></sl-icon>Switch to day columns';
+  renderCalendar();
+});
+
+// ═══════════════════════════════════════════════════════════
+// UTILITY HELPERS
+// ═══════════════════════════════════════════════════════════
+function eid(id) { return document.getElementById(id); }
+function escapeHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  const date = (d && typeof d.toDate === 'function') ? d.toDate() : (d instanceof Date ? d : new Date(d));
+  if (isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+// ═══════════════════════════════════════════════════════════
+// UUID / TOKEN HELPERS
+// ═══════════════════════════════════════════════════════════
+function genToken() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16);});
+}
+const TOKEN_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const isToken  = s => typeof s==='string' && TOKEN_RE.test(s);
+
+// ═══════════════════════════════════════════════════════════
+// SHARE URL HELPERS
+// ═══════════════════════════════════════════════════════════
+function parseShareFromUrl() {
+  const q = new URLSearchParams(location.search).get('share');
+  if (q && isToken(q)) return q;
+  const h = location.hash.replace(/^#\/?/,'').trim();
+  if (h && isToken(h)) return h;
+  return null;
+}
+function appBase() {
+  const m = location.pathname.match(/^(.*\.html)\/[^/]*\/?$/i);
+  return location.origin + (m ? m[1] : location.pathname);
+}
+function buildShareUrl(token) {
+  const u = new URL(appBase()); u.searchParams.set('share',token); return u.toString();
+}
+function clearShareUrl() { const n=new URL(appBase()).toString(); if(location.href!==n) history.replaceState(null,'',n); }
+function setShareUrl(token) { const n=buildShareUrl(token); if(location.href!==n) history.replaceState({token},'',n); }
+function copyShareLink() {
+  const token = activeShareToken || routeShareToken;
+  if (!token) { toast('Save a schedule first to get a share link'); return; }
+  const url = buildShareUrl(token);
+  navigator.clipboard.writeText(url).then(()=>toast('Share link copied')).catch(()=>prompt('Copy this link:',url));
+}
+
+// ═══════════════════════════════════════════════════════════
+// FIRESTORE REFS
+// ═══════════════════════════════════════════════════════════
+const privateCol = uid  => db.collection('users').doc(uid).collection('documents');
+const privateRef = (uid,id) => privateCol(uid).doc(id || activeDocId);
+const publicRef  = token => db.collection('publicDocuments').doc(token);
+
+// ═══════════════════════════════════════════════════════════
+// SAVE / LOAD
+// ═══════════════════════════════════════════════════════════
+function scheduleSave() {
+  if (readonlyMode || !currentUser || !cloudReady || !activeDocId) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveNow, 1500);
+}
+async function saveNow() {
+  if (!currentUser || !activeDocId || !cloudReady || readonlyMode) return;
+  const docId = activeDocId;
+  syncStatus('Saving…','warn');
+  try {
+    const token = await ensureShareToken(currentUser.uid, docId);
+    await privateRef(currentUser.uid, docId).set({
+      ...getDocData(),
+      shareToken: token,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true});
+    const entry = docList.find(d=>d.id===docId);
+    if (entry) { entry.name = currentScheduleName; entry.selectionCount = selected.size; }
+    await syncPublic(currentUser.uid, docId, token);
+    syncStatus('Saved','ok');
+  } catch(e) { syncStatus('Save failed','err'); console.error(e); }
+}
+async function loadDoc(uid, id) {
+  syncStatus('Loading…','warn');
+  try {
+    const snap = await privateRef(uid,id).get();
+    applyDocData(snap.exists ? snap.data() : {});
+    cloudReady = true;
+    syncStatus('Synced','ok');
+    return snap.exists;
+  } catch(e) { cloudReady=false; syncStatus('Load failed','err'); return false; }
+}
+
+// ═══════════════════════════════════════════════════════════
+// PUBLIC SHARE
+// ═══════════════════════════════════════════════════════════
+async function syncPublic(uid, docId, token) {
+  await publicRef(token).set({
+    ownerUid:uid, docId, payload:getDocData().payload,
+    name: currentScheduleName,
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  },{merge:true});
+}
+async function ensureShareToken(uid, docId) {
+  const snap = await privateRef(uid,docId).get();
+  let token = snap.exists && snap.data().shareToken;
+  if (!token || !isToken(token)) {
+    token = genToken();
+    await privateRef(uid,docId).set({shareToken:token},{merge:true});
+  }
+  const entry = docList.find(d=>d.id===docId);
+  if (entry) entry.shareToken = token;
+  return token;
+}
+async function loadPublicDoc(token) {
+  try {
+    const snap = await publicRef(token).get();
+    if (!snap.exists) { showState('error'); return false; }
+    const d = snap.data();
+    routeShareToken=token; activeShareToken=token;
+    readonlyMode=true; activeDocId=d.docId||null;
+    applyDocData({name:d.name, payload:d.payload||{}});
+    setReadonly(true);
+    setShareUrl(token);
+    showState('app');
+    showScheduleView();
+    return true;
+  } catch(e) { showState('error'); return false; }
+}
+async function tryUpgradeIfOwner(user) {
+  if (!readonlyMode||!routeShareToken||!user) return false;
+  const snap = await publicRef(routeShareToken).get();
+  if (!snap.exists||snap.data().ownerUid!==user.uid) return false;
+  readonlyMode=false; activeDocId=snap.data().docId;
+  routeShareToken=null;
+  setReadonly(false); clearShareUrl();
+  await initUserDocs(user.uid);
+  toast('Switched to edit mode');
+  if (activeDocId) openDoc(user.uid, activeDocId);
+  return true;
+}
+
+// ═══════════════════════════════════════════════════════════
+// DOC MANAGEMENT
+// ═══════════════════════════════════════════════════════════
+async function createDoc(uid, name) {
+  const ref   = privateCol(uid).doc();
+  const token = genToken();
+  const localNow = new Date();
+  await ref.set({
+    name, shareToken:token, selectionCount:0, schemaVersion:1,
+    payload:{selected:[]},
+    createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  });
+  docList.unshift({ id:ref.id, name, shareToken:token, selectionCount:0, schemaVersion:1, createdAt:localNow, updatedAt:localNow });
+  return ref.id;
+}
+async function deleteDoc(uid, id) {
+  const doc = docList.find(d=>d.id===id);
+  await privateRef(uid,id).delete();
+  if (doc && doc.shareToken) {
+    try { await publicRef(doc.shareToken).delete(); } catch(e) {}
+  }
+  docList = docList.filter(d=>d.id!==id);
+}
+async function openDoc(uid, id) {
+  activeDocId = id;
+  cloudReady  = false;
+  const ok = await loadDoc(uid, id);
+  if (!ok) { toast('Could not load schedule'); return; }
+  activeShareToken = (docList.find(d=>d.id===id)||{}).shareToken||null;
+  if (activeShareToken && !readonlyMode) syncPublic(uid, id, activeShareToken);
+  showScheduleView();
+  onDocLoaded();
+}
+
+// ═══════════════════════════════════════════════════════════
+// USER DOC INIT (dashboard-first, no auto-create)
+// ═══════════════════════════════════════════════════════════
+function docTimestamp(v) {
+  if (!v) return 0;
+  if (typeof v.toDate === 'function') return v.toDate().getTime();
+  if (v instanceof Date) return v.getTime();
+  const t = new Date(v).getTime();
+  return isNaN(t) ? 0 : t;
+}
+function mapDocSnap(docs) {
+  return docs.map(d=>({id:d.id,...d.data()}));
+}
+async function fetchUserDocList(uid) {
+  try {
+    const snap = await privateCol(uid).orderBy('updatedAt','desc').limit(20).get();
+    return mapDocSnap(snap.docs);
+  } catch (e) {
+    if (e.code === 'permission-denied') throw e;
+    const snap = await privateCol(uid).limit(20).get();
+    const list = mapDocSnap(snap.docs);
+    list.sort((a,b)=>docTimestamp(b.updatedAt)-docTimestamp(a.updatedAt));
+    return list;
+  }
+}
+function finishDashboardInit() {
+  showState('app');
+  onDocLoaded();
+  if (!activeDocId) showDashboardView();
+}
+function fmtFirestoreErr(e) {
+  if (e && e.code === 'permission-denied') {
+    return 'Firestore access denied. Deploy rules from this folder: firebase deploy --only firestore:rules';
+  }
+  return (e && e.message) || 'Could not load your schedules';
+}
+async function initUserDocs(uid) {
+  syncStatus('Loading…','warn');
+  try {
+    docList = await fetchUserDocList(uid);
+    cloudReady = true;
+    syncStatus('Synced','ok');
+    finishDashboardInit();
+  } catch(e) {
+    cloudReady = false;
+    docList = [];
+    syncStatus('Load failed','err');
+    console.error(e);
+    finishDashboardInit();
+    toast(fmtFirestoreErr(e));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+function preferAuthRedirect() {
+  const h = location.hostname;
+  return h === 'localhost' || h === '127.0.0.1';
+}
+async function signInGoogle() {
+  if (location.protocol==='file:') { authMsg('Open via http, not a local file.'); return; }
+  setAuthBusy(true);
+  try {
+    if (preferAuthRedirect()) {
+      sessionStorage.setItem('authRedirect','1');
+      await auth.signInWithRedirect(googleProvider);
+      return;
+    }
+    await auth.signInWithPopup(googleProvider);
+    closeModal('modal-auth');
+  } catch(e) {
+    if (e.code==='auth/popup-blocked'||e.code==='auth/cancelled-popup-request') {
+      sessionStorage.setItem('authRedirect','1');
+      await auth.signInWithRedirect(googleProvider); return;
+    }
+    authMsg(fmtAuthErr(e));
+  } finally { setAuthBusy(false); }
+}
+async function signInEmail() {
+  const em=eid('auth-email').value.trim(), pw=eid('auth-pw').value;
+  if (!em||!pw) { authMsg('Enter email and password.'); return; }
+  setAuthBusy(true);
+  try { await auth.signInWithEmailAndPassword(em,pw); closeModal('modal-auth'); }
+  catch(e) { authMsg(fmtAuthErr(e)); } finally { setAuthBusy(false); }
+}
+async function registerEmail() {
+  const em=eid('auth-email').value.trim(), pw=eid('auth-pw').value;
+  if (!em||!pw) { authMsg('Enter email and password.'); return; }
+  if (pw.length<6) { authMsg('Password must be 6+ characters.'); return; }
+  setAuthBusy(true);
+  try { await auth.createUserWithEmailAndPassword(em,pw); closeModal('modal-auth'); }
+  catch(e) { authMsg(fmtAuthErr(e)); } finally { setAuthBusy(false); }
+}
+async function signOut() {
+  if (activeDocId && !readonlyMode) { clearTimeout(saveTimer); await saveNow(); }
+  try { await auth.signOut(); } catch(e) { syncStatus('Sign-out failed','err'); }
+}
+function fmtAuthErr(e) {
+  if (e.code==='auth/unauthorized-domain') {
+    const host = location.hostname;
+    const hint = host === '127.0.0.1' ? ' Add 127.0.0.1 (and localhost) under Firebase Auth → Authorised domains.' : '';
+    return 'Host "'+host+'" not in Firebase authorised domains.'+hint;
+  }
+  return e.message || 'Sign-in failed';
+}
+
+auth.getRedirectResult().then(r=>{
+  if (r&&r.user) closeModal('modal-auth');
+}).catch(e=>{
+  if (sessionStorage.getItem('authRedirect')) {
+    sessionStorage.removeItem('authRedirect');
+    authMsg(fmtAuthErr(e)); openModal('modal-auth');
+  }
+});
+
+let welcomedUid = null;
+auth.onAuthStateChanged(async user=>{
+  if (readonlyMode) {
+    if (user) await tryUpgradeIfOwner(user);
+    setAuthUi(user); return;
+  }
+  currentUser=user; cloudReady=false;
+  setAuthUi(user);
+  if (user) {
+    closeModal('modal-auth');
+    if (welcomedUid !== user.uid) {
+      welcomedUid = user.uid;
+      toast('Signed in as ' + (user.displayName || user.email || 'your account'));
+    }
+    await initUserDocs(user.uid);
+    if (!readonlyMode) clearShareUrl();
+  } else {
+    welcomedUid = null;
+    activeDocId=null; activeShareToken=null; docList=[];
+    applyDocData({});
+    syncStatus('Local only','');
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// ── HOOKS ──────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+function getDocData() {
+  return {
+    name: currentScheduleName,
+    selectionCount: selected.size,
+    schemaVersion: 1,
+    payload: { selected: Array.from(selected) }
+  };
+}
+function applyDocData(data) {
+  const p = (data && data.payload) || {};
+  selected = new Set(p.selected || []);
+  currentScheduleName = (data && data.name) || 'Untitled Schedule';
+  const titleEl = eid('sc-title'); if (titleEl) titleEl.value = currentScheduleName;
+  if (eid('view-schedule').style.display !== 'none') renderCalendar();
+}
+function onDocLoaded() {
+  const titleEl = eid('sc-title'); if (titleEl) titleEl.value = currentScheduleName;
+  updateCrumb(); updateSubheadMeta();
+  document.title = (currentScheduleName || 'SportSquad') + ' · SportSquad';
+}
+
+// ═══════════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════════
+function showState(state) {
+  document.body.classList.remove('auth-pending');
+  const app = eid('app'), si = eid('sign-in'), se = eid('share-err');
+  if (app) app.hidden = state !== 'app';
+  if (si)  si.hidden  = state !== 'signin';
+  if (se)  se.hidden  = state !== 'error';
+}
+function setReadonly(on) {
+  document.body.classList.toggle('readonly',on);
+  const rb = eid('ro-banner'); if(rb) rb.hidden=!on;
+}
+function setAuthUi(user) {
+  document.body.classList.remove('auth-pending');
+  if (readonlyMode) { showState('app'); return; }
+  showState(user ? 'app' : 'signin');
+  if (user) authMsg('');
+  const un = eid('user-name'); if(un) un.textContent = user?(user.displayName||user.email||'Signed in'):'';
+  const av = eid('user-menu-btn');
+  if (av) av.textContent = user ? (user.displayName||user.email||'?').charAt(0).toUpperCase() : '?';
+  if (!user) closeMenu();
+}
+function syncStatus(txt,type) {
+  const s=eid('sync-status'); if(!s)return;
+  s.textContent=txt; s.className=type?type:'';
+}
+let _tt;
+function toast(msg) {
+  const t=eid('toast'); t.textContent=msg; t.hidden=false; t.classList.add('show');
+  clearTimeout(_tt);
+  _tt=setTimeout(()=>{t.classList.remove('show');setTimeout(()=>{t.hidden=true;},200);},3000);
+}
+function authMsg(msg) {
+  const modal = eid('auth-msg');
+  if (modal) modal.textContent = msg;
+  const si = eid('sign-in-error');
+  if (si) { si.textContent = msg; si.hidden = !msg; }
+  if (msg) toast(msg);
+}
+function setAuthBusy(b) {
+  ['btn-google','btn-google-empty','btn-email-in','btn-email-reg'].forEach(id=>{const e=eid(id);if(e)e.disabled=b;});
+}
+function openModal(id) {
+  const el=eid(id); if(!el)return;
+  if (id==='modal-auth') {
+    el.hidden=false;
+    const ah=eid('auth-domain-hint');
+    if(ah) ah.textContent='Firebase must authorise: "'+location.hostname+'"';
+    const am=eid('auth-msg'); if(am) am.textContent='';
+  } else {
+    el.classList.add('on');
+  }
+}
+function closeModal(id) {
+  const el=eid(id); if(!el)return;
+  if (id==='modal-auth') el.hidden=true;
+  else el.classList.remove('on');
+}
+function toggleMenu(e) { e.stopPropagation(); const p=eid('user-menu-panel'); if(p) p.hidden=!p.hidden; }
+function closeMenu() { const p=eid('user-menu-panel'); if(p) p.hidden=true; }
+document.addEventListener('click',closeMenu);
+
+function showDashboardView() {
+  STATE.view = 'dashboard';
+  const vd=eid('view-dashboard'), vs=eid('view-schedule'), gc=eid('gcrumb');
+  if(vd) vd.style.display='';
+  if(vs) vs.style.display='none';
+  if(gc) gc.style.display='none';
+  renderDash();
+}
+function showScheduleView() {
+  STATE.view = 'schedule';
+  const vd=eid('view-dashboard'), vs=eid('view-schedule'), gc=eid('gcrumb');
+  if(vd) vd.style.display='none';
+  if(vs) vs.style.display='flex';
+  if(gc) gc.style.display='flex';
+  updateCrumb(); updateSubheadMeta();
+  renderCalendar();
+}
+async function goDash() {
+  if (activeDocId && !readonlyMode) {
+    clearTimeout(saveTimer); saveTimer=null;
+    await saveNow(); // must finish reading selected/currentScheduleName before we clear them below
+  }
+  activeDocId=null;
+  selected = new Set();
+  currentScheduleName='';
+  showDashboardView();
+}
+function updateCrumb() {
+  const e=eid('gcrumb-name'); if(e) e.textContent=currentScheduleName||'Untitled';
+}
+function updateSubheadMeta() {
+  const entry = docList.find(d=>d.id===activeDocId);
+  const te=eid('sc-title'); if(te) te.value=currentScheduleName;
+  const mc=eid('meta-created'), mu=eid('meta-updated');
+  if(mc) mc.textContent = entry ? fmtDate(entry.createdAt) : '—';
+  if(mu) mu.textContent = entry ? fmtDate(entry.updatedAt) : '—';
+}
+function onTitleEdit(val) {
+  currentScheduleName = val || 'Untitled Schedule';
+  updateCrumb();
+  const entry=docList.find(d=>d.id===activeDocId); if(entry) entry.name=currentScheduleName;
+  scheduleSave();
+}
+eid('sc-title').addEventListener('input', e=>onTitleEdit(e.target.value));
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD RENDER + SORT
+// ═══════════════════════════════════════════════════════════
+function sortDash(key) {
+  if (DASH_STATE.sortKey===key) DASH_STATE.sortDir=DASH_STATE.sortDir==='asc'?'desc':'asc';
+  else { DASH_STATE.sortKey=key; DASH_STATE.sortDir=key==='name'?'asc':'desc'; }
+  renderDash();
+}
+function renderDash() {
+  const cnt=eid('dash-count'); if(cnt) cnt.textContent=docList.length+' '+(docList.length===1?'schedule':'schedules');
+  const keyMap={name:'name',created:'createdAt',updated:'updatedAt',count:'selectionCount'};
+  const {sortKey,sortDir}=DASH_STATE;
+  const fsKey=keyMap[sortKey]||sortKey;
+
+  const sorted=[...docList].sort((a,b)=>{
+    let av=a[fsKey], bv=b[fsKey];
+    if (fsKey==='selectionCount'){ av=Number(av)||0; bv=Number(bv)||0; }
+    else {
+      if(av&&typeof av.toDate==='function') av=av.toDate().getTime();
+      else if(av instanceof Date) av=av.getTime();
+      else if(typeof av==='string') av=new Date(av).getTime();
+      if(bv&&typeof bv.toDate==='function') bv=bv.toDate().getTime();
+      else if(bv instanceof Date) bv=bv.getTime();
+      else if(typeof bv==='string') bv=new Date(bv).getTime();
+    }
+    if(av<bv) return sortDir==='asc'?-1:1;
+    if(av>bv) return sortDir==='asc'?1:-1;
+    return 0;
+  });
+
+  ['name','created','updated','count'].forEach(k=>{
+    const th=eid('th-'+k), ar=eid('ar-'+k);
+    if(th) th.classList.toggle('sortcol',k===sortKey);
+    if(ar) ar.textContent=k===sortKey?(sortDir==='asc'?'▲':'▼'):'';
+  });
+
+  const tbody=eid('dash-tbody'); if(!tbody) return;
+  if (!sorted.length) {
+    tbody.innerHTML=`<tr><td colspan="5"><div class="empty-dash">No schedules yet. Click "+ New Schedule" to get started.</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML=sorted.map(a=>{
+    const sid=escapeHtml(a.id), sname=escapeHtml(a.name||'Untitled Schedule');
+    const cnt=Number(a.selectionCount)||0;
+    return `<tr>
+      <td><span class="an-name" data-open-id="${sid}">${sname}</span></td>
+      <td><span class="an-date">${fmtDate(a.createdAt)}</span></td>
+      <td><span class="an-date">${fmtDate(a.updatedAt)}</span></td>
+      <td><span class="an-docs"><span class="an-docs-n">${cnt}</span> event${cnt!==1?'s':''}</span></td>
+      <td>
+        <div class="row-menu-wrap">
+          <button class="row-menu-btn" data-menu-id="${sid}">⋮</button>
+          <div class="row-menu" id="rm-${sid}">
+            <div class="row-menu-item" data-open-id="${sid}">📂 Open</div>
+            <div class="row-menu-item danger" data-delete-id="${sid}">🗑 Delete</div>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+document.addEventListener('click',e=>{
+  const th=e.target.closest('th[data-sort]');
+  if(th) { sortDash(th.dataset.sort); return; }
+  const oa=e.target.closest('[data-open-id]');
+  if(oa && !e.target.closest('.row-menu')) {
+    if(currentUser) openDoc(currentUser.uid, oa.dataset.openId);
+    return;
+  }
+  const mb=e.target.closest('[data-menu-id]');
+  if(mb) {
+    e.stopPropagation();
+    document.querySelectorAll('.row-menu').forEach(m=>{if(m.id!=='rm-'+mb.dataset.menuId)m.classList.remove('on');});
+    const rm=eid('rm-'+mb.dataset.menuId); if(rm) rm.classList.toggle('on');
+    return;
+  }
+  const da=e.target.closest('[data-delete-id]');
+  if(da) { e.stopPropagation(); askDelete(da.dataset.deleteId); return; }
+  document.querySelectorAll('.row-menu').forEach(m=>m.classList.remove('on'));
+});
+
+let pendingDeleteId=null;
+function askDelete(id) {
+  pendingDeleteId=id;
+  const an=docList.find(a=>a.id===id);
+  eid('del-target-name').textContent=(an?escapeHtml(an.name):'This schedule')+' — attendance selections will be permanently removed.';
+  openModal('modal-delconfirm');
+}
+function closeDelConfirm() { closeModal('modal-delconfirm'); pendingDeleteId=null; }
+async function confirmDelete() {
+  if (!pendingDeleteId||!currentUser) return;
+  try { await deleteDoc(currentUser.uid, pendingDeleteId); } catch(e) { toast('Delete failed'); return; }
+  closeDelConfirm();
+  renderDash();
+}
+
+// ═══════════════════════════════════════════════════════════
+// NEW SCHEDULE MODAL
+// ═══════════════════════════════════════════════════════════
+function openNewModal() {
+  if (!currentUser) { toast('Sign in to create a schedule'); openModal('modal-auth'); return; }
+  eid('new-name').value='';
+  openModal('modal-new');
+  setTimeout(()=>eid('new-name').focus(),50);
+}
+function closeNewModal() { closeModal('modal-new'); }
+async function submitNewSchedule() {
+  const name = eid('new-name').value.trim();
+  if (!name) { toast('Give the schedule a name'); return; }
+  if (!currentUser) { toast('Sign in to create a schedule'); closeNewModal(); openModal('modal-auth'); return; }
+  try {
+    const id = await createDoc(currentUser.uid, name);
+    closeNewModal();
+    openDoc(currentUser.uid, id);
+  } catch(e) { toast('Could not create schedule'); console.error(e); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// WIRING
+// ═══════════════════════════════════════════════════════════
+eid('brand-link').addEventListener('click', goDash);
+eid('btn-new-schedule').addEventListener('click', openNewModal);
+eid('btn-close-new').addEventListener('click', closeNewModal);
+eid('new-submit').addEventListener('click', submitNewSchedule);
+eid('new-name').addEventListener('keydown', e=>{ if(e.key==='Enter') submitNewSchedule(); });
+
+eid('user-menu-btn').addEventListener('click', toggleMenu);
+eid('btn-copy-share').addEventListener('click', copyShareLink);
+eid('btn-ro-copy').addEventListener('click', copyShareLink);
+eid('btn-sign-out').addEventListener('click', signOut);
+
+eid('btn-google').addEventListener('click', signInGoogle);
+eid('btn-google-empty').addEventListener('click', signInGoogle);
+eid('btn-email-in').addEventListener('click', signInEmail);
+eid('btn-email-reg').addEventListener('click', registerEmail);
+
+eid('btn-close-delconfirm').addEventListener('click', closeDelConfirm);
+eid('btn-confirm-delete').addEventListener('click', confirmDelete);
+
+// ═══════════════════════════════════════════════════════════
+// ROUTE ENTRY
+// ═══════════════════════════════════════════════════════════
+routeShareToken = parseShareFromUrl();
+if (routeShareToken) {
+  readonlyMode = true;
+  loadPublicDoc(routeShareToken);
+}
+</script>
+</body>
+</html>

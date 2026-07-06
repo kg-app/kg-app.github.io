@@ -1,0 +1,2469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Inline path-fix: redirect app.html/<uuid> → app.html?share=<uuid> before any JS loads -->
+<script>(function(){var m=location.pathname.match(/^(.*\.html)\/([^/]*)\/?$/i);if(!m)return;var base=m[1],rest=(m[2]||'').replace(/\/$/,'');if(rest&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(rest)){location.replace(base+'?share='+encodeURIComponent(rest)+location.search+location.hash);}else{location.replace(base+location.search+location.hash);}})();</script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ValidAIt — Workspace</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231a1a1a'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='system-ui,sans-serif' font-size='16' font-weight='700' fill='%23fff'%3EV%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.5/dist/purify.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f5f5;--surf:#fff;--surf-2:#fafafa;--line:#d8d8d8;--line-2:#e8e8e8;
+  --ink:#1a1a1a;--ink-2:#444;--ink-3:#777;--ink-4:#aaa;--ink-5:#ccc;
+  --acc:#2a2a2a;--acc-soft:#666;
+  --warn:#a04020;--warn-soft:#d9a090;--warn-bg:#f5e5e0;
+  --good:#2a6a2e;--good-soft:#90b890;--good-bg:#e5efe2;
+  --info:#3a5a8a;--info-soft:#8898b8;--info-bg:#e0e8f2;
+  --mid:#6c5a98;--mid-soft:#a898c8;--mid-bg:#ebe5f0;
+  --gold:#8a7020;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);font-size:13px;line-height:1.5;display:flex;flex-direction:column}
+
+/* ── auth-pending: hide content until Firebase resolves ── */
+body.auth-pending #app,
+body.auth-pending #sign-in,
+body.auth-pending #share-err{visibility:hidden}
+
+/* ─── global top bar ─── */
+.gbar{height:48px;background:var(--ink);color:#fff;display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;z-index:20}
+.gbrand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;letter-spacing:-.3px;cursor:pointer;color:#fff;text-decoration:none}
+.gbrand-box{width:24px;height:24px;background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:11px;font-weight:800}
+.gcrumb{font-size:12px;color:#bbb;display:flex;align-items:center;gap:6px}
+.gcrumb .sep{color:#666}.gcrumb .curr{color:#fff;font-weight:500}
+.gbar-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.gbtn{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border:1.5px solid #fff;background:#fff;color:var(--ink);font-size:12.5px;font-weight:600;cursor:pointer;border-radius:3px;font-family:inherit}
+.gbtn-gh{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1.5px solid #555;background:transparent;color:#ddd;font-size:12.5px;font-weight:500;cursor:pointer;border-radius:3px;font-family:inherit}
+.gbtn-gh:hover{border-color:#888;color:#fff;background:rgba(255,255,255,.06)}
+.gbtn:hover{background:#eee}
+#sync-status{font-size:11px;opacity:.7}
+#sync-status.ok{color:#86efac}
+#sync-status.warn{color:#fde68a}
+#sync-status.err{color:#fca5a5}
+
+/* ─── avatar / user menu ─── */
+.gav{width:26px;height:26px;border-radius:50%;background:#555;border:1.5px solid #777;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#ddd;cursor:pointer;user-select:none;flex-shrink:0}
+#user-menu-wrap{position:relative}
+#user-menu-panel{position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid #e0e0e0;border-radius:5px;box-shadow:0 6px 20px rgba(0,0,0,.12);min-width:170px;padding:4px;z-index:50}
+#user-menu-panel[hidden]{display:none}
+.umenu-item{width:100%;padding:7px 11px;text-align:left;background:none;border:none;font-size:12.5px;color:#333;cursor:pointer;border-radius:3px;display:block;font-family:inherit}
+.umenu-item:hover{background:#f0f0f0}
+.umenu-item.danger{color:#b91c1c}
+#user-name{font-size:11px;padding:6px 11px;color:#777;display:block;border-bottom:1px solid #eee;margin-bottom:3px}
+
+/* ─── readonly banner ─── */
+#ro-banner{background:#1e40af;color:#fff;padding:8px 18px;font-size:12.5px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+#ro-banner[hidden]{display:none}
+#ro-banner button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 12px;border-radius:3px;cursor:pointer;font-size:12px;font-family:inherit}
+#ro-banner button:hover{background:rgba(255,255,255,.25)}
+
+/* ─── sign-in empty state ─── */
+#sign-in{flex:1;display:flex;align-items:center;justify-content:center}
+#sign-in[hidden]{display:none!important}
+.signin-card{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:36px 32px;max-width:360px;width:100%;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.signin-card h2{font-size:18px;margin-bottom:6px}
+.signin-card p{font-size:13px;color:#666;margin-bottom:20px;line-height:1.5}
+.btn-google{background:#4285f4;color:#fff;border:none;border-radius:4px;padding:9px 18px;font-size:13px;cursor:pointer;width:100%;margin-bottom:8px;font-family:inherit}
+.btn-google:hover{background:#3367d6}
+.btn-sec{background:#fff;border:1px solid #d0d0d0;border-radius:4px;padding:8px 18px;font-size:13px;cursor:pointer;width:100%;color:#333;font-family:inherit}
+.btn-sec:hover{background:#f5f5f5}
+#sign-in-error{font-size:12px;color:#b91c1c;background:#fee2e2;border:1px solid #fecaca;border-radius:4px;padding:8px 10px;margin-bottom:12px;line-height:1.45;text-align:left}
+#sign-in-error[hidden]{display:none}
+
+/* ─── share error ─── */
+#share-err{flex:1;display:flex;align-items:center;justify-content:center}
+#share-err[hidden]{display:none!important}
+.err-card{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:36px 32px;max-width:360px;width:100%;text-align:center}
+.err-card h2{color:#b91c1c;margin-bottom:8px}
+.err-card p{font-size:13px;color:#666;line-height:1.5;margin-bottom:18px}
+
+/* ─── main app ─── */
+#app{flex:1;overflow:hidden;display:flex;flex-direction:column}
+#app[hidden]{display:none}
+
+/* ─── Generic buttons ─── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 15px;border:1px solid var(--line);background:#fff;font-size:12.5px;cursor:pointer;border-radius:3px;font-family:inherit;color:var(--ink-2);white-space:nowrap}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:disabled:hover{background:#fff}
+.btn:hover{background:#f5f5f5;border-color:var(--ink-4)}
+.btn-p{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn-p:disabled:hover{background:var(--ink)}
+.btn-p:hover{background:var(--acc)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-gh{border-color:transparent;background:transparent}.btn-gh:hover{border-color:var(--line)}
+.btn-warn{color:var(--warn);border-color:var(--warn-soft)}.btn-warn:hover{background:var(--warn-bg)}
+
+/* ─── auth modal ─── */
+.modal-auth-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal-auth-bg[hidden]{display:none}
+.modal-box{background:#fff;border-radius:7px;padding:24px;width:340px;max-width:92vw}
+.modal-box h3{font-size:15px;margin-bottom:4px}
+.modal-sub{font-size:11.5px;color:#777;margin-bottom:14px;line-height:1.5}
+.auth-divider{text-align:center;font-size:11px;color:#aaa;margin:10px 0;position:relative}
+.auth-divider::before,.auth-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:#e0e0e0}
+.auth-divider::before{left:0}.auth-divider::after{right:0}
+.auth-row{margin-bottom:8px}
+.auth-row label{display:block;font-size:11px;font-weight:600;color:#555;margin-bottom:3px}
+.auth-row input{width:100%;padding:7px 10px;border:1px solid #d0d0d0;border-radius:4px;font-size:13px;font-family:inherit}
+.auth-row input:focus{outline:none;border-color:#4285f4}
+#auth-msg{font-size:11.5px;color:#b91c1c;min-height:1.2em;margin:6px 0}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+
+/* ─── toast ─── */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:5px;font-size:12.5px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:200}
+#toast.show{opacity:1}
+#toast[hidden]{display:none}
+
+/* ─── DASHBOARD ─── */
+.dash{flex:1;overflow-y:auto;background:var(--surf)}
+.dash-wrap{max-width:980px;margin:0 auto;padding:32px 28px 60px}
+.dash-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px}
+.dash-title{font-size:21px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
+.dash-sub{font-size:12.5px;color:var(--ink-3);margin-top:3px}
+table.dash-tbl{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.dash-tbl thead th{padding:11px 16px;text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.07em;color:var(--ink-4);text-transform:uppercase;background:var(--surf-2);border-bottom:1.5px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+.dash-tbl thead th:hover{color:var(--ink-2)}
+.dash-tbl thead th.sortcol{color:var(--ink)}
+.sort-arrow{font-size:9px;margin-left:3px;opacity:.7}
+.dash-tbl tbody td{padding:13px 16px;border-bottom:1px solid var(--line-2);color:var(--ink);vertical-align:middle}
+.dash-tbl tbody tr:last-child td{border-bottom:none}
+.dash-tbl tbody tr:hover td{background:#fafaf7}
+.an-name{font-weight:600;color:var(--ink);cursor:pointer;font-size:13.5px}
+.an-name:hover{text-decoration:underline}
+.an-date{font-size:12px;color:var(--ink-3);font-family:monospace}
+.an-docs{font-size:12.5px;color:var(--ink-2)}
+.an-docs-n{font-weight:700;color:var(--ink)}
+.row-menu-wrap{position:relative;display:inline-block}
+.row-menu-btn{width:26px;height:26px;border-radius:4px;border:1px solid transparent;background:none;cursor:pointer;font-size:15px;color:var(--ink-3);display:flex;align-items:center;justify-content:center;font-family:inherit}
+.row-menu-btn:hover{background:#eee;border-color:var(--line)}
+.row-menu{position:absolute;right:0;top:30px;background:#fff;border:1px solid var(--line);border-radius:4px;box-shadow:0 6px 20px rgba(0,0,0,.12);min-width:140px;z-index:50;display:none;padding:4px}
+.row-menu.on{display:block}
+.row-menu-item{padding:7px 11px;font-size:12.5px;cursor:pointer;border-radius:3px;display:flex;align-items:center;gap:7px;color:var(--ink-2)}
+.row-menu-item:hover{background:#f0f0f0}
+.row-menu-item.danger{color:var(--warn)}
+.row-menu-item.danger:hover{background:var(--warn-bg)}
+.empty-dash{padding:60px 20px;text-align:center;color:var(--ink-4);font-size:13px}
+
+/* ─── ANALYSIS WORKSPACE ─── */
+#view-analysis{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.subhead{background:var(--surf);border-bottom:1.5px solid var(--line);padding:14px 18px;flex-shrink:0}
+.subhead-top{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.an-title-edit{font-size:18px;font-weight:700;color:var(--ink);border:1px solid transparent;border-radius:3px;padding:2px 6px;margin-left:-7px;cursor:text;background:none;font-family:inherit;min-width:120px;width:100%;max-width:520px}
+.an-title-edit:hover{border-color:var(--line)}
+.an-title-edit:focus{outline:none;border-color:var(--ink-3);background:#fafafa}
+.subhead-meta{font-size:11.5px;color:var(--ink-4);display:flex;align-items:center;gap:14px;margin-left:1px;flex-wrap:wrap}
+.subhead-meta b{color:var(--ink-3);font-weight:600}
+.subhead-actions{margin-left:auto;display:flex;gap:8px}
+.subbar{background:var(--surf);border-bottom:1.5px solid var(--line);padding:0 18px;display:flex;align-items:center;gap:0;flex-shrink:0}
+.tab{padding:10px 16px;font-size:13px;cursor:pointer;color:var(--ink-3);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1.5px;font-family:inherit;font-weight:500;display:flex;align-items:center;gap:6px}
+.tab:hover{color:var(--ink-2)}
+.tab.on{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
+.tab-cnt{background:#eee;padding:1px 7px;border-radius:8px;font-size:10px;color:var(--ink-3);font-weight:600}
+.tab.on .tab-cnt{background:var(--ink);color:#fff}
+.tab-disabled{color:var(--ink-5);cursor:default}.tab-disabled:hover{color:var(--ink-5)}
+.tab-soon{background:#f0f0f0;color:var(--ink-4);font-size:9px;padding:1px 5px;border-radius:6px;letter-spacing:.05em;text-transform:uppercase}
+.bar-spacer{flex:1}
+.stats{display:flex;gap:0;background:var(--surf);border-bottom:1px solid var(--line-2);padding:0 18px;flex-shrink:0}
+.stat{padding:10px 14px;border-right:1px solid var(--line-2);min-width:88px}
+.stat:last-child{border-right:none}
+.stat-n{font-size:18px;font-weight:700;color:var(--ink)}
+.stat-l{font-size:9.5px;color:var(--ink-4);letter-spacing:.05em;margin-top:1px}
+.stat-warn .stat-n{color:var(--warn)}
+.stat-good .stat-n{color:var(--good)}
+.stat-mid .stat-n{color:var(--ink-3)}
+.extract-banner{background:var(--info-bg);border-bottom:1px solid var(--info-soft);padding:8px 18px;font-size:11.5px;color:var(--info);display:none;align-items:center;gap:10px;flex-shrink:0}
+.extract-banner.on{display:flex}
+.filtbar{background:var(--surf-2);border-bottom:1px solid var(--line-2);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.search{flex:1;max-width:280px;position:relative}
+.search input{width:100%;padding:6px 11px 6px 28px;border:1px solid var(--line);border-radius:3px;font-size:12.5px;font-family:inherit;background:#fff}
+.search input:focus{outline:none;border-color:var(--ink-3)}
+.search::before{content:'⌕';position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--ink-4);font-size:13px}
+.flt-grp{display:flex;gap:0;border:1px solid var(--line);border-radius:3px;overflow:hidden;background:#fff}
+.flt{padding:5px 11px;font-size:11.5px;color:var(--ink-3);cursor:pointer;border:none;background:none;font-family:inherit;border-right:1px solid var(--line-2)}
+.flt:last-child{border-right:none}
+.flt:hover{background:#f5f5f5}
+.flt.on{background:var(--ink);color:#fff}
+.work{flex:1;display:flex;overflow:hidden;min-height:0}
+.main{flex:1;overflow:auto;background:var(--surf);position:relative}
+.panel{width:0;background:var(--surf);border-left:2px solid var(--line);overflow:hidden;flex-shrink:0;transition:width .22s ease;display:flex;flex-direction:column}
+.panel.on{width:440px}
+
+/* ─── entity table ─── */
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+thead th{position:sticky;top:0;background:var(--surf-2);padding:8px 11px;text-align:left;font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--ink-4);text-transform:uppercase;border-bottom:1.5px solid var(--line);white-space:nowrap;z-index:5}
+tbody td{padding:9px 11px;border-bottom:1px solid var(--line-2);color:var(--ink);vertical-align:top}
+tbody tr{cursor:pointer;transition:background .08s}
+tbody tr:hover td{background:#fafaf5}
+tbody tr.sel td{background:#f0eee3}
+tbody tr.sel{box-shadow:inset 3px 0 0 var(--ink)}
+.id-cell{font-family:monospace;font-size:10.5px;color:var(--ink-4);font-weight:600;white-space:nowrap}
+.txt-cell{font-size:12px;color:var(--ink);font-style:italic;max-width:380px;line-height:1.4}
+.cell-meta{font-size:10.5px;color:var(--ink-4);margin-top:2px;font-family:monospace}
+.row-warn{background:#fdf6f3}
+.row-warn:hover td{background:#f8eee8}
+.cell-edit{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border:1px solid transparent;border-radius:3px;cursor:pointer;transition:all .1s}
+.cell-edit:hover{border-color:var(--line);background:#fff}
+.cell-edit::after{content:'⌄';font-size:9px;color:var(--ink-4);margin-left:2px;opacity:.6}
+
+/* ─── badges / chips ─── */
+.bdg{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:8px;font-size:10.5px;font-weight:600;border:1px solid;white-space:nowrap}
+.bdg::before{content:'●';font-size:5px}
+.b-asm{border-color:#bbb;color:var(--ink-3);background:#f0f0f0}.b-asm::before{color:#aaa}
+.b-sup{border-color:var(--good-soft);color:var(--good);background:var(--good-bg)}.b-sup::before{color:var(--good)}
+.b-dis{border-color:var(--warn-soft);color:var(--warn);background:var(--warn-bg)}.b-dis::before{color:var(--warn)}
+.b-val{border-color:var(--ink);color:var(--ink);background:#e0ddd4}.b-val::before{color:var(--ink)}
+.b-rev{border-color:#b89060;color:#8a6020;background:#f5e8d8;font-style:italic}.b-rev::before{color:#b89060}
+.b-gap{border-color:var(--warn);color:var(--warn);background:var(--warn-bg);font-weight:700}
+.chip{display:inline-block;padding:1px 6px;border-radius:8px;font-size:9.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;border:1px solid;white-space:nowrap;margin:1px 2px 1px 0}
+.t-beh{background:var(--info-bg);color:var(--info);border-color:var(--info-soft)}
+.t-att{background:#faf2dc;color:var(--gold);border-color:#d9bf70}
+.t-doc{background:var(--good-bg);color:var(--good);border-color:var(--good-soft)}
+.t-ana{background:#eee;color:var(--ink-3);border-color:var(--line)}
+.fw-tag{font-size:10.5px;color:var(--ink-3);white-space:nowrap}
+.t-type{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:2px;white-space:nowrap}
+.tt-per{background:var(--mid-bg);color:var(--mid)}
+.tt-com{background:#faf2dc;color:var(--gold)}
+.tt-tec{background:var(--warn-bg);color:var(--warn)}
+.tt-fra{background:#eee;color:var(--ink-3)}
+.tt-risk{background:var(--warn-bg);color:var(--warn)}
+.pri{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:2px;white-space:nowrap;letter-spacing:.04em}
+.pri-p0{background:var(--warn);color:#fff}
+.pri-p1{background:#b87020;color:#fff}
+.pri-p2{background:var(--ink-3);color:#fff}
+.ref{font-family:monospace;font-size:10px;padding:1px 5px;border-radius:2px;background:#f0eee3;border:1px solid var(--line-2);color:var(--ink-3);white-space:nowrap;cursor:pointer;display:inline-block;margin:1px}
+.ref:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.prov{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:8px;font-size:10px;color:var(--info);background:var(--info-bg);border:1px solid var(--info-soft);cursor:pointer;font-family:monospace;font-weight:600}
+.prov:hover{background:var(--info);color:#fff}
+.prov-mini{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#f0eee3;color:var(--ink-3);font-size:9px;cursor:pointer;margin-left:4px;border:1px solid var(--line-2);font-family:inherit;font-weight:700}
+.prov-mini:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.str{display:inline-flex;gap:2px}
+.sd{width:6px;height:6px;border-radius:50%;background:#ddd}
+.sd.on{background:var(--ink-3)}
+
+/* ─── side panel ─── */
+.pan-hdr{padding:13px 18px;border-bottom:1.5px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--surf-2)}
+.pan-hdr-l{display:flex;align-items:center;gap:8px;flex:1}
+.pan-id{font-family:monospace;font-size:11px;color:var(--ink-4);font-weight:700}
+.pan-title{font-size:13px;font-weight:600;color:var(--ink)}
+.pan-x{cursor:pointer;font-size:18px;color:var(--ink-4);background:none;border:none;line-height:1;padding:0;font-family:inherit}.pan-x:hover{color:var(--ink)}
+.pan-body{flex:1;overflow-y:auto;padding:16px 18px}
+.pan-foot{padding:11px 18px;border-top:1px solid var(--line);display:flex;gap:8px;flex-shrink:0;background:var(--surf-2)}
+.pan-tabs{display:flex;gap:0;border-bottom:1px solid var(--line);padding:0 18px;background:var(--surf-2);flex-shrink:0}
+.pan-tab{padding:8px 12px;font-size:11.5px;cursor:pointer;color:var(--ink-3);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;font-weight:500;display:flex;align-items:center;gap:5px}
+.pan-tab.on{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
+.pan-tab-cnt{background:#eee;padding:0 5px;border-radius:6px;font-size:9px;color:var(--ink-3);font-weight:600}
+.sec{margin-bottom:18px}
+.sec-l{font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--ink-4);text-transform:uppercase;margin-bottom:7px}
+.kv{display:flex;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line-2);font-size:12px}
+.kv:last-child{border:none}
+.kv-k{font-size:10.5px;color:var(--ink-4);min-width:90px;text-transform:uppercase;letter-spacing:.04em;padding-top:1px}
+.kv-v{flex:1;color:var(--ink)}
+.ai-block{background:#f5f5f0;border:1px solid var(--line);border-left:3px solid var(--ink-3);border-radius:0 3px 3px 0;padding:11px 12px;margin-bottom:10px;font-size:12px;line-height:1.6;color:var(--ink-2)}
+.ai-block ul{padding-left:14px;margin-top:5px}.ai-block li{margin-bottom:4px}
+.ai-block em{display:block;margin-top:7px;font-size:11px;color:var(--ink-4);font-style:italic}
+.ai-l{font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--ink-4);text-transform:uppercase;margin-bottom:6px}
+textarea,input[type=text]{width:100%;border:1px solid var(--line);border-radius:3px;padding:7px 10px;font-family:inherit;font-size:12.5px;color:var(--ink);background:#fff;resize:vertical;outline:none}
+textarea:focus,input:focus{border-color:var(--ink-3)}
+textarea{min-height:60px}
+select{padding:5px 22px 5px 8px;border:1px solid var(--line);border-radius:3px;font-size:11.5px;font-family:inherit;background:#fff;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);background-position:calc(100% - 10px) 50%,calc(100% - 6px) 50%;background-size:4px 4px,4px 4px;background-repeat:no-repeat}
+.ev-card{background:var(--surf-2);border:1px solid var(--line);border-left:3px solid var(--info);border-radius:0 3px 3px 0;padding:9px 11px;margin-bottom:6px;font-size:11.5px}
+.ev-card-meta{display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap}
+.trail{position:relative;padding-left:18px}
+.trail::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:var(--line)}
+.trail-item{position:relative;padding:6px 0 6px 5px;font-size:11.5px}
+.trail-item::before{content:'';position:absolute;left:-18px;top:9px;width:9px;height:9px;border-radius:50%;background:var(--surf);border:1.5px solid var(--ink-3)}
+.trail-item.curr::before{background:var(--ink);border-color:var(--ink)}
+.trail-when{font-size:10px;color:var(--ink-4);font-family:monospace}
+.trail-what{font-size:11.5px;color:var(--ink);margin-top:1px}
+.trail-who{font-size:10.5px;color:var(--ink-3);margin-top:1px}
+.src-block{background:#f5f5f0;border:1px solid var(--line);border-radius:3px;padding:9px 10px;margin-top:6px;font-size:11px;font-family:monospace;line-height:1.5;color:var(--ink-3);max-height:120px;overflow-y:auto;white-space:pre-wrap}
+
+/* ─── empty / processing states ─── */
+.empty{height:100%;display:flex;align-items:center;justify-content:center;padding:32px 20px}
+.empty-card{max-width:520px;width:100%;background:var(--surf-2);border:2px dashed var(--line);border-radius:6px;padding:48px 40px;text-align:center}
+.empty-icon{font-size:36px;color:var(--ink-4);margin-bottom:10px}
+.empty-title{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:5px}
+.empty-sub{font-size:13px;color:var(--ink-3);margin-bottom:24px;line-height:1.6}
+.empty-actions{display:flex;gap:10px;justify-content:center;margin-bottom:18px}
+.empty-formats{font-size:11px;color:var(--ink-4)}
+.proc{padding:32px;max-width:640px;margin:0 auto}
+.proc-bar{height:4px;background:#e0e0e0;border-radius:2px;overflow:hidden;margin:12px 0 18px}
+.proc-fill{height:100%;background:var(--ink);transition:width .8s ease;width:0}
+.proc-step{padding:10px 0;font-size:12.5px;color:var(--ink-4);display:flex;align-items:center;gap:8px}
+.proc-step.done{color:var(--ink-2)}.proc-step.cur{color:var(--ink);font-weight:600}
+.proc-tick{width:14px;height:14px;border-radius:50%;border:1.5px solid #ccc;display:flex;align-items:center;justify-content:center;font-size:8px;color:transparent}
+.proc-step.done .proc-tick{background:var(--good);border-color:var(--good);color:#fff}
+.proc-step.cur .proc-tick{border-color:var(--ink);background:#fff;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(.85)}}
+.canvas-soon{height:100%;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(45deg,#fafafa,#fafafa 12px,#f0f0f0 12px,#f0f0f0 13px)}
+.canvas-soon-inner{background:#fff;border:2px dashed var(--line);border-radius:8px;padding:48px 40px;text-align:center;max-width:520px}
+.canvas-illust{font-size:42px;color:var(--ink-4);margin-bottom:14px;font-family:monospace}
+
+/* ─── dropdown popup ─── */
+.dd-pop{position:fixed;background:#fff;border:1.5px solid var(--ink);border-radius:3px;box-shadow:0 6px 24px rgba(0,0,0,.15);z-index:1000;padding:5px;min-width:160px}
+.dd-opt{padding:5px 10px;font-size:11.5px;cursor:pointer;border-radius:2px;display:flex;align-items:center;gap:7px}
+.dd-opt:hover{background:#f0eee3}
+
+/* ─── modals ─── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:#fff;border-radius:6px;padding:24px;width:520px;max-width:90vw;max-height:88vh;overflow-y:auto}
+.modal h3{font-size:16px;margin-bottom:4px;color:var(--ink)}
+
+/* Upload modal */
+.dropzone{border:2px dashed var(--line);border-radius:6px;padding:28px 20px;text-align:center;cursor:pointer;background:var(--surf-2);transition:all .15s}
+.dropzone:hover{border-color:var(--ink-3);background:#f5f5f0}
+.dropzone-icon{font-size:24px;color:var(--ink-4);margin-bottom:6px}
+.dropzone-txt{font-size:12.5px;color:var(--ink-3)}
+.dropzone-sub{font-size:10.5px;color:var(--ink-4);margin-top:3px}
+.file-row{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--line);border-radius:3px;margin-top:7px;background:#fff}
+.file-icon{width:26px;height:26px;border-radius:3px;background:var(--info-bg);color:var(--info);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.file-icon.existing{background:#eee;color:var(--ink-3)}
+.file-meta{flex:1;min-width:0}
+.file-name{font-size:12px;color:var(--ink);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-sub{font-size:10.5px;color:var(--ink-4)}
+.file-remove{width:22px;height:22px;border-radius:3px;border:none;background:none;color:var(--ink-4);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.file-remove:hover{background:var(--warn-bg);color:var(--warn)}
+.upload-empty{font-size:11.5px;color:var(--ink-4);font-style:italic;padding:8px 2px}
+
+/* Workflow modal */
+.modal-bg.wf .modal{width:760px;max-width:94vw;padding:0}
+.wf-hdr{padding:16px 22px;border-bottom:1.5px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.wf-hdr h3{margin:0}
+.wf-body{padding:18px 22px;overflow-x:auto}
+
+/* Guide modal */
+.modal-bg.guide .modal{width:600px;max-width:94vw}
+.guide-step{display:flex;gap:13px;margin-bottom:18px}
+.guide-num{width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.guide-title{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:3px}
+.guide-txt{font-size:12.5px;color:var(--ink-3);line-height:1.55}
+
+/* AI review modal */
+.spinner{width:16px;height:16px;border-radius:50%;border:2px solid #e0e0e0;border-top-color:var(--ink);display:inline-block;animation:spin .7s linear infinite;vertical-align:middle;margin-right:7px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.airev-q{font-size:13px;color:var(--ink);line-height:1.5;margin-bottom:12px}
+.qp-row{display:flex;gap:7px;flex-wrap:wrap}
+.qp-btn{padding:8px 14px;border:1.5px solid var(--line);border-radius:4px;background:#fff;font-size:12.5px;color:var(--ink-2);cursor:pointer;font-family:inherit}
+.qp-btn:hover{border-color:var(--ink);background:#f5f5f5}
+.airev-result{background:var(--good-bg);border:1px solid var(--good-soft);border-left:3px solid var(--good);border-radius:0 4px 4px 0;padding:11px 13px;font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.airev-result b{color:var(--good)}
+
+/* New analysis gate */
+.etabs{display:flex;gap:0;border-bottom:1px solid var(--line);margin-bottom:12px}
+.etab{padding:8px 14px;font-size:12.5px;cursor:pointer;color:var(--ink-3);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;font-weight:500}
+.etab:hover{color:var(--ink-2)}
+.etab.on{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
+.req-mark{color:var(--warn);font-weight:700}
+.field-err{border-color:var(--warn) !important}
+.na-checklist{font-size:12px;display:flex;flex-direction:column;gap:5px}
+.na-check-row{display:flex;align-items:center;gap:7px;color:var(--ink-4);transition:color .15s}
+.na-check-row.ok{color:var(--good)}
+.na-check-icon{width:14px;text-align:center;font-size:12px}
+
+/* Delete buttons */
+.del-btn{width:22px;height:22px;border-radius:3px;border:1px solid transparent;background:none;color:var(--ink-5);cursor:pointer;font-size:13px;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
+.del-btn:hover{background:var(--warn-bg);border-color:var(--warn-soft);color:var(--warn)}
+.del-confirm-pop{position:fixed;background:#fff;border:1.5px solid var(--warn);border-radius:4px;box-shadow:0 8px 26px rgba(0,0,0,.18);z-index:1000;padding:12px 13px;width:220px}
+.del-confirm-pop .dcp-txt{font-size:12px;color:var(--ink-2);margin-bottom:9px;line-height:1.5}
+.del-confirm-pop .dcp-row{display:flex;gap:6px;justify-content:flex-end}
+
+/* CF / experiment badges */
+.b-cf-w{border-color:var(--gold);color:var(--gold);background:#faf2dc}
+.b-cf-i{border-color:var(--warn-soft);color:var(--warn);background:var(--warn-bg);font-style:italic}
+.sev-inv{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:2px;background:var(--warn-bg);color:var(--warn);text-transform:uppercase;letter-spacing:.04em}
+.sev-weak{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:2px;background:#eee;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}
+.exp-method-chip{font-size:10px;color:var(--ink-3);background:#f0f0f0;border:1px solid var(--line-2);padding:1px 7px;border-radius:8px;white-space:nowrap}
+.derive-chips{display:flex;gap:3px;flex-wrap:wrap}
+.gen-exp-btn{background:var(--ink);color:#fff;border-color:var(--ink)}
+.gen-exp-btn:hover{background:#000}
+
+/* Readonly suppression */
+body.readonly .del-btn{display:none}
+body.readonly .cell-edit::after{display:none}
+body.readonly #filtbar-actions{visibility:hidden}
+body.readonly .subhead-actions .btn:not([title="Export"]){display:none}
+</style>
+</head>
+<body class="auth-pending">
+
+<!-- ═══════════ GLOBAL TOP BAR ═══════════ -->
+<div class="gbar">
+  <div class="gbrand" id="brand-link">
+    <div class="gbrand-box">V</div>
+    ValidAIt
+  </div>
+  <div class="gcrumb" id="gcrumb" style="display:none">
+    <span class="sep">/</span>
+    <span class="curr" id="gcrumb-name">—</span>
+  </div>
+  <div class="gbar-r">
+    <span id="sync-status"></span>
+    <button class="gbtn-gh" id="btn-guide">❓ Guide</button>
+    <button class="gbtn" id="btn-new-analysis">+ New Analysis</button>
+    <div id="user-menu-wrap">
+      <div class="gav" id="user-menu-btn">?</div>
+      <div id="user-menu-panel" hidden>
+        <span id="user-name"></span>
+        <button class="umenu-item" id="btn-copy-share">Copy share link</button>
+        <button class="umenu-item danger" id="btn-sign-out">Sign out</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ READONLY BANNER ═══════════ -->
+<div id="ro-banner" hidden>
+  Viewing a shared analysis (read-only)
+  <button onclick="openModal('modal-auth')">Sign in to edit</button>
+  <button id="btn-ro-copy" style="margin-left:auto">Copy link</button>
+</div>
+
+<!-- ═══════════ SIGN-IN ═══════════ -->
+<div id="sign-in" hidden>
+  <div class="signin-card">
+    <h2>ValidAIt</h2>
+    <p>Sign in to save your analyses and share them with collaborators.</p>
+    <div id="sign-in-error" hidden></div>
+    <button class="btn-google" id="btn-google-empty">Continue with Google</button>
+    <button class="btn-sec" onclick="openModal('modal-auth')">Sign in with email</button>
+  </div>
+</div>
+
+<!-- ═══════════ SHARE ERROR ═══════════ -->
+<div id="share-err" hidden>
+  <div class="err-card">
+    <h2>Link not found</h2>
+    <p>This share link may be invalid or the analysis is no longer shared.</p>
+    <button class="btn-p btn" onclick="openModal('modal-auth')">Sign in</button>
+  </div>
+</div>
+
+<!-- ═══════════ MAIN APP ═══════════ -->
+<div id="app" hidden>
+
+  <!-- ── DASHBOARD VIEW ── -->
+  <div class="dash" id="view-dashboard">
+    <div class="dash-wrap">
+      <div class="dash-head">
+        <div>
+          <div class="dash-title">Your analyses</div>
+          <div class="dash-sub" id="dash-count">0 analyses</div>
+        </div>
+      </div>
+      <table class="dash-tbl">
+        <thead>
+          <tr>
+            <th id="th-name" data-sort="name">Name<span class="sort-arrow" id="ar-name"></span></th>
+            <th id="th-created" data-sort="created">Date created<span class="sort-arrow" id="ar-created"></span></th>
+            <th id="th-updated" data-sort="updated">Last updated<span class="sort-arrow" id="ar-updated"></span></th>
+            <th id="th-docs" data-sort="docs">Documents<span class="sort-arrow" id="ar-docs"></span></th>
+            <th style="width:50px;"></th>
+          </tr>
+        </thead>
+        <tbody id="dash-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── ANALYSIS VIEW ── -->
+  <div id="view-analysis" style="display:none">
+
+    <div class="subhead">
+      <div class="subhead-top">
+        <input type="text" class="an-title-edit" id="an-title" value="Untitled Analysis"/>
+      </div>
+      <div class="subhead-meta">
+        <span>Created <b id="meta-created">—</b></span>
+        <span>Updated <b id="meta-updated">—</b></span>
+        <span><b id="meta-docs">0</b> documents</span>
+        <div class="subhead-actions">
+          <button class="btn btn-sm" id="btn-upload-doc">📎 Upload doc</button>
+          <button class="btn btn-sm" id="btn-workflow">⊞ Workflow</button>
+          <button class="btn btn-sm" title="Export">⤓ Export</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="subbar">
+      <button class="tab on" id="tab-claims" data-tab="claims">Claims <span class="tab-cnt" id="cnt-claims">0</span></button>
+      <button class="tab" id="tab-evidence" data-tab="evidence">Evidence <span class="tab-cnt" id="cnt-evidence">0</span></button>
+      <button class="tab" id="tab-tensions" data-tab="tensions">Tensions <span class="tab-cnt" id="cnt-tensions">0</span></button>
+      <button class="tab" id="tab-counterfactuals" data-tab="counterfactuals">Counterfactuals <span class="tab-cnt" id="cnt-counterfactuals">0</span></button>
+      <button class="tab" id="tab-experiments" data-tab="experiments">Experiments <span class="tab-cnt" id="cnt-experiments">0</span></button>
+      <button class="tab tab-disabled" id="tab-canvas">Canvas <span class="tab-soon">soon</span></button>
+      <div class="bar-spacer"></div>
+    </div>
+
+    <div class="stats" id="stats-strip"></div>
+
+    <div class="extract-banner" id="extract-banner">
+      ✓ Extraction complete — claims identified and framework mappings auto-applied
+      <button class="btn btn-sm btn-gh" id="btn-dismiss-banner" style="margin-left:auto">Dismiss</button>
+    </div>
+
+    <div class="filtbar">
+      <div class="search"><input type="text" id="filtbar-search" placeholder="Search claims, evidence, tensions…"/></div>
+      <div class="flt-grp" id="flt-grp">
+        <button class="flt on" data-flt="all">All</button>
+        <button class="flt" data-flt="assumed">Assumed</button>
+        <button class="flt" data-flt="supported">Supported</button>
+        <button class="flt" data-flt="disputed">Disputed</button>
+        <button class="flt" data-flt="gap">Critical gaps</button>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:6px" id="filtbar-actions"></div>
+    </div>
+
+    <div class="work">
+      <div class="main" id="main-area"></div>
+      <div class="panel" id="panel">
+        <div class="pan-hdr">
+          <div class="pan-hdr-l">
+            <span class="pan-id" id="pan-id">—</span>
+            <span class="pan-title" id="pan-title">Detail</span>
+          </div>
+          <button class="pan-x" id="btn-close-pan">×</button>
+        </div>
+        <div class="pan-tabs">
+          <button class="pan-tab on" id="ptab-detail" data-ptab="detail">Detail</button>
+          <button class="pan-tab" id="ptab-ev" data-ptab="ev">Evidence <span class="pan-tab-cnt" id="ptab-ev-cnt">0</span></button>
+          <button class="pan-tab" id="ptab-tn" data-ptab="tn">Tensions <span class="pan-tab-cnt" id="ptab-tn-cnt">0</span></button>
+          <button class="pan-tab" id="ptab-prov" data-ptab="prov">📎 Provenance</button>
+        </div>
+        <div class="pan-body" id="pan-body"></div>
+        <div class="pan-foot" id="pan-foot"></div>
+      </div>
+    </div>
+
+  </div><!-- /view-analysis -->
+</div><!-- /app -->
+
+<!-- ═══════════ AUTH MODAL ═══════════ -->
+<div id="modal-auth" class="modal-auth-bg" hidden>
+  <div class="modal-box">
+    <h3>Sign in</h3>
+    <div class="modal-sub" id="auth-domain-hint"></div>
+    <button class="btn-google" id="btn-google">Continue with Google</button>
+    <div class="auth-divider">or email</div>
+    <div class="auth-row"><label for="auth-email">Email</label><input type="email" id="auth-email" autocomplete="email" placeholder="you@example.com"/></div>
+    <div class="auth-row"><label for="auth-pw">Password</label><input type="password" id="auth-pw" autocomplete="current-password" placeholder="••••••••"/></div>
+    <div id="auth-msg"></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-auth')">Cancel</button>
+      <button class="btn btn-p" id="btn-email-reg">Register</button>
+      <button class="btn btn-p" id="btn-email-in">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ ADD ITEM MODAL ═══════════ -->
+<div class="modal-bg" id="modal-add">
+  <div class="modal">
+    <h3 id="add-modal-title">Add item</h3>
+    <div class="modal-sub" id="add-modal-sub"></div>
+    <div id="add-modal-body"></div>
+    <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" id="btn-close-add">Cancel</button>
+      <button class="btn btn-p" id="add-modal-submit">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ GUIDE MODAL ═══════════ -->
+<div class="modal-bg guide" id="modal-guide">
+  <div class="modal">
+    <div class="wf-hdr" style="padding:0 0 4px;border:none">
+      <h3>How ValidAIt works</h3>
+      <button class="pan-x" id="btn-close-guide">×</button>
+    </div>
+    <div class="modal-sub" style="margin-bottom:18px">A falsificationist framework for stress-testing your business thesis — built to challenge claims, not confirm them.</div>
+    <div class="guide-step"><div class="guide-num">1</div><div><div class="guide-title">Start an analysis</div><div class="guide-txt">Name it, then add a document or your first claim. Documents are parsed automatically into a starting set of claims; you can also add claims by hand at any time.</div></div></div>
+    <div class="guide-step"><div class="guide-num">2</div><div><div class="guide-title">Claims are challenged, not confirmed</div><div class="guide-txt">Every claim gets an AI critique designed to find its weakest point. Attach evidence and the AI classifies it as supporting, contradicting, or merely qualifying the claim — status updates accordingly.</div></div></div>
+    <div class="guide-step"><div class="guide-num">3</div><div><div class="guide-title">Tensions surface contradictions</div><div class="guide-txt">When two claims conflict — like assuming both an EPCM and an Owner PM are your primary buyer — AI flags it as a tension that needs an explicit resolution.</div></div></div>
+    <div class="guide-step"><div class="guide-num">4</div><div><div class="guide-title">Counterfactuals name the failure condition</div><div class="guide-txt">For any claim, ask: what would have to be true for this to be false? AI proposes counterfactuals from its critiques; you can add your own and mark them confirmed or ruled out as you investigate.</div></div></div>
+    <div class="guide-step"><div class="guide-num">5</div><div><div class="guide-title">Experiments turn analysis into action</div><div class="guide-txt">Click "Generate experiments" and AI reviews your highest-priority tensions and counterfactuals to propose concrete tests — with the reasoning behind each one shown alongside it.</div></div></div>
+    <div class="guide-step" style="margin-bottom:6px"><div class="guide-num">6</div><div><div class="guide-title">Everything is traceable</div><div class="guide-txt">Click the 📎 icon on any item to see exactly where it came from — a document quote, an interview, or a manual entry — and its full edit history.</div></div></div>
+    <div style="margin-top:6px;display:flex;justify-content:flex-end">
+      <button class="btn btn-p" id="btn-guide-ok">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ NEW ANALYSIS GATE ═══════════ -->
+<div class="modal-bg" id="modal-newanalysis">
+  <div class="modal" style="width:560px">
+    <h3>Create new analysis</h3>
+    <div class="modal-sub">Give it a name, then add a document or your first claim to begin. You will not be able to enter the analysis until at least one is added.</div>
+    <div class="sec-l" style="margin-bottom:5px">Analysis name <span class="req-mark">*</span></div>
+    <input type="text" id="na-name" placeholder="e.g. Acme Co — Series A Thesis"/>
+    <div class="etabs" style="margin-top:16px">
+      <button class="etab on" id="na-tab-upload">Upload document</button>
+      <button class="etab" id="na-tab-claim">Add claim manually</button>
+    </div>
+    <div id="na-body" style="min-height:130px"></div>
+    <div class="sec" style="margin-top:14px;border-top:1px solid var(--line-2);padding-top:12px">
+      <div class="na-checklist">
+        <div class="na-check-row" id="na-check-name"><span class="na-check-icon" id="na-check-name-icon">○</span> Name provided</div>
+        <div class="na-check-row" id="na-check-content"><span class="na-check-icon" id="na-check-content-icon">○</span> Document or claim added</div>
+      </div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" id="btn-close-na">Cancel</button>
+      <button class="btn btn-p" id="na-submit" disabled>Create analysis →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ AI REVIEW MODAL ═══════════ -->
+<div class="modal-bg" id="modal-airev">
+  <div class="modal" style="width:460px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <div style="width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">AI</div>
+      <h3 style="margin:0" id="airev-title">Reviewing…</h3>
+    </div>
+    <div id="airev-body" style="margin-top:12px"></div>
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end" id="airev-foot"></div>
+  </div>
+</div>
+
+<!-- ═══════════ UPLOAD / SOURCES MODAL ═══════════ -->
+<div class="modal-bg" id="modal-upload">
+  <div class="modal">
+    <h3>Manage source documents</h3>
+    <div class="modal-sub">Upload new files or remove sources already attached to this analysis.</div>
+    <div class="sec-l">Add files</div>
+    <div class="dropzone" id="dropzone">
+      <div class="dropzone-icon">⤓</div>
+      <div class="dropzone-txt">Drag files here, or click to browse</div>
+      <div class="dropzone-sub">PDF, DOCX, MD, TXT · multiple files supported · max 10MB each</div>
+    </div>
+    <input type="file" id="file-input" multiple style="display:none"/>
+    <div id="pending-files"></div>
+    <div class="sec-l" style="margin-top:18px">Existing sources</div>
+    <div id="existing-sources"></div>
+    <div style="margin-top:18px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" id="btn-close-upload">Cancel</button>
+      <button class="btn btn-p" id="btn-save-upload">Save &amp; Update Analysis</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ DELETE ANALYSIS CONFIRM ═══════════ -->
+<div class="modal-bg" id="modal-delconfirm">
+  <div class="modal" style="width:380px">
+    <h3>Delete this analysis?</h3>
+    <div class="modal-sub" id="del-target-name">This cannot be undone. All claims, evidence, and tensions will be permanently removed.</div>
+    <div style="margin-top:6px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" id="btn-close-delconfirm">Cancel</button>
+      <button class="btn btn-warn" id="btn-confirm-delete">Delete analysis</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ WORKFLOW MODAL ═══════════ -->
+<div class="modal-bg wf" id="modal-workflow">
+  <div class="modal">
+    <div class="wf-hdr">
+      <h3>Analysis Workflow</h3>
+      <button class="pan-x" id="btn-close-workflow">×</button>
+    </div>
+    <div class="wf-body">
+<svg width="100%" viewBox="0 0 700 790" xmlns="http://www.w3.org/2000/svg" style="display:block;min-width:580px" role="img" aria-label="User flow diagram for the venture validation application">
+<defs>
+  <marker id="af" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2L8 5L2 8" fill="none" stroke="#7a6020" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker>
+  <marker id="afb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2L8 5L2 8" fill="none" stroke="#9a7010" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker>
+  <marker id="ai" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2L8 5L2 8" fill="none" stroke="#5058a8" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<text font-family="system-ui,sans-serif" font-size="9" letter-spacing="0.13" fill="#b09040" opacity="0.8" x="30" y="14" text-anchor="start">entry</text>
+<text font-family="system-ui,sans-serif" font-size="9" letter-spacing="0.13" fill="#b09040" opacity="0.8" x="350" y="14" text-anchor="middle">core loop</text>
+<text font-family="system-ui,sans-serif" font-size="9" letter-spacing="0.13" fill="#b09040" opacity="0.8" x="508" y="14" text-anchor="middle">tension branch</text>
+<path d="M 120 76 Q 172 98 235 112" fill="none" stroke="#7a6020" stroke-width="0.8" opacity="0.5" marker-end="url(#af)"/>
+<text x="164" y="91" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#7a6020" opacity="0.7">extract claims</text>
+<path d="M 580 76 Q 520 98 465 112" fill="none" stroke="#7a6020" stroke-width="0.8" opacity="0.5" marker-end="url(#af)"/>
+<text x="536" y="91" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" fill="#7a6020" opacity="0.7">extract claims</text>
+<line x1="350" y1="162" x2="350" y2="202" stroke="#7a6020" stroke-width="0.8" opacity="0.5" marker-end="url(#af)"/>
+<text x="362" y="185" font-family="system-ui,sans-serif" font-size="9" fill="#7a6020" opacity="0.7">select claim</text>
+<path d="M 155 256 L 95 256 L 95 226 L 155 226" fill="none" stroke="#5058a8" stroke-width="0.9" stroke-dasharray="3 2.5" opacity="0.75" marker-end="url(#ai)"/>
+<line x1="425" y1="232" x2="438" y2="232" stroke="#7a6020" stroke-width="0.8" opacity="0.5" marker-end="url(#af)"/>
+<line x1="510" y1="264" x2="510" y2="312" stroke="#7a6020" stroke-width="0.8" opacity="0.5" marker-end="url(#af)"/>
+<line x1="510" y1="362" x2="510" y2="408" stroke="#7a6020" stroke-width="0.8" opacity="0.5" marker-end="url(#af)"/>
+<line x1="290" y1="286" x2="290" y2="518" stroke="#7a6020" stroke-width="0.8" opacity="0.5" marker-end="url(#af)"/>
+<rect x="30" y="22" width="192" height="54" rx="6" fill="#f5e8b8" stroke="#c4900e" stroke-width="0.8"/>
+<text x="126" y="40" text-anchor="middle" dominant-baseline="central" font-family="system-ui,sans-serif" font-size="12" font-weight="500" fill="#9a7010">Paste document</text>
+<text x="126" y="58" text-anchor="middle" dominant-baseline="central" font-family="system-ui,sans-serif" font-size="9.5" fill="#b09040">pitch · lean canvas · exec summary</text>
+<rect x="478" y="22" width="192" height="54" rx="6" fill="#f5e8b8" stroke="#c4900e" stroke-width="0.8"/>
+<text x="574" y="40" text-anchor="middle" dominant-baseline="central" font-family="system-ui,sans-serif" font-size="12" font-weight="500" fill="#9a7010">Add claim manually</text>
+<text x="574" y="58" text-anchor="middle" dominant-baseline="central" font-family="system-ui,sans-serif" font-size="9.5" fill="#b09040">falsifiable assertion · source tagged</text>
+<rect x="155" y="112" width="390" height="50" rx="6" fill="#dce6f0" stroke="#2a5a8a" stroke-width="0.8"/>
+<text x="350" y="137" text-anchor="middle" dominant-baseline="central" font-family="system-ui,sans-serif" font-size="12.5" font-weight="500" fill="#2a5a8a">Claim Registry · AI-extracted claims · status: assumed</text>
+<rect x="148" y="196" width="280" height="92" rx="8" fill="#eceef8" stroke="#5058a8" stroke-width="1.6"/>
+<text x="340" y="232" text-anchor="middle" dominant-baseline="central" font-family="system-ui,sans-serif" font-size="13.5" font-weight="600" fill="#222658">Claim Challenge</text>
+<text x="340" y="252" text-anchor="middle" dominant-baseline="central" font-family="system-ui,sans-serif" font-size="9.5" fill="#5058a8" opacity="0.8">AI critiques · user attaches evidence · status updates</text>
+<rect x="438" y="202" width="166" height="62" rx="6" fill="#faedc8" stroke="#b87e10" stroke-width="0.8"/>
+<text x="521" y="233" text-anchor="middle" dominant-baseline="central" font-family="system-ui,sans-serif" font-size="11.5" font-weight="500" fill="#9a7010">Tension View</text>
+<rect x="438" y="312" width="166" height="50" rx="6" fill="#faedc8" stroke="#b87e10" stroke-width="0.8"/>
+<text x="521" y="337" text-anchor="middle" dominant-baseline="central" font-family="system-ui,sans-serif" font-size="11.5" font-weight="500" fill="#9a7010">Decision Panel</text>
+<rect x="438" y="408" width="166" height="54" rx="6" fill="#e3f0dc" stroke="#2e7d32" stroke-width="0.8"/>
+<text x="521" y="435" text-anchor="middle" dominant-baseline="central" font-family="system-ui,sans-serif" font-size="11.5" font-weight="500" fill="#2e7d32">Experiment Design</text>
+<rect x="155" y="518" width="390" height="70" rx="6" fill="#f5e8b8" stroke="#c4900e" stroke-width="1.2"/>
+<text x="350" y="553" text-anchor="middle" dominant-baseline="central" font-family="system-ui,sans-serif" font-size="13" font-weight="500" fill="#9a7010">Session Summary · N claims · experiments queued · export</text>
+</svg>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ FLOATING POPUPS ═══════════ -->
+<div class="dd-pop" id="dd" style="display:none"></div>
+<div class="del-confirm-pop" id="del-item-pop" style="display:none"></div>
+<div id="toast" hidden></div>
+
+<!-- ═══════════ FIREBASE SDK ═══════════ -->
+<script src="firebase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+<script src="ai.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+// FIREBASE INIT
+// ═══════════════════════════════════════════════════════════
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let currentUser      = null;
+let activeDocId      = null;
+let docList          = [];
+let saveTimer        = null;
+let cloudReady       = false;
+let readonlyMode     = false;
+let routeShareToken  = null;
+let activeShareToken = null;
+
+// App-level state
+let STATE = { view: 'dashboard', tab: 'claims', panTab: 'detail', selId: null, panEntity: null, panType: null };
+let ds = { claims:[], evidence:[], tensions:[], counterfactuals:[], experiments:[], sources:[] };
+let currentAnalysisName = '';
+const DASH_STATE = { sortKey: 'updated', sortDir: 'desc' };
+
+// ═══════════════════════════════════════════════════════════
+// ID / UTILITY HELPERS
+// ═══════════════════════════════════════════════════════════
+function newId(prefix) {
+  const rand = (crypto.randomUUID ? crypto.randomUUID().slice(0,8) : Math.random().toString(36).slice(2,10));
+  return prefix + '-' + rand;
+}
+
+const MAX_TRAIL = 20;
+function appendTrail(trail, newEntry) {
+  const t = [...(trail || []), newEntry];
+  if (t.length > MAX_TRAIL) {
+    const excess = t.length - MAX_TRAIL;
+    return [{ when:'', who:'system', what:`+ ${excess} earlier entries` }, ...t.slice(t.length - (MAX_TRAIL - 1))];
+  }
+  return t;
+}
+
+function nowISOStr() {
+  return new Date().toISOString().slice(0,16).replace('T',' ');
+}
+function todayStr() {
+  return new Date().toISOString().slice(0,10);
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  const date = (d && typeof d.toDate === 'function') ? d.toDate() : (d instanceof Date ? d : new Date(d));
+  if (isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function fmtBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1024*1024) return (b/1024).toFixed(0) + ' KB';
+  return (b/(1024*1024)).toFixed(1) + ' MB';
+}
+function escapeHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function safe(s) {
+  const str = String(s||'');
+  return (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(str) : escapeHtml(str);
+}
+
+function idKind(id) {
+  const dash = id.indexOf('-');
+  if (dash > 0) {
+    const pre = id.slice(0, dash);
+    if (pre==='C') return 'claim';
+    if (pre==='E') return 'evidence';
+    if (pre==='T') return 'tension';
+    if (pre==='CF') return 'counterfactual';
+    if (pre==='EXP') return 'experiment';
+  }
+  if (id.startsWith('CF')) return 'counterfactual';
+  if (id.startsWith('EXP')) return 'experiment';
+  if (id.startsWith('GE')||id.startsWith('HE')) return 'evidence';
+  if (id.startsWith('GT')) return 'tension';
+  if (id.startsWith('G')||id.startsWith('H')||id.startsWith('C')) return 'claim';
+  if (id.startsWith('E')) return 'evidence';
+  if (id.startsWith('T')) return 'tension';
+  return null;
+}
+function findEntity(id) {
+  const kind = idKind(id);
+  if (kind==='claim') return ds.claims.find(x=>x.id===id);
+  if (kind==='evidence') return ds.evidence.find(x=>x.id===id);
+  if (kind==='tension') return ds.tensions.find(x=>x.id===id);
+  if (kind==='counterfactual') return ds.counterfactuals.find(x=>x.id===id);
+  if (kind==='experiment') return ds.experiments.find(x=>x.id===id);
+  return null;
+}
+
+// ─── Badge / label helpers ───
+const bCls = s => ({assumed:'b-asm',supported:'b-sup',disputed:'b-dis',validated:'b-val',revised:'b-rev',gap:'b-gap'}[s]||'b-asm');
+const bLbl = s => ({assumed:'Assumed',supported:'Supported',disputed:'Disputed',validated:'Validated',revised:'Revised',gap:'Critical gap'}[s]||s);
+const evCls = c => ({supports:'b-sup',contradicts:'b-dis',qualifies:'b-asm'}[c]||'b-asm');
+const evLbl = c => c?c.charAt(0).toUpperCase()+c.slice(1):'';
+const tnTypeCls = t => ({per:'tt-per',com:'tt-com',tec:'tt-tec',fra:'tt-fra',risk:'tt-risk'}[t]||'tt-fra');
+const tnTypeLbl = t => ({per:'Persona',com:'Commercial',tec:'Technical',fra:'Framing',risk:'Risk'}[t]||t);
+const evTypeCls = t => ({behavioral:'t-beh',attitudinal:'t-att',document:'t-doc',analytical:'t-ana'}[t]||'t-ana');
+const strDots = n => '<div class="str">'+[1,2,3].map(i=>`<div class="sd ${i<=n?'on':''}"></div>`).join('')+'</div>';
+const cfStatusCls = s => ({proposed:'b-asm',investigating:'b-rev',confirmed:'b-dis','ruled-out':'b-sup'}[s]||'b-asm');
+const cfStatusLbl = s => ({proposed:'Proposed',investigating:'Investigating',confirmed:'Confirmed','ruled-out':'Ruled out'}[s]||s);
+const provMini = id => `<button class="prov-mini" title="View provenance" data-prov="${escapeHtml(id)}">📎</button>`;
+const eid = id => document.getElementById(id);
+
+// ═══════════════════════════════════════════════════════════
+// UUID / TOKEN HELPERS
+// ═══════════════════════════════════════════════════════════
+function genToken() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16);});
+}
+const TOKEN_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const isToken  = s => typeof s==='string' && TOKEN_RE.test(s);
+
+// ═══════════════════════════════════════════════════════════
+// SHARE URL HELPERS
+// ═══════════════════════════════════════════════════════════
+function parseShareFromUrl() {
+  const q = new URLSearchParams(location.search).get('share');
+  if (q && isToken(q)) return q;
+  const h = location.hash.replace(/^#\/?/,'').trim();
+  if (h && isToken(h)) return h;
+  return null;
+}
+function appBase() {
+  const m = location.pathname.match(/^(.*\.html)\/[^/]*\/?$/i);
+  return location.origin + (m ? m[1] : location.pathname);
+}
+function buildShareUrl(token) {
+  const u = new URL(appBase()); u.searchParams.set('share',token); return u.toString();
+}
+function clearShareUrl() { const n=new URL(appBase()).toString(); if(location.href!==n) history.replaceState(null,'',n); }
+function setShareUrl(token) { const n=buildShareUrl(token); if(location.href!==n) history.replaceState({token},'',n); }
+function copyShareLink() {
+  const token = activeShareToken || routeShareToken;
+  if (!token) { toast('Save an analysis first to get a share link'); return; }
+  const url = buildShareUrl(token);
+  navigator.clipboard.writeText(url).then(()=>toast('Share link copied')).catch(()=>prompt('Copy this link:',url));
+}
+
+// ═══════════════════════════════════════════════════════════
+// FIRESTORE REFS
+// ═══════════════════════════════════════════════════════════
+const privateCol = uid  => db.collection('users').doc(uid).collection('documents');
+const privateRef = (uid,id) => privateCol(uid).doc(id || activeDocId);
+const publicRef  = token => db.collection('publicDocuments').doc(token);
+
+// ═══════════════════════════════════════════════════════════
+// SAVE / LOAD
+// ═══════════════════════════════════════════════════════════
+function scheduleSave() {
+  if (readonlyMode || !currentUser || !cloudReady || !activeDocId) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveNow, 1500);
+}
+async function saveNow() {
+  if (!currentUser || !activeDocId || !cloudReady || readonlyMode) return;
+  const docId = activeDocId; // Capture before any await to prevent race if goDash() clears it
+  syncStatus('Saving…','warn');
+  try {
+    const token = await ensureShareToken(currentUser.uid, docId);
+    await privateRef(currentUser.uid, docId).set({
+      ...getDocData(),
+      shareToken: token,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true});
+    // Update local docList entry
+    const entry = docList.find(d=>d.id===docId);
+    if (entry) { entry.sourceCount = ds.sources.length; entry.name = currentAnalysisName; }
+    await syncPublic(currentUser.uid, docId, token);
+    syncStatus('Saved','ok');
+  } catch(e) { syncStatus('Save failed','err'); console.error(e); }
+}
+async function loadDoc(uid, id) {
+  syncStatus('Loading…','warn');
+  try {
+    const snap = await privateRef(uid,id).get();
+    applyDocData(snap.exists ? snap.data() : {});
+    cloudReady = true;
+    syncStatus('Synced','ok');
+    return snap.exists;
+  } catch(e) { cloudReady=false; syncStatus('Load failed','err'); return false; }
+}
+
+// ═══════════════════════════════════════════════════════════
+// PUBLIC SHARE
+// ═══════════════════════════════════════════════════════════
+async function syncPublic(uid, docId, token) {
+  await publicRef(token).set({
+    ownerUid:uid, docId, payload:getDocData(),
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  },{merge:true});
+}
+async function ensureShareToken(uid, docId) {
+  const snap = await privateRef(uid,docId).get();
+  let token = snap.exists && snap.data().shareToken;
+  if (!token || !isToken(token)) {
+    token = genToken();
+    await privateRef(uid,docId).set({shareToken:token},{merge:true});
+  }
+  const entry = docList.find(d=>d.id===docId);
+  if (entry) entry.shareToken = token;
+  return token;
+}
+async function loadPublicDoc(token) {
+  try {
+    const snap = await publicRef(token).get();
+    if (!snap.exists) { showState('error'); return false; }
+    const d = snap.data();
+    routeShareToken=token; activeShareToken=token;
+    readonlyMode=true; activeDocId=d.docId||null;
+    applyDocData(d.payload||{});
+    setReadonly(true);
+    setShareUrl(token);
+    showState('app');
+    return true;
+  } catch(e) { showState('error'); return false; }
+}
+async function tryUpgradeIfOwner(user) {
+  if (!readonlyMode||!routeShareToken||!user) return false;
+  const snap = await publicRef(routeShareToken).get();
+  if (!snap.exists||snap.data().ownerUid!==user.uid) return false;
+  readonlyMode=false; activeDocId=snap.data().docId;
+  routeShareToken=null;
+  setReadonly(false); clearShareUrl();
+  await initUserDocs(user.uid);
+  toast('Switched to edit mode');
+  // Re-open the analysis that was being viewed
+  if (activeDocId) openDoc(user.uid, activeDocId);
+  return true;
+}
+
+// ═══════════════════════════════════════════════════════════
+// DOC MANAGEMENT (ValidAIt-specific)
+// ═══════════════════════════════════════════════════════════
+async function createDoc(uid, name) {
+  const ref   = privateCol(uid).doc();
+  const token = genToken();
+  const localNow = new Date();
+  await ref.set({
+    name, shareToken:token, sourceCount:0, schemaVersion:1,
+    payload:{claims:[],evidence:[],tensions:[],counterfactuals:[],experiments:[],sources:[]},
+    createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  });
+  docList.unshift({ id:ref.id, name, shareToken:token, sourceCount:0, schemaVersion:1, createdAt:localNow, updatedAt:localNow });
+  return ref.id;
+}
+async function deleteDoc(uid, id) {
+  const doc = docList.find(d=>d.id===id);
+  await privateRef(uid,id).delete();
+  if (doc && doc.shareToken) {
+    try { await publicRef(doc.shareToken).delete(); } catch(e) {}
+  }
+  docList = docList.filter(d=>d.id!==id);
+}
+async function openDoc(uid, id) {
+  activeDocId = id;
+  cloudReady  = false;
+  const ok = await loadDoc(uid, id);
+  if (!ok) { toast('Could not load analysis'); return; }
+  activeShareToken = (docList.find(d=>d.id===id)||{}).shareToken||null;
+  if (activeShareToken && !readonlyMode) syncPublic(uid, id, activeShareToken);
+  STATE.tab = 'claims';
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('on'));
+  const tc = eid('tab-claims'); if(tc) tc.classList.add('on');
+  updateFiltbarActions('claims');
+  closePan();
+  showAnalysisView();
+  onDocLoaded();
+}
+
+// ═══════════════════════════════════════════════════════════
+// USER DOC INIT (dashboard-first, no auto-create)
+// ═══════════════════════════════════════════════════════════
+function docTimestamp(v) {
+  if (!v) return 0;
+  if (typeof v.toDate === 'function') return v.toDate().getTime();
+  if (v instanceof Date) return v.getTime();
+  const t = new Date(v).getTime();
+  return isNaN(t) ? 0 : t;
+}
+function mapDocSnap(docs) {
+  return docs.map(d=>({id:d.id,...d.data()}));
+}
+async function fetchUserDocList(uid) {
+  try {
+    const snap = await privateCol(uid).orderBy('updatedAt','desc').limit(20).get();
+    return mapDocSnap(snap.docs);
+  } catch (e) {
+    if (e.code === 'permission-denied') throw e;
+    const snap = await privateCol(uid).limit(20).get();
+    const list = mapDocSnap(snap.docs);
+    list.sort((a,b)=>docTimestamp(b.updatedAt)-docTimestamp(a.updatedAt));
+    return list;
+  }
+}
+function finishDashboardInit() {
+  showState('app');
+  onDocLoaded();
+  if (STATE.view !== 'dashboard' && !activeDocId) STATE.view = 'dashboard';
+  if (!activeDocId) showDashboardView();
+}
+function fmtFirestoreErr(e) {
+  if (e && e.code === 'permission-denied') {
+    return 'Firestore access denied. Deploy rules from this folder: firebase deploy --only firestore:rules';
+  }
+  return (e && e.message) || 'Could not load your analyses';
+}
+async function initUserDocs(uid) {
+  syncStatus('Loading…','warn');
+  try {
+    docList = await fetchUserDocList(uid);
+    cloudReady = true;
+    syncStatus('Synced','ok');
+    finishDashboardInit();
+  } catch(e) {
+    cloudReady = false;
+    docList = [];
+    syncStatus('Load failed','err');
+    console.error(e);
+    finishDashboardInit();
+    toast(fmtFirestoreErr(e));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+function preferAuthRedirect() {
+  const h = location.hostname;
+  return h === 'localhost' || h === '127.0.0.1';
+}
+async function signInGoogle() {
+  if (location.protocol==='file:') { authMsg('Open via http, not a local file.'); return; }
+  setAuthBusy(true);
+  try {
+    if (preferAuthRedirect()) {
+      sessionStorage.setItem('authRedirect','1');
+      await auth.signInWithRedirect(googleProvider);
+      return;
+    }
+    await auth.signInWithPopup(googleProvider);
+    closeModal('modal-auth');
+  } catch(e) {
+    if (e.code==='auth/popup-blocked'||e.code==='auth/cancelled-popup-request') {
+      sessionStorage.setItem('authRedirect','1');
+      await auth.signInWithRedirect(googleProvider); return;
+    }
+    authMsg(fmtAuthErr(e));
+  } finally { setAuthBusy(false); }
+}
+async function signInEmail() {
+  const em=eid('auth-email').value.trim(), pw=eid('auth-pw').value;
+  if (!em||!pw) { authMsg('Enter email and password.'); return; }
+  setAuthBusy(true);
+  try { await auth.signInWithEmailAndPassword(em,pw); closeModal('modal-auth'); }
+  catch(e) { authMsg(fmtAuthErr(e)); } finally { setAuthBusy(false); }
+}
+async function registerEmail() {
+  const em=eid('auth-email').value.trim(), pw=eid('auth-pw').value;
+  if (!em||!pw) { authMsg('Enter email and password.'); return; }
+  if (pw.length<6) { authMsg('Password must be 6+ characters.'); return; }
+  setAuthBusy(true);
+  try { await auth.createUserWithEmailAndPassword(em,pw); closeModal('modal-auth'); }
+  catch(e) { authMsg(fmtAuthErr(e)); } finally { setAuthBusy(false); }
+}
+async function signOut() {
+  if (activeDocId && !readonlyMode) { clearTimeout(saveTimer); await saveNow(); }
+  try { await auth.signOut(); } catch(e) { syncStatus('Sign-out failed','err'); }
+}
+function fmtAuthErr(e) {
+  if (e.code==='auth/unauthorized-domain') {
+    const host = location.hostname;
+    const hint = host === '127.0.0.1' ? ' Add 127.0.0.1 (and localhost) under Firebase Auth → Authorised domains.' : '';
+    return 'Host "'+host+'" not in Firebase authorised domains.'+hint;
+  }
+  return e.message || 'Sign-in failed';
+}
+
+auth.getRedirectResult().then(r=>{
+  if (r&&r.user) closeModal('modal-auth');
+}).catch(e=>{
+  if (sessionStorage.getItem('authRedirect')) {
+    sessionStorage.removeItem('authRedirect');
+    authMsg(fmtAuthErr(e)); openModal('modal-auth');
+  }
+});
+
+auth.onAuthStateChanged(async user=>{
+  if (readonlyMode) {
+    if (user) await tryUpgradeIfOwner(user);
+    setAuthUi(user); return;
+  }
+  currentUser=user; cloudReady=false;
+  setAuthUi(user);
+  if (user) {
+    closeModal('modal-auth');
+    await initUserDocs(user.uid);
+    if (!readonlyMode) clearShareUrl();
+  } else {
+    activeDocId=null; activeShareToken=null; docList=[];
+    applyDocData({});
+    syncStatus('Local only','');
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// ── HOOKS ──────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+
+function getDocData() {
+  return {
+    name: currentAnalysisName,
+    sourceCount: ds.sources.length,
+    schemaVersion: 1,
+    payload: {
+      claims: ds.claims, evidence: ds.evidence, tensions: ds.tensions,
+      counterfactuals: ds.counterfactuals, experiments: ds.experiments, sources: ds.sources
+    }
+  };
+}
+
+function applyDocData(data) {
+  // TODO: optimistic-concurrency guard — compare data.schemaVersion + data.updatedAt against
+  // local state before overwriting, to prevent last-write-wins clobber in multi-tab scenarios.
+  const p = (data && data.payload) || {};
+  ds = {
+    claims:          p.claims          || [],
+    evidence:        p.evidence        || [],
+    tensions:        p.tensions        || [],
+    counterfactuals: p.counterfactuals || [],
+    experiments:     p.experiments     || [],
+    sources:         p.sources         || []
+  };
+  currentAnalysisName = (data && data.name) || 'Untitled Analysis';
+
+  if (readonlyMode) {
+    // Shared view: show analysis immediately
+    const titleEl = eid('an-title'); if (titleEl) titleEl.value = currentAnalysisName;
+    STATE.view = ds.claims.length===0 ? 'empty' : 'populated';
+    STATE.tab  = 'claims';
+    const vd = eid('view-dashboard'); if(vd) vd.style.display='none';
+    const va = eid('view-analysis');  if(va) va.style.display='flex';
+    const gc = eid('gcrumb');         if(gc) gc.style.display='flex';
+    updateCrumb(); updateTabCounts(); updateStats();
+    document.querySelectorAll('.tab').forEach(el=>el.classList.remove('on'));
+    const tc=eid('tab-claims'); if(tc) tc.classList.add('on');
+    updateFiltbarActions('claims');
+    render();
+  } else if (STATE.view !== 'dashboard') {
+    const titleEl = eid('an-title'); if (titleEl) titleEl.value = currentAnalysisName;
+    render();
+  }
+}
+
+function onDocLoaded() {
+  const titleEl = eid('an-title'); if (titleEl) titleEl.value = currentAnalysisName;
+  updateCrumb(); updateTabCounts(); updateStats(); updateSubheadMeta();
+  document.title = (currentAnalysisName || 'ValidAIt') + ' · ValidAIt';
+}
+
+// ═══════════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════════
+function showState(state) {
+  document.body.classList.remove('auth-pending');
+  const app = eid('app'), si = eid('sign-in'), se = eid('share-err');
+  if (app) app.hidden = state !== 'app';
+  if (si)  si.hidden  = state !== 'signin';
+  if (se)  se.hidden  = state !== 'error';
+}
+function setReadonly(on) {
+  document.body.classList.toggle('readonly',on);
+  const rb = eid('ro-banner'); if(rb) rb.hidden=!on;
+}
+function setAuthUi(user) {
+  document.body.classList.remove('auth-pending');
+  if (readonlyMode) { showState('app'); return; }
+  showState(user ? 'app' : 'signin');
+  if (user) authMsg('');
+  const un = eid('user-name'); if(un) un.textContent = user?(user.displayName||user.email||'Signed in'):'';
+  const av = eid('user-menu-btn');
+  if (av) av.textContent = user ? (user.displayName||user.email||'?').charAt(0).toUpperCase() : '?';
+  if (!user) closeMenu();
+}
+function syncStatus(txt,type) {
+  const s=eid('sync-status'); if(!s)return;
+  s.textContent=txt; s.className='sync-status'+(type?' '+type:'');
+}
+let _tt;
+function toast(msg) {
+  const t=eid('toast'); t.textContent=msg; t.hidden=false; t.classList.add('show');
+  clearTimeout(_tt);
+  _tt=setTimeout(()=>{t.classList.remove('show');setTimeout(()=>{t.hidden=true;},200);},3000);
+}
+function authMsg(msg) {
+  const modal = eid('auth-msg');
+  if (modal) modal.textContent = msg;
+  const si = eid('sign-in-error');
+  if (si) {
+    si.textContent = msg;
+    si.hidden = !msg;
+  }
+  if (msg) toast(msg);
+}
+function setAuthBusy(b) {
+  ['btn-google','btn-google-empty','btn-email-in','btn-email-reg'].forEach(id=>{const e=eid(id);if(e)e.disabled=b;});
+}
+function openModal(id) {
+  const el=eid(id); if(!el)return;
+  if (id==='modal-auth') {
+    el.hidden=false;
+    const ah=eid('auth-domain-hint');
+    if(ah) ah.textContent='Firebase must authorise: "'+location.hostname+'"';
+    const am=eid('auth-msg'); if(am) am.textContent='';
+  } else {
+    el.classList.add('on');
+  }
+}
+function closeModal(id) {
+  const el=eid(id); if(!el)return;
+  if (id==='modal-auth') el.hidden=true;
+  else el.classList.remove('on');
+}
+function toggleMenu(e) { e.stopPropagation(); const p=eid('user-menu-panel'); if(p) p.hidden=!p.hidden; }
+function closeMenu() { const p=eid('user-menu-panel'); if(p) p.hidden=true; }
+document.addEventListener('click',closeMenu);
+
+function showDashboardView() {
+  STATE.view = 'dashboard';
+  const vd=eid('view-dashboard'), va=eid('view-analysis'), gc=eid('gcrumb');
+  if(vd) vd.style.display='';
+  if(va) va.style.display='none';
+  if(gc) gc.style.display='none';
+  closePan();
+  renderDash();
+}
+function showAnalysisView() {
+  const vd=eid('view-dashboard'), va=eid('view-analysis'), gc=eid('gcrumb');
+  if(vd) vd.style.display='none';
+  if(va) va.style.display='flex';
+  if(gc) { gc.style.display='flex'; }
+  updateCrumb(); updateSubheadMeta(); updateTabCounts(); updateStats();
+  updateFiltbarActions(STATE.tab);
+  STATE.view = ds.claims.length===0 ? 'empty' : 'populated';
+  render();
+}
+function goDash() {
+  if (activeDocId && !readonlyMode) {
+    clearTimeout(saveTimer); saveTimer=null;
+    saveNow(); // fire-and-forget; activeDocId still set at this call
+  }
+  activeDocId=null;
+  ds={claims:[],evidence:[],tensions:[],counterfactuals:[],experiments:[],sources:[]};
+  currentAnalysisName='';
+  STATE.view='dashboard';
+  showDashboardView();
+}
+function updateCrumb() {
+  const e=eid('gcrumb-name'); if(e) e.textContent=currentAnalysisName||'Untitled';
+}
+function updateSubheadMeta() {
+  const entry = docList.find(d=>d.id===activeDocId);
+  const te=eid('an-title'); if(te) te.value=currentAnalysisName;
+  const mc=eid('meta-created'), mu=eid('meta-updated'), md=eid('meta-docs');
+  if(mc) mc.textContent = entry ? fmtDate(entry.createdAt) : '—';
+  if(mu) mu.textContent = entry ? fmtDate(entry.updatedAt) : '—';
+  if(md) md.textContent = ds.sources.length;
+}
+function onTitleEdit(val) {
+  currentAnalysisName = val || 'Untitled Analysis';
+  updateCrumb();
+  const entry=docList.find(d=>d.id===activeDocId); if(entry) entry.name=currentAnalysisName;
+  scheduleSave();
+}
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD RENDER + SORT
+// ═══════════════════════════════════════════════════════════
+function sortDash(key) {
+  if (DASH_STATE.sortKey===key) DASH_STATE.sortDir=DASH_STATE.sortDir==='asc'?'desc':'asc';
+  else { DASH_STATE.sortKey=key; DASH_STATE.sortDir=key==='name'?'asc':'desc'; }
+  renderDash();
+}
+function renderDash() {
+  const cnt=eid('dash-count'); if(cnt) cnt.textContent=docList.length+' '+(docList.length===1?'analysis':'analyses');
+  const keyMap={name:'name',created:'createdAt',updated:'updatedAt',docs:'sourceCount'};
+  const {sortKey,sortDir}=DASH_STATE;
+  const fsKey=keyMap[sortKey]||sortKey;
+
+  const sorted=[...docList].sort((a,b)=>{
+    let av=a[fsKey], bv=b[fsKey];
+    if (fsKey==='sourceCount'){ av=Number(av)||0; bv=Number(bv)||0; }
+    else {
+      if(av&&typeof av.toDate==='function') av=av.toDate().getTime();
+      else if(av instanceof Date) av=av.getTime();
+      else if(typeof av==='string') av=new Date(av).getTime();
+      if(bv&&typeof bv.toDate==='function') bv=bv.toDate().getTime();
+      else if(bv instanceof Date) bv=bv.getTime();
+      else if(typeof bv==='string') bv=new Date(bv).getTime();
+    }
+    if(av<bv) return sortDir==='asc'?-1:1;
+    if(av>bv) return sortDir==='asc'?1:-1;
+    return 0;
+  });
+
+  ['name','created','updated','docs'].forEach(k=>{
+    const th=eid('th-'+k), ar=eid('ar-'+k);
+    if(th) th.classList.toggle('sortcol',k===sortKey);
+    if(ar) ar.textContent=k===sortKey?(sortDir==='asc'?'▲':'▼'):'';
+  });
+
+  const tbody=eid('dash-tbody'); if(!tbody) return;
+  if (!sorted.length) {
+    tbody.innerHTML=`<tr><td colspan="5"><div class="empty-dash">No analyses yet. Click "+ New Analysis" to get started.</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML=sorted.map(a=>{
+    const sid=escapeHtml(a.id), sname=escapeHtml(a.name||'Untitled Analysis');
+    const docs=Number(a.sourceCount)||0;
+    return `<tr>
+      <td><span class="an-name" data-open-id="${sid}">${sname}</span></td>
+      <td><span class="an-date">${fmtDate(a.createdAt)}</span></td>
+      <td><span class="an-date">${fmtDate(a.updatedAt)}</span></td>
+      <td><span class="an-docs"><span class="an-docs-n">${docs}</span> file${docs!==1?'s':''}</span></td>
+      <td>
+        <div class="row-menu-wrap">
+          <button class="row-menu-btn" data-menu-id="${sid}">⋮</button>
+          <div class="row-menu" id="rm-${sid}">
+            <div class="row-menu-item" data-open-id="${sid}">📂 Open</div>
+            <div class="row-menu-item danger" data-delete-id="${sid}">🗑 Delete</div>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// Dashboard delegated listeners
+document.addEventListener('click',e=>{
+  // Sort headers
+  const th=e.target.closest('th[data-sort]');
+  if(th) { sortDash(th.dataset.sort); return; }
+  // Open analysis
+  const oa=e.target.closest('[data-open-id]');
+  if(oa && !e.target.closest('.row-menu')) {
+    if(currentUser) openDoc(currentUser.uid, oa.dataset.openId);
+    return;
+  }
+  // Row menu toggle
+  const mb=e.target.closest('[data-menu-id]');
+  if(mb) {
+    e.stopPropagation();
+    document.querySelectorAll('.row-menu').forEach(m=>{if(m.id!=='rm-'+mb.dataset.menuId)m.classList.remove('on');});
+    const rm=eid('rm-'+mb.dataset.menuId); if(rm) rm.classList.toggle('on');
+    return;
+  }
+  // Delete analysis
+  const da=e.target.closest('[data-delete-id]');
+  if(da) { e.stopPropagation(); askDelete(da.dataset.deleteId); return; }
+  // Close all row menus on outside click
+  document.querySelectorAll('.row-menu').forEach(m=>m.classList.remove('on'));
+  // Prov mini button
+  const pm=e.target.closest('[data-prov]');
+  if(pm) { e.stopPropagation(); openProv(pm.dataset.prov); return; }
+  // Tab switch
+  const tab=e.target.closest('.tab[data-tab]');
+  if(tab) { swTab(tab.dataset.tab); return; }
+  // Panel tab switch
+  const ptab=e.target.closest('.pan-tab[data-ptab]');
+  if(ptab) { swPanTab(ptab.dataset.ptab); return; }
+  // Ref chip in tables / panel
+  const ref=e.target.closest('.ref[data-ref-id]');
+  if(ref) { e.stopPropagation(); openPan(ref.dataset.refId, idKind(ref.dataset.refId)); return; }
+  // Status dropdown
+  const ce=e.target.closest('.cell-edit[data-dd]');
+  if(ce) { e.stopPropagation(); ddDispatch(e,ce); return; }
+  // Delete entity
+  const db2=e.target.closest('.del-btn[data-del-type]');
+  if(db2) { e.stopPropagation(); askDeleteItem(e,db2.dataset.delType,db2.dataset.delId); return; }
+});
+
+// Delete analysis confirm
+let pendingDeleteId=null;
+function askDelete(id) {
+  pendingDeleteId=id;
+  const an=docList.find(a=>a.id===id);
+  eid('del-target-name').textContent=(an?escapeHtml(an.name):'This analysis')+' — all claims, evidence, and tensions will be permanently removed.';
+  openModal('modal-delconfirm');
+}
+function closeDelConfirm() { closeModal('modal-delconfirm'); pendingDeleteId=null; }
+async function confirmDelete() {
+  if (!pendingDeleteId||!currentUser) return;
+  try { await deleteDoc(currentUser.uid, pendingDeleteId); } catch(e) { toast('Delete failed'); return; }
+  closeDelConfirm();
+  renderDash();
+}
+
+// ═══════════════════════════════════════════════════════════
+// UPLOAD / SOURCES MODAL
+// ═══════════════════════════════════════════════════════════
+let pendingNewFiles=[], tempSources=[];
+function openUploadModal() {
+  pendingNewFiles=[]; tempSources=ds.sources.map(s=>({...s}));
+  renderPendingFiles(); renderExistingSources(); openModal('modal-upload');
+}
+function closeUploadModal() { closeModal('modal-upload'); pendingNewFiles=[]; tempSources=[]; }
+function handleFileSelect(ev) {
+  Array.from(ev.target.files||[]).forEach(f=>pendingNewFiles.push({name:f.name,size:fmtBytes(f.size)}));
+  renderPendingFiles(); ev.target.value='';
+}
+function handleDrop(ev) {
+  ev.preventDefault(); ev.currentTarget.style.borderColor='';
+  Array.from(ev.dataTransfer.files||[]).forEach(f=>pendingNewFiles.push({name:f.name,size:fmtBytes(f.size)}));
+  renderPendingFiles();
+}
+function renderPendingFiles() {
+  const el=eid('pending-files'); if(!el)return;
+  if(!pendingNewFiles.length){el.innerHTML='';return;}
+  el.innerHTML=pendingNewFiles.map((f,i)=>`
+    <div class="file-row"><div class="file-icon">+</div>
+    <div class="file-meta"><div class="file-name">${escapeHtml(f.name)}</div><div class="file-sub">${f.size} · ready</div></div>
+    <button class="file-remove" data-rm-pend="${i}">×</button></div>`).join('');
+}
+function renderExistingSources() {
+  const el=eid('existing-sources'); if(!el)return;
+  if(!tempSources.length){el.innerHTML='<div class="upload-empty">No source documents attached yet.</div>';return;}
+  el.innerHTML=tempSources.map((s,i)=>`
+    <div class="file-row"><div class="file-icon existing">📄</div>
+    <div class="file-meta"><div class="file-name">${escapeHtml(s.name)}</div><div class="file-sub">${s.size} · added ${fmtDate(s.added)}</div></div>
+    <button class="file-remove" data-rm-src="${i}">×</button></div>`).join('');
+}
+async function saveUploadModal() {
+  const hadZeroClaims=ds.claims.length===0;
+  const addingNew=pendingNewFiles.length>0;
+  const fileNames=pendingNewFiles.map(f=>f.name); // Capture before closeUploadModal clears it
+  const addedCount=pendingNewFiles.length;
+  ds.sources=tempSources.concat(pendingNewFiles.map(f=>({name:f.name,added:todayStr(),size:f.size})));
+  const md=eid('meta-docs'); if(md) md.textContent=ds.sources.length;
+  const entry=docList.find(d=>d.id===activeDocId); if(entry) entry.sourceCount=ds.sources.length;
+  closeUploadModal();
+  scheduleSave();
+  if (addingNew && hadZeroClaims) {
+    STATE.view='processing'; render();
+    setTimeout(()=>{const b=eid('proc-fill');if(b)b.style.width='100%';},80);
+    const result=await AI.extractClaims({text:'',fileNames});
+    ds.claims=result.claims||[]; ds.evidence=result.evidence||[];
+    ds.tensions=result.tensions||[]; ds.counterfactuals=result.counterfactuals||[];
+    ds.experiments=result.experiments||[];
+    STATE.view='populated'; render();
+    const eb=eid('extract-banner'); if(eb) eb.classList.add('on');
+    scheduleSave();
+  } else {
+    const va=eid('view-analysis'); if(va&&va.style.display!=='none') { updateTabCounts(); updateStats(); render(); }
+    if (addingNew) {
+      const eb=eid('extract-banner');
+      if(eb) { eb.innerHTML=`✓ ${addedCount} new document(s) added <button class="btn btn-sm btn-gh" id="btn-dismiss-banner2" style="margin-left:auto">Dismiss</button>`; eb.classList.add('on'); }
+    }
+  }
+}
+
+// Upload modal delegated events
+eid('dropzone').addEventListener('click',()=>eid('file-input').click());
+eid('dropzone').addEventListener('dragover',e=>{e.preventDefault();eid('dropzone').style.borderColor='#1a1a1a';});
+eid('dropzone').addEventListener('dragleave',()=>{eid('dropzone').style.borderColor='';});
+eid('dropzone').addEventListener('drop',handleDrop);
+eid('file-input').addEventListener('change',handleFileSelect);
+eid('pending-files').addEventListener('click',e=>{
+  const b=e.target.closest('[data-rm-pend]'); if(b){pendingNewFiles.splice(Number(b.dataset.rmPend),1);renderPendingFiles();}
+});
+eid('existing-sources').addEventListener('click',e=>{
+  const b=e.target.closest('[data-rm-src]'); if(b){tempSources.splice(Number(b.dataset.rmSrc),1);renderExistingSources();}
+});
+
+// ═══════════════════════════════════════════════════════════
+// MAIN RENDER DISPATCHER
+// ═══════════════════════════════════════════════════════════
+function render() {
+  if (STATE.view==='empty')      { renderEmpty();  updateTabCounts(); updateStats(); return; }
+  if (STATE.view==='processing') { renderProc();   return; }
+  if (STATE.tab==='claims')           renderClaims();
+  else if (STATE.tab==='evidence')    renderEvidence();
+  else if (STATE.tab==='tensions')    renderTensions();
+  else if (STATE.tab==='counterfactuals') renderCounterfactuals();
+  else if (STATE.tab==='experiments') renderExperiments();
+  else if (STATE.tab==='canvas')      renderCanvas();
+  updateTabCounts(); updateStats();
+}
+
+function updateTabCounts() {
+  const ids=['claims','evidence','tensions','counterfactuals','experiments'];
+  ids.forEach(k=>{ const e=eid('cnt-'+k); if(e) e.textContent=ds[k].length; });
+}
+function updateStats() {
+  const el=eid('stats-strip'); if(!el)return;
+  const total=ds.claims.length;
+  const validated=ds.claims.filter(c=>c.status==='validated').length;
+  const disputed=ds.claims.filter(c=>c.status==='disputed').length;
+  const assumed=ds.claims.filter(c=>c.status==='assumed').length;
+  const gaps=ds.claims.filter(c=>c.status==='gap').length;
+  el.innerHTML=`
+    <div class="stat"><div class="stat-n">${total}</div><div class="stat-l">Claims</div></div>
+    <div class="stat stat-good"><div class="stat-n">${validated}</div><div class="stat-l">Validated</div></div>
+    <div class="stat stat-warn"><div class="stat-n">${disputed}</div><div class="stat-l">Disputed</div></div>
+    <div class="stat stat-warn"><div class="stat-n">${gaps}</div><div class="stat-l">Critical gaps</div></div>
+    <div class="stat"><div class="stat-n">${assumed}</div><div class="stat-l">Assumed</div></div>
+    <div class="stat"><div class="stat-n">${ds.evidence.length}</div><div class="stat-l">Evidence</div></div>
+    <div class="stat"><div class="stat-n">${ds.tensions.length}</div><div class="stat-l">Tensions</div></div>
+    <div class="stat"><div class="stat-n">${ds.experiments.length}</div><div class="stat-l">Experiments</div></div>`;
+}
+
+function renderEmpty() {
+  eid('main-area').innerHTML=`
+    <div class="empty"><div class="empty-card">
+      <div class="empty-icon">⊕</div>
+      <div class="empty-title">Start your validation</div>
+      <div class="empty-sub">Upload your pitch deck, lean canvas, or business plan and AI will extract claims automatically. Or add your first claim manually.</div>
+      <div class="empty-actions">
+        <button class="btn btn-p" id="btn-empty-upload">📎 Upload document</button>
+        <button class="btn" id="btn-empty-add-claim">+ Add claim manually</button>
+      </div>
+      <div class="empty-formats">Accepted formats: PDF, DOCX, MD, TXT · max 10MB</div>
+    </div></div>`;
+  eid('btn-empty-upload').onclick=()=>openUploadModal();
+  eid('btn-empty-add-claim').onclick=()=>openAddModal('claim');
+}
+function renderProc() {
+  eid('main-area').innerHTML=`
+    <div class="proc">
+      <div style="font-size:13px;color:var(--ink-2);margin-bottom:6px;">Analysing uploaded documents…</div>
+      <div class="proc-bar"><div class="proc-fill" id="proc-fill"></div></div>
+      <div class="proc-step done"><div class="proc-tick">✓</div>Reading document structure</div>
+      <div class="proc-step done"><div class="proc-tick">✓</div>Identifying implicit assumptions and claims</div>
+      <div class="proc-step cur"><div class="proc-tick"></div>Mapping claims to BLAC / 4U / VPD / Lean Canvas frameworks</div>
+      <div class="proc-step"><div class="proc-tick"></div>Auto-detecting cross-claim tensions</div>
+      <div class="proc-step"><div class="proc-tick"></div>Generating AI critiques for each claim</div>
+    </div>`;
+}
+function renderCanvas() {
+  eid('main-area').innerHTML=`
+    <div class="canvas-soon"><div class="canvas-soon-inner">
+      <div class="canvas-illust">⊙—⊙<br>&nbsp;&nbsp;|&nbsp;&nbsp;<br>⊙</div>
+      <div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:8px;">Connection Canvas</div>
+      <div style="font-size:12.5px;color:var(--ink-3);margin-bottom:12px;line-height:1.6;">Visualise claims and tensions as nodes, with evidence as connecting edges.</div>
+      <div style="font-size:11px;color:var(--ink-4);font-family:monospace;letter-spacing:.06em;">PLANNED · v0.5</div>
+    </div></div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// CLAIMS TABLE
+// ═══════════════════════════════════════════════════════════
+function renderClaims() {
+  const cats={Pain:'Problem · Pain claims',Alternatives:'Alternatives · Competitive landscape',Solution:'Solution · Product capability',Persona:'Market · Persona',Commercial:'Commercial · Revenue model'};
+  let html=`<table><thead><tr><th>ID</th><th>Claim</th><th>Counterfactuals</th><th>Category</th><th>Framework</th><th>Status</th><th>Evidence</th><th>Tensions</th><th>Experiments</th><th>Source</th><th></th></tr></thead><tbody>`;
+  let lastCat=null;
+  ds.claims.forEach(c=>{
+    if(c.cat!==lastCat){
+      html+=`<tr><td colspan="11" style="padding:9px 11px 4px;font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--ink-4);background:#fafaf5;border-bottom:1px solid var(--line-2);text-transform:uppercase;">${cats[c.cat]||escapeHtml(c.cat)}</td></tr>`;
+      lastCat=c.cat;
+    }
+    const sel=STATE.selId===c.id?' sel':'', warn=c.warn?' row-warn':'';
+    const cfList=c.cf||[], expList=c.exp||[];
+    html+=`<tr class="${sel}${warn}" data-row-id="${escapeHtml(c.id)}" data-row-type="claim">
+      <td class="id-cell">${escapeHtml(c.id)}</td>
+      <td><div class="txt-cell">${escapeHtml(c.text)}</div></td>
+      <td>${cfList.length?cfList.map(id=>`<span class="ref" data-ref-id="${escapeHtml(id)}">${escapeHtml(id)}</span>`).join(''):'<span style="font-size:10px;color:var(--ink-4)">—</span>'}</td>
+      <td><span class="fw-tag">${escapeHtml(c.cat)}</span></td>
+      <td><span class="fw-tag">${escapeHtml(c.fw)}</span><br/><span class="fw-tag" style="font-size:9.5px">${escapeHtml(c.fw2)}</span></td>
+      <td><span class="cell-edit" data-dd="status" data-dd-id="${escapeHtml(c.id)}"><span class="bdg ${bCls(c.status)}">${bLbl(c.status)}</span></span></td>
+      <td>${c.ev.length?c.ev.map(e=>`<span class="ref" data-ref-id="${escapeHtml(e)}">${escapeHtml(e)}</span>`).join(''):'<span style="font-size:10px;color:var(--ink-4);font-style:italic">none</span>'}</td>
+      <td>${c.tn.length?c.tn.map(t=>`<span class="ref" data-ref-id="${escapeHtml(t)}">${escapeHtml(t)}</span>`).join(''):'<span style="font-size:10px;color:var(--ink-4)">—</span>'}</td>
+      <td>${expList.length?expList.map(id=>`<span class="ref" data-ref-id="${escapeHtml(id)}">${escapeHtml(id)}</span>`).join(''):'<span style="font-size:10px;color:var(--ink-4)">—</span>'}</td>
+      <td>${provMini(c.id)}</td>
+      <td><button class="del-btn" title="Delete claim" data-del-type="claim" data-del-id="${escapeHtml(c.id)}">🗑</button></td>
+    </tr>`;
+  });
+  html+=`</tbody></table>`;
+  eid('main-area').innerHTML=html;
+}
+
+// Row click handler for entity tables
+function tableRowClickHandler(e) {
+  const row=e.target.closest('tr[data-row-id]');
+  if(!row) return;
+  if(e.target.closest('.cell-edit')||e.target.closest('.del-btn')||e.target.closest('.ref')||e.target.closest('[data-prov]')) return;
+  openPan(row.dataset.rowId, row.dataset.rowType||idKind(row.dataset.rowId));
+}
+
+// ═══════════════════════════════════════════════════════════
+// EVIDENCE TABLE
+// ═══════════════════════════════════════════════════════════
+function renderEvidence() {
+  let html=`<table><thead><tr><th>ID</th><th>Claims</th><th>Evidence</th><th>Source · Date</th><th>Type</th><th>Classification</th><th>Strength</th><th>Source</th><th></th></tr></thead><tbody>`;
+  ds.evidence.forEach(e=>{
+    const sel=STATE.selId===e.id?' sel':'';
+    html+=`<tr class="${sel}" data-row-id="${escapeHtml(e.id)}" data-row-type="evidence">
+      <td class="id-cell">${escapeHtml(e.id)}</td>
+      <td>${e.claims.map(c=>`<span class="ref" data-ref-id="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join('')}</td>
+      <td><div class="txt-cell">${escapeHtml(e.text)}</div></td>
+      <td style="font-size:10.5px;color:var(--ink-3);max-width:170px">${escapeHtml(e.src)}</td>
+      <td><span class="cell-edit" data-dd="evtype" data-dd-id="${escapeHtml(e.id)}"><span class="chip ${evTypeCls(e.type)}">${escapeHtml(e.type)}</span></span></td>
+      <td><span class="cell-edit" data-dd="evcls" data-dd-id="${escapeHtml(e.id)}"><span class="bdg ${evCls(e.cls)}">${evLbl(e.cls)}</span></span></td>
+      <td>${strDots(e.str)}</td>
+      <td>${provMini(e.id)}</td>
+      <td><button class="del-btn" title="Delete evidence" data-del-type="evidence" data-del-id="${escapeHtml(e.id)}">🗑</button></td>
+    </tr>`;
+  });
+  html+=`</tbody></table>`;
+  eid('main-area').innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// TENSIONS TABLE
+// ═══════════════════════════════════════════════════════════
+function renderTensions() {
+  let html=`<table><thead><tr><th>ID</th><th>Title</th><th>Claims</th><th>Description</th><th>Type</th><th>Priority</th><th>Status</th><th>Source</th><th></th></tr></thead><tbody>`;
+  ds.tensions.forEach(t=>{
+    const sel=STATE.selId===t.id?' sel':'';
+    const ts=t.status; const tsBdg=ts==='partial'?'b-rev':ts==='resolvable'?'b-asm':bCls(ts);
+    const tsLbl=ts==='partial'?'Partial':ts==='resolvable'?'Resolvable':bLbl(ts);
+    html+=`<tr class="${sel}" data-row-id="${escapeHtml(t.id)}" data-row-type="tension">
+      <td class="id-cell">${escapeHtml(t.id)}</td>
+      <td style="font-weight:600;font-size:12px;max-width:140px">${escapeHtml(t.title)}</td>
+      <td>${t.claims.map(c=>`<span class="ref" data-ref-id="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join('')}</td>
+      <td><div class="txt-cell" style="font-style:normal;font-size:11.5px;color:var(--ink-2);max-width:380px">${escapeHtml((t.desc||'').substring(0,180))}…</div></td>
+      <td><span class="t-type ${tnTypeCls(t.type)}">${tnTypeLbl(t.type)}</span></td>
+      <td><span class="pri pri-${t.pri}">${(t.pri||'').toUpperCase()}</span></td>
+      <td><span class="bdg ${tsBdg}">${tsLbl}</span></td>
+      <td>${provMini(t.id)}</td>
+      <td><button class="del-btn" title="Delete tension" data-del-type="tension" data-del-id="${escapeHtml(t.id)}">🗑</button></td>
+    </tr>`;
+  });
+  html+=`</tbody></table>`;
+  eid('main-area').innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// COUNTERFACTUALS TABLE
+// ═══════════════════════════════════════════════════════════
+function renderCounterfactuals() {
+  if (!ds.counterfactuals.length) {
+    eid('main-area').innerHTML=`<div class="empty"><div class="empty-card" style="max-width:460px;padding:36px 32px">
+      <div class="empty-icon">⟲</div>
+      <div class="empty-title" style="font-size:15px">No counterfactuals yet</div>
+      <div class="empty-sub" style="font-size:12px;margin-bottom:18px">Counterfactuals are discovered automatically from claim critiques, or you can add one yourself.</div>
+      <button class="btn btn-p btn-sm" id="btn-add-cf-empty">+ Add counterfactual</button>
+    </div></div>`;
+    eid('btn-add-cf-empty').onclick=()=>openAddModal('counterfactual');
+    return;
+  }
+  let html=`<table><thead><tr><th>ID</th><th>Claims</th><th>Statement</th><th>Severity</th><th>Status</th><th>Source</th><th></th></tr></thead><tbody>`;
+  ds.counterfactuals.forEach(c=>{
+    const sel=STATE.selId===c.id?' sel':'';
+    const sevLbl=c.severity==='invalidate'?'Invalidates':'Weakens';
+    const sevCls=c.severity==='invalidate'?'sev-inv':'sev-weak';
+    html+=`<tr class="${sel}" data-row-id="${escapeHtml(c.id)}" data-row-type="counterfactual">
+      <td class="id-cell">${escapeHtml(c.id)}</td>
+      <td>${c.claims.map(cl=>`<span class="ref" data-ref-id="${escapeHtml(cl)}">${escapeHtml(cl)}</span>`).join('')}</td>
+      <td><div class="txt-cell" style="font-style:normal;color:var(--ink-2)">${escapeHtml(c.statement)}</div></td>
+      <td><span class="${sevCls}">${sevLbl}</span></td>
+      <td><span class="bdg ${cfStatusCls(c.status)}">${cfStatusLbl(c.status)}</span></td>
+      <td>${provMini(c.id)}</td>
+      <td><button class="del-btn" title="Delete counterfactual" data-del-type="counterfactual" data-del-id="${escapeHtml(c.id)}">🗑</button></td>
+    </tr>`;
+  });
+  html+=`</tbody></table>`;
+  eid('main-area').innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// EXPERIMENTS TABLE
+// ═══════════════════════════════════════════════════════════
+function renderExperiments() {
+  if (!ds.experiments.length) {
+    eid('main-area').innerHTML=`<div class="empty"><div class="empty-card" style="max-width:480px;padding:36px 32px">
+      <div class="empty-icon">✦</div>
+      <div class="empty-title" style="font-size:15px">No experiments yet</div>
+      <div class="empty-sub" style="font-size:12px;margin-bottom:18px">AI can review your P0/P1 tensions, confirmed counterfactuals, and disputed claims to propose experiments — or add one yourself.</div>
+      <button class="btn gen-exp-btn btn-sm" id="btn-gen-exp-empty">✦ Generate experiments</button>
+    </div></div>`;
+    eid('btn-gen-exp-empty').onclick=doGenerateExperiments;
+    return;
+  }
+  let html=`<div style="padding:11px 16px;display:flex;justify-content:flex-end;border-bottom:1px solid var(--line-2);background:var(--surf-2)">
+    <button class="btn gen-exp-btn btn-sm" id="btn-gen-exp-top">✦ Generate more experiments</button>
+  </div>
+  <table><thead><tr><th>ID</th><th>Title &amp; hypothesis</th><th>Derived from</th><th>Method</th><th>Timeline</th><th>Status</th><th>Source</th><th></th></tr></thead><tbody>`;
+  ds.experiments.forEach(x=>{
+    const sel=STATE.selId===x.id?' sel':'';
+    const df=x.derivedFrom||{tensions:[],counterfactuals:[],claims:[]};
+    const chips=[
+      ...df.tensions.map(t=>`<span class="ref" data-ref-id="${escapeHtml(t)}" style="background:var(--warn-bg);border-color:var(--warn-soft);color:var(--warn)">${escapeHtml(t)}</span>`),
+      ...(df.counterfactuals||[]).map(c=>`<span class="ref" data-ref-id="${escapeHtml(c)}" style="background:#faf2dc;border-color:#d9bf70;color:var(--gold)">${escapeHtml(c)}</span>`)
+    ].join('');
+    html+=`<tr class="${sel}" data-row-id="${escapeHtml(x.id)}" data-row-type="experiment">
+      <td class="id-cell">${escapeHtml(x.id)}</td>
+      <td><div class="txt-cell" style="font-style:normal;color:var(--ink);font-weight:600;font-size:12px">${escapeHtml(x.title)}</div><div class="txt-cell" style="margin-top:3px;font-size:11px">${escapeHtml(x.hypothesis)}</div></td>
+      <td><div class="derive-chips">${chips||'<span style="font-size:10px;color:var(--ink-4)">—</span>'}</div></td>
+      <td><span class="exp-method-chip">${escapeHtml(x.method)}</span></td>
+      <td style="font-size:11.5px;color:var(--ink-3);white-space:nowrap">${escapeHtml(x.timeline)}</td>
+      <td><span class="bdg ${bCls(x.status==='proposed'?'asm':x.status)}">${escapeHtml(x.status)}</span></td>
+      <td>${provMini(x.id)}</td>
+      <td><button class="del-btn" title="Delete experiment" data-del-type="experiment" data-del-id="${escapeHtml(x.id)}">🗑</button></td>
+    </tr>`;
+  });
+  html+=`</tbody></table>`;
+  eid('main-area').innerHTML=html;
+  const gb=eid('btn-gen-exp-top'); if(gb) gb.onclick=doGenerateExperiments;
+}
+
+// ═══════════════════════════════════════════════════════════
+// TAB SWITCH + FILTER BAR
+// ═══════════════════════════════════════════════════════════
+function swTab(t) {
+  if(t==='canvas'){return;}
+  STATE.tab=t;
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('on'));
+  const te=eid('tab-'+t); if(te) te.classList.add('on');
+  updateFiltbarActions(t);
+  closePan();
+  render();
+}
+function switchToTab(t) {
+  STATE.tab=t;
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('on'));
+  const te=eid('tab-'+t); if(te) te.classList.add('on');
+  updateFiltbarActions(t);
+}
+function updateFiltbarActions(t) {
+  const el=eid('filtbar-actions'); if(!el)return;
+  if(t==='claims')           el.innerHTML=`<button class="btn btn-sm" id="fa-btn">+ Add claim</button>`;
+  else if(t==='evidence')    el.innerHTML=`<button class="btn btn-sm" id="fa-btn">+ Add evidence</button>`;
+  else if(t==='tensions')    el.innerHTML=`<button class="btn btn-sm" id="fa-btn">+ Add tension</button>`;
+  else if(t==='counterfactuals') el.innerHTML=`<button class="btn btn-sm" id="fa-btn">+ Add counterfactual</button>`;
+  else if(t==='experiments') el.innerHTML=`<button class="btn gen-exp-btn btn-sm" id="fa-btn">✦ Generate experiments</button>`;
+  else el.innerHTML='';
+  const fb=eid('fa-btn');
+  if(fb){
+    if(t==='experiments') fb.onclick=doGenerateExperiments;
+    else fb.onclick=()=>openAddModal(t==='counterfactuals'?'counterfactual':t.replace(/s$/,''));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIDE PANEL
+// ═══════════════════════════════════════════════════════════
+function openPan(id, type) {
+  const entity=findEntity(id); if(!entity)return;
+  STATE.selId=id; STATE.panEntity=entity; STATE.panType=type||idKind(id);
+  const pi=eid('pan-id'), pt=eid('pan-title');
+  if(pi) pi.textContent=id;
+  if(pt) pt.textContent=({claim:'Claim detail',evidence:'Evidence detail',tension:'Tension detail',counterfactual:'Counterfactual detail',experiment:'Experiment detail'})[STATE.panType]||'Detail';
+  eid('panel').classList.add('on');
+  STATE.panTab='detail';
+  document.querySelectorAll('.pan-tab').forEach(el=>el.classList.remove('on'));
+  const pd=eid('ptab-detail'); if(pd) pd.classList.add('on');
+  renderPan();
+  render();
+}
+function openProv(id) { const k=idKind(id); if(k) openPan(id,k); swPanTab('prov'); }
+function closePan() { eid('panel').classList.remove('on'); STATE.selId=null; render(); }
+function swPanTab(t) {
+  STATE.panTab=t;
+  document.querySelectorAll('.pan-tab').forEach(el=>el.classList.remove('on'));
+  const pe=eid('ptab-'+t); if(pe) pe.classList.add('on');
+  renderPan();
+}
+function renderPan() {
+  const e=STATE.panEntity; if(!e)return;
+  const body=eid('pan-body'), foot=eid('pan-foot');
+  if(!body||!foot)return;
+  // Update ev/tn tab counts
+  const evc=eid('ptab-ev-cnt'), tnc=eid('ptab-tn-cnt');
+  if(STATE.panType==='claim'){
+    if(evc)evc.textContent=(e.ev||[]).length;
+    if(tnc)tnc.textContent=(e.tn||[]).length;
+  } else {
+    if(evc)evc.textContent='—';
+    if(tnc)tnc.textContent='—';
+  }
+  if(STATE.panTab==='prov'){ renderProvenance(e); foot.innerHTML=`<button class="btn btn-sm" data-ptab="detail">← Detail</button>`; return; }
+
+  if(STATE.panType==='claim'){
+    if(STATE.panTab==='detail'){
+      body.innerHTML=`
+        <div class="sec"><div class="sec-l">Claim text</div>
+          <textarea id="pan-claim-text" rows="3">${escapeHtml(e.text.replace(/^"|"$/g,''))}</textarea></div>
+        <div class="sec"><div class="sec-l">Classification</div>
+          <div class="kv"><div class="kv-k">Category</div><div class="kv-v">${escapeHtml(e.cat)}</div></div>
+          <div class="kv"><div class="kv-k">Framework</div><div class="kv-v"><span class="fw-tag">${escapeHtml(e.fw)} · ${escapeHtml(e.fw2)}</span></div></div>
+          <div class="kv"><div class="kv-k">Status</div><div class="kv-v"><span class="bdg ${bCls(e.status)}">${bLbl(e.status)}</span></div></div>
+        </div>
+        <div class="sec"><div class="ai-l">AI critique</div>
+          <div class="ai-block">${safe(e.crit)||'No critique generated yet.'}</div></div>
+        <div class="sec"><div class="sec-l">Internal note</div>
+          <div style="font-size:11.5px;color:var(--ink-3);line-height:1.5">${escapeHtml(e.note||'—')}</div></div>
+        <div class="sec"><div class="sec-l">Counterfactuals (${(e.cf||[]).length})</div>
+          ${(e.cf||[]).length?e.cf.map(id=>`<span class="ref" data-ref-id="${escapeHtml(id)}">${escapeHtml(id)}</span>`).join(' '):'<span style="font-size:11px;color:var(--ink-4);font-style:italic">None identified yet.</span>'}</div>
+        <div class="sec"><div class="sec-l">Experiments (${(e.exp||[]).length})</div>
+          ${(e.exp||[]).length?e.exp.map(id=>`<span class="ref" data-ref-id="${escapeHtml(id)}">${escapeHtml(id)}</span>`).join(' '):'<span style="font-size:11px;color:var(--ink-4);font-style:italic">None proposed yet.</span>'}</div>`;
+      foot.innerHTML=`<button class="btn btn-warn btn-sm" data-pan-action="dispute">Mark disputed</button><div style="flex:1"></div><button class="btn btn-p btn-sm" data-pan-action="save-claim">Save changes</button>`;
+    } else if(STATE.panTab==='ev'){
+      const evList=(e.ev||[]).map(id=>ds.evidence.find(x=>x.id===id)).filter(Boolean);
+      body.innerHTML=`<div class="sec"><div class="sec-l">Attached evidence (${evList.length})</div>
+        ${evList.map(ev=>`<div class="ev-card"><div>${escapeHtml(ev.text)}</div><div class="ev-card-meta"><span class="chip ${evTypeCls(ev.type)}">${ev.type}</span><span class="bdg ${evCls(ev.cls)}" style="font-size:9.5px">${evLbl(ev.cls)}</span>${strDots(ev.str)}<span style="font-size:10px;color:var(--ink-4);margin-left:auto">${escapeHtml(ev.id)}</span></div></div>`).join('')||'<div style="font-size:11.5px;color:var(--ink-4);font-style:italic">No evidence attached yet.</div>'}
+      </div>`;
+      foot.innerHTML=`<button class="btn btn-sm" data-ptab="detail">← Detail</button>`;
+    } else if(STATE.panTab==='tn'){
+      const tnList=(e.tn||[]).map(id=>ds.tensions.find(x=>x.id===id)).filter(Boolean);
+      body.innerHTML=`<div class="sec"><div class="sec-l">Related tensions (${tnList.length})</div>
+        ${tnList.map(t=>`<div class="ev-card" style="border-left-color:var(--warn)"><div style="font-weight:600;font-size:12px;margin-bottom:3px">${escapeHtml(t.id)} · ${escapeHtml(t.title)}</div><div style="font-size:11px;color:var(--ink-3)">${escapeHtml((t.desc||'').substring(0,140))}…</div><div class="ev-card-meta"><span class="t-type ${tnTypeCls(t.type)}">${tnTypeLbl(t.type)}</span><span class="pri pri-${t.pri}">${(t.pri||'').toUpperCase()}</span></div></div>`).join('')||'<div style="font-size:11.5px;color:var(--ink-4);font-style:italic">No tensions involve this claim.</div>'}
+      </div>`;
+      foot.innerHTML=`<button class="btn btn-sm" data-ptab="detail">← Detail</button>`;
+    }
+  } else if(STATE.panType==='evidence'){
+    if(STATE.panTab==='detail'){
+      body.innerHTML=`
+        <div class="sec"><div class="sec-l">Evidence text</div><textarea id="pan-ev-text" rows="3">${escapeHtml(e.text)}</textarea></div>
+        <div class="sec"><div class="sec-l">Classification</div>
+          <div class="kv"><div class="kv-k">Type</div><div class="kv-v"><span class="chip ${evTypeCls(e.type)}">${escapeHtml(e.type)}</span></div></div>
+          <div class="kv"><div class="kv-k">Classification</div><div class="kv-v"><span class="bdg ${evCls(e.cls)}">${evLbl(e.cls)}</span></div></div>
+          <div class="kv"><div class="kv-k">Strength</div><div class="kv-v">${strDots(e.str)}</div></div>
+        </div>
+        <div class="sec"><div class="sec-l">Linked claims</div>${(e.claims||[]).map(c=>`<span class="ref" data-ref-id="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join(' ')}</div>
+        <div class="sec"><div class="sec-l">Source</div><div style="font-size:11.5px;color:var(--ink-3)">${escapeHtml(e.src)}</div></div>`;
+      foot.innerHTML=`<div style="flex:1"></div><button class="btn btn-p btn-sm" data-pan-action="save-ev">Save</button>`;
+    }
+  } else if(STATE.panType==='tension'){
+    if(STATE.panTab==='detail'){
+      body.innerHTML=`
+        <div class="sec"><div class="sec-l">Title</div><div style="font-weight:600;font-size:13px">${escapeHtml(e.title)}</div></div>
+        <div class="sec"><div class="sec-l">Description</div><div style="font-size:11.5px;color:var(--ink-2);line-height:1.5">${escapeHtml(e.desc)}</div></div>
+        <div class="sec"><div class="sec-l">Involved claims</div>${(e.claims||[]).map(c=>`<span class="ref" data-ref-id="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join(' ')}</div>
+        <div class="sec"><div class="sec-l">Classification</div>
+          <div class="kv"><div class="kv-k">Type</div><div class="kv-v"><span class="t-type ${tnTypeCls(e.type)}">${tnTypeLbl(e.type)}</span></div></div>
+          <div class="kv"><div class="kv-k">Priority</div><div class="kv-v"><span class="pri pri-${e.pri}">${(e.pri||'').toUpperCase()}</span></div></div>
+          <div class="kv"><div class="kv-k">Status</div><div class="kv-v"><span class="bdg ${bCls(e.status==='partial'?'revised':e.status==='resolvable'?'asm':e.status)}">${bLbl(e.status)||e.status}</span></div></div>
+        </div>
+        <div class="sec"><div class="sec-l">Decision path</div><div class="ai-block" style="border-left-color:var(--warn)">${escapeHtml(e.path||'—')}</div></div>`;
+      foot.innerHTML=`<button class="btn btn-warn btn-sm" data-pan-action="confirm-tension">Confirm tension</button><div style="flex:1"></div>`;
+    }
+  } else if(STATE.panType==='counterfactual'){
+    if(STATE.panTab==='detail'){
+      const svLbl=e.severity==='invalidate'?'Would invalidate claim':'Would weaken claim';
+      const svCls=e.severity==='invalidate'?'sev-inv':'sev-weak';
+      body.innerHTML=`
+        <div class="sec"><div class="sec-l">Statement</div><div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">${escapeHtml(e.statement)}</div></div>
+        <div class="sec"><div class="sec-l">Linked claims</div>${(e.claims||[]).map(c=>`<span class="ref" data-ref-id="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join(' ')}</div>
+        <div class="sec"><div class="sec-l">Classification</div>
+          <div class="kv"><div class="kv-k">Severity</div><div class="kv-v"><span class="${svCls}">${svLbl}</span></div></div>
+          <div class="kv"><div class="kv-k">Status</div><div class="kv-v"><span class="bdg ${cfStatusCls(e.status)}">${cfStatusLbl(e.status)}</span></div></div>
+        </div>`;
+      foot.innerHTML=`<button class="btn btn-warn btn-sm" data-pan-action="confirm-cf">Mark confirmed</button><button class="btn btn-sm" data-pan-action="ruleout-cf">Rule out</button><div style="flex:1"></div>`;
+    }
+  } else if(STATE.panType==='experiment'){
+    if(STATE.panTab==='detail'){
+      const df=e.derivedFrom||{tensions:[],counterfactuals:[],claims:[]};
+      body.innerHTML=`
+        <div class="sec"><div class="sec-l">Title</div><div style="font-weight:600;font-size:13px">${escapeHtml(e.title)}</div></div>
+        <div class="sec"><div class="sec-l">Hypothesis</div><div style="font-size:12px;color:var(--ink-2);line-height:1.5">${escapeHtml(e.hypothesis)}</div></div>
+        <div class="sec"><div class="sec-l">Derived from</div>
+          <div class="kv"><div class="kv-k">Tensions</div><div class="kv-v">${df.tensions.length?df.tensions.map(t=>`<span class="ref" data-ref-id="${escapeHtml(t)}">${escapeHtml(t)}</span>`).join(' '):'<span style="color:var(--ink-4);font-style:italic;font-size:11px">none</span>'}</div></div>
+          <div class="kv"><div class="kv-k">Counterfactuals</div><div class="kv-v">${(df.counterfactuals||[]).length?df.counterfactuals.map(c=>`<span class="ref" data-ref-id="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join(' '):'<span style="color:var(--ink-4);font-style:italic;font-size:11px">none</span>'}</div></div>
+          <div class="kv"><div class="kv-k">Claims tested</div><div class="kv-v">${(e.claims||[]).map(c=>`<span class="ref" data-ref-id="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join(' ')}</div></div>
+        </div>
+        <div class="sec"><div class="sec-l">Design</div>
+          <div class="kv"><div class="kv-k">Method</div><div class="kv-v">${escapeHtml(e.method)}</div></div>
+          <div class="kv"><div class="kv-k">Timeline</div><div class="kv-v">${escapeHtml(e.timeline)}</div></div>
+          <div class="kv"><div class="kv-k">Success metric</div><div class="kv-v">${escapeHtml(e.metric)}</div></div>
+          <div class="kv"><div class="kv-k">Status</div><div class="kv-v"><span class="bdg ${bCls(e.status==='proposed'?'asm':e.status)}">${escapeHtml(e.status)}</span></div></div>
+        </div>
+        <div class="sec"><div class="ai-l">AI reasoning — why this experiment</div>
+          <div class="ai-block">${escapeHtml(e.reasoning)}</div></div>`;
+      foot.innerHTML=`<button class="btn btn-sm" data-pan-action="mark-running">Mark running</button><button class="btn btn-sm" data-pan-action="mark-complete">Mark complete</button><div style="flex:1"></div>`;
+    }
+  }
+
+  // Panel foot action listener
+  foot.querySelectorAll('[data-pan-action]').forEach(btn=>btn.addEventListener('click',panFootAction));
+  foot.querySelectorAll('[data-ptab]').forEach(btn=>btn.addEventListener('click',()=>swPanTab(btn.dataset.ptab)));
+  // Ref chips inside panel body
+  body.querySelectorAll('.ref[data-ref-id]').forEach(r=>r.addEventListener('click',e2=>{e2.stopPropagation();openPan(r.dataset.refId,idKind(r.dataset.refId));}));
+  // Prov mini buttons inside panel
+  body.querySelectorAll('[data-prov]').forEach(r=>r.addEventListener('click',e2=>{e2.stopPropagation();openProv(r.dataset.prov);}));
+}
+
+function panFootAction(e) {
+  const action=e.currentTarget.dataset.panAction;
+  const ent=STATE.panEntity; if(!ent)return;
+  const ts=nowISOStr();
+  if(action==='dispute'){
+    ent.status='disputed';
+    ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'User',what:'Status changed to: disputed'});
+    render(); openPan(ent.id,'claim'); scheduleSave();
+  } else if(action==='confirm-tension'){
+    ent.status='confirmed';
+    ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'User',what:'Status changed to: confirmed'});
+    render(); openPan(ent.id,'tension'); scheduleSave();
+  } else if(action==='confirm-cf'){
+    ent.status='confirmed';
+    ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'User',what:'Status changed to: confirmed'});
+    render(); openPan(ent.id,'counterfactual'); scheduleSave();
+  } else if(action==='ruleout-cf'){
+    ent.status='ruled-out';
+    ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'User',what:'Status changed to: ruled-out'});
+    render(); openPan(ent.id,'counterfactual'); scheduleSave();
+  } else if(action==='mark-running'){
+    ent.status='running';
+    ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'User',what:'Status changed to: running'});
+    render(); openPan(ent.id,'experiment'); scheduleSave();
+  } else if(action==='mark-complete'){
+    ent.status='complete';
+    ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'User',what:'Status changed to: complete'});
+    render(); openPan(ent.id,'experiment'); scheduleSave();
+  } else if(action==='save-claim'){
+    const ta=eid('pan-claim-text'); if(ta&&ta.value.trim()){
+      const v=ta.value.trim(); ent.text='"'+v+'"';
+      ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'User',what:'Claim text edited'});
+      render(); openPan(ent.id,'claim'); scheduleSave();
+    }
+  } else if(action==='save-ev'){
+    const ta=eid('pan-ev-text'); if(ta&&ta.value.trim()){
+      ent.text=ta.value.trim();
+      ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'User',what:'Evidence text edited'});
+      render(); openPan(ent.id,'evidence'); scheduleSave();
+    }
+  }
+}
+
+function renderProvenance(e) {
+  const p=e.prov||{src:'—',creator:'—',extracted:'—',confidence:0,srcQuote:'—',trail:[]};
+  eid('pan-body').innerHTML=`
+    <div class="sec"><div class="sec-l">Origin</div>
+      <div class="kv"><div class="kv-k">Source</div><div class="kv-v" style="font-family:monospace;font-size:11px">${escapeHtml(p.src)}</div></div>
+      <div class="kv"><div class="kv-k">Extracted by</div><div class="kv-v">${escapeHtml(p.creator)}</div></div>
+      <div class="kv"><div class="kv-k">When</div><div class="kv-v" style="font-family:monospace;font-size:11px">${escapeHtml(p.extracted)}</div></div>
+      <div class="kv"><div class="kv-k">Confidence</div><div class="kv-v"><div style="display:inline-block;width:80px;height:5px;background:#e6e0cc;border-radius:2px;vertical-align:middle"><div style="height:100%;background:var(--ink);width:${(p.confidence||0)*100}%;border-radius:2px"></div></div> <span style="font-family:monospace;font-size:11px;color:var(--ink-3)">${((p.confidence||0)*100).toFixed(0)}%</span></div></div>
+    </div>
+    <div class="sec"><div class="sec-l">Source quote / context</div>
+      <div class="src-block">${escapeHtml(p.srcQuote||'—')}</div></div>
+    <div class="sec"><div class="sec-l">Modification trail</div>
+      <div class="trail">${(p.trail||[]).map((t,i)=>`<div class="trail-item${i===(p.trail.length-1)?' curr':''}"><div class="trail-when">${escapeHtml(t.when)}</div><div class="trail-what">${escapeHtml(t.what)}</div><div class="trail-who">${escapeHtml(t.who)}</div></div>`).join('')||'<div style="font-size:11px;color:var(--ink-4)">No trail entries.</div>'}</div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// INLINE STATUS DROPDOWNS
+// ═══════════════════════════════════════════════════════════
+function ddDispatch(ev, ceEl) {
+  const dd2=ceEl.dataset.dd, id=ceEl.dataset.ddId;
+  if(dd2==='status') ddStatus(ev,id);
+  else if(dd2==='evtype') ddType(ev,id);
+  else if(dd2==='evcls') ddClass(ev,id);
+}
+function ddStatus(ev,id){ ddPop(ev,['Assumed','Supported','Disputed','Validated','Revised','Critical gap'],v=>{const c=ds.claims.find(x=>x.id===id);if(c){c.status=v.toLowerCase().replace('critical gap','gap');c.prov.trail=appendTrail(c.prov.trail,{when:nowISOStr(),who:'User',what:'Status changed to: '+v});render();scheduleSave();}})}
+function ddType(ev,id){ ddPop(ev,['behavioral','attitudinal','document','analytical'],v=>{const e=ds.evidence.find(x=>x.id===id);if(e){e.type=v;render();scheduleSave();}})}
+function ddClass(ev,id){ ddPop(ev,['supports','contradicts','qualifies'],v=>{const e=ds.evidence.find(x=>x.id===id);if(e){e.cls=v;render();scheduleSave();}})}
+function ddPop(ev,opts,cb) {
+  ev.preventDefault(); ev.stopPropagation();
+  const dd=eid('dd');
+  dd.innerHTML=opts.map(o=>`<div class="dd-opt" data-ddval="${escapeHtml(o)}">${escapeHtml(o)}</div>`).join('');
+  dd.style.display='block';
+  const r=ev.target.closest('.cell-edit').getBoundingClientRect();
+  dd.style.left=r.left+'px'; dd.style.top=(r.bottom+4)+'px';
+  const handler=e2=>{
+    const opt=e2.target.closest('[data-ddval]');
+    dd.style.display='none';
+    document.removeEventListener('click',handler);
+    if(opt) cb(opt.dataset.ddval);
+  };
+  setTimeout(()=>document.addEventListener('click',handler,{once:true}),10);
+}
+
+// ═══════════════════════════════════════════════════════════
+// DELETE ENTITY WITH CASCADE
+// ═══════════════════════════════════════════════════════════
+let pendingDeleteItem=null;
+function askDeleteItem(ev,type,id) {
+  ev.stopPropagation();
+  pendingDeleteItem={type,id};
+  const pop=eid('del-item-pop');
+  pop.innerHTML=`<div class="dcp-txt">Delete <strong>${escapeHtml(id)}</strong>? Removes it from all cross-references. Cannot be undone.</div>
+    <div class="dcp-row"><button class="btn btn-sm" id="dip-cancel">Cancel</button><button class="btn btn-warn btn-sm" id="dip-confirm">Delete</button></div>`;
+  const r=ev.target.getBoundingClientRect();
+  pop.style.display='block';
+  const left=Math.max(8,Math.min(window.innerWidth-228,r.left-170));
+  pop.style.left=left+'px'; pop.style.top=(r.bottom+6)+'px';
+  eid('dip-cancel').onclick=closeDelItemPop;
+  eid('dip-confirm').onclick=confirmDeleteItem;
+  setTimeout(()=>document.addEventListener('click',outsideDelPop,{once:true}),10);
+}
+function outsideDelPop(e){ if(eid('del-item-pop').style.display!=='none'&&!eid('del-item-pop').contains(e.target)) closeDelItemPop(); }
+function closeDelItemPop(){ eid('del-item-pop').style.display='none'; pendingDeleteItem=null; }
+function confirmDeleteItem() {
+  if(!pendingDeleteItem)return;
+  const{type,id}=pendingDeleteItem;
+  if(type==='claim'){
+    ds.claims=ds.claims.filter(x=>x.id!==id);
+    ds.evidence.forEach(e=>{e.claims=(e.claims||[]).filter(c=>c!==id);});
+    ds.tensions.forEach(t=>{t.claims=(t.claims||[]).filter(c=>c!==id);});
+    ds.counterfactuals.forEach(c=>{c.claims=(c.claims||[]).filter(x=>x!==id);});
+    ds.experiments.forEach(x=>{x.claims=(x.claims||[]).filter(c=>c!==id);});
+  } else if(type==='evidence'){
+    ds.evidence=ds.evidence.filter(x=>x.id!==id);
+    ds.claims.forEach(c=>{c.ev=(c.ev||[]).filter(e=>e!==id);});
+  } else if(type==='tension'){
+    ds.tensions=ds.tensions.filter(x=>x.id!==id);
+    ds.claims.forEach(c=>{c.tn=(c.tn||[]).filter(t=>t!==id);});
+    ds.experiments.forEach(x=>{if(x.derivedFrom)x.derivedFrom.tensions=(x.derivedFrom.tensions||[]).filter(t=>t!==id);});
+  } else if(type==='counterfactual'){
+    ds.counterfactuals=ds.counterfactuals.filter(x=>x.id!==id);
+    ds.claims.forEach(c=>{c.cf=(c.cf||[]).filter(x=>x!==id);});
+    ds.experiments.forEach(x=>{if(x.derivedFrom)x.derivedFrom.counterfactuals=(x.derivedFrom.counterfactuals||[]).filter(c=>c!==id);});
+  } else if(type==='experiment'){
+    ds.experiments=ds.experiments.filter(x=>x.id!==id);
+    ds.claims.forEach(c=>{c.exp=(c.exp||[]).filter(x=>x!==id);});
+  }
+  if(STATE.selId===id) closePan();
+  closeDelItemPop();
+  render();
+  scheduleSave();
+}
+
+// ═══════════════════════════════════════════════════════════
+// ADD ITEM MODAL
+// ═══════════════════════════════════════════════════════════
+let pendingAdd=null;
+function openAddModal(type) {
+  window._addType=type;
+  const bodyEl=eid('add-modal-body');
+  const titleEl=eid('add-modal-title'), subEl=eid('add-modal-sub');
+  const claimOpts=ds.claims.map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.id+' — '+c.text.replace(/^"|"$/g,'').substring(0,55))}</option>`).join('');
+  const noClaims=`<option value="">No claims yet — add a claim first</option>`;
+  if(type==='claim'){
+    titleEl.textContent='Add a claim manually';
+    subEl.textContent='Claims you add manually are reviewed by AI before they are finalised.';
+    bodyEl.innerHTML=`
+      <div class="sec-l" style="margin-bottom:5px">Claim text</div>
+      <textarea id="af-text" rows="3" placeholder="State the claim as a falsifiable assertion…"></textarea>
+      <div class="sec-l" style="margin-bottom:5px;margin-top:10px">Category</div>
+      <select id="af-cat" style="width:100%">
+        <option value="Pain">Problem · Pain</option><option value="Alternatives">Alternatives</option>
+        <option value="Solution">Solution</option><option value="Persona">Market · Persona</option><option value="Commercial">Commercial</option>
+      </select>`;
+    eid('add-modal-submit').textContent='Add claim';
+  } else if(type==='evidence'){
+    titleEl.textContent='Add evidence manually';
+    subEl.textContent='AI classifies new evidence automatically.';
+    bodyEl.innerHTML=`
+      <div class="sec-l" style="margin-bottom:5px">Relates to claim</div>
+      <select id="af-claim" style="width:100%">${claimOpts||noClaims}</select>
+      <div class="sec-l" style="margin-bottom:5px;margin-top:10px">Evidence text</div>
+      <textarea id="af-text" rows="3" placeholder="Paste a quote, data point, or observation…"></textarea>
+      <div class="sec-l" style="margin-bottom:5px;margin-top:10px">Source</div>
+      <input type="text" id="af-src" placeholder="e.g. Interview · Jane Doe · 2025-06-19"/>`;
+    eid('add-modal-submit').textContent='Add evidence';
+  } else if(type==='tension'){
+    titleEl.textContent='Add a tension manually';
+    subEl.textContent='AI types and prioritises new tensions automatically.';
+    bodyEl.innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div class="sec-l" style="margin-bottom:5px">Claim A</div><select id="af-claimA" style="width:100%">${claimOpts||noClaims}</select></div>
+        <div><div class="sec-l" style="margin-bottom:5px">Claim B</div><select id="af-claimB" style="width:100%">${claimOpts||noClaims}</select></div>
+      </div>
+      <div class="sec-l" style="margin-bottom:5px;margin-top:10px">Description</div>
+      <textarea id="af-text" rows="3" placeholder="Describe how these claims conflict…"></textarea>`;
+    eid('add-modal-submit').textContent='Add tension';
+  } else if(type==='counterfactual'){
+    titleEl.textContent='Add a counterfactual manually';
+    subEl.textContent='A counterfactual states what would have to be true for a claim to be false.';
+    bodyEl.innerHTML=`
+      <div class="sec-l" style="margin-bottom:5px">Relates to claim</div>
+      <select id="af-claim" style="width:100%">${claimOpts||noClaims}</select>
+      <div class="sec-l" style="margin-bottom:5px;margin-top:10px">Statement</div>
+      <textarea id="af-text" rows="3" placeholder="What would have to be true for this claim to be false?"></textarea>`;
+    eid('add-modal-submit').textContent='Add counterfactual';
+  }
+  openModal('modal-add');
+}
+function closeAdd(){ closeModal('modal-add'); }
+async function submitAddModal() {
+  const type=window._addType;
+  const textEl=eid('af-text'), text=textEl?textEl.value.trim():'';
+  if(!text){ if(textEl)textEl.focus(); return; }
+  closeAdd();
+  if(type==='claim'){
+    const cat=eid('af-cat').value; await reviewNewClaim(text,cat);
+  } else if(type==='evidence'){
+    const claimId=eid('af-claim').value, src=eid('af-src').value.trim()||'Manual entry';
+    if(!claimId)return; await reviewNewEvidence(claimId,text,src);
+  } else if(type==='tension'){
+    const claimA=eid('af-claimA').value, claimB=eid('af-claimB').value;
+    if(!claimA)return; await reviewNewTension(claimA,claimB,text);
+  } else if(type==='counterfactual'){
+    const claimId=eid('af-claim').value; if(!claimId)return;
+    await reviewNewCounterfactual(claimId,text);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// AI REVIEW MODAL HELPERS
+// ═══════════════════════════════════════════════════════════
+function showAIReviewing(){
+  eid('airev-title').textContent='Reviewing your entry…';
+  eid('airev-body').innerHTML=`<div style="display:flex;align-items:center;color:var(--ink-3);font-size:12.5px"><span class="spinner"></span>Analysing and classifying…</div>`;
+  eid('airev-foot').innerHTML='';
+  openModal('modal-airev');
+}
+function closeAIReview(){ closeModal('modal-airev'); }
+
+// ── Claims: AI asks clarifying question ──
+async function reviewNewClaim(text,cat) {
+  pendingAdd={text,cat}; showAIReviewing();
+  const result=await AI.clarifyForClaim({text});
+  eid('airev-title').textContent='One quick question';
+  const opts=result.options.map(o=>`<button class="qp-btn" data-clarify-val="${escapeHtml(o.value)}">${escapeHtml(o.label)}</button>`).join('');
+  eid('airev-body').innerHTML=`<div class="airev-q">${escapeHtml(result.question)}</div><div class="qp-row">${opts}</div>`;
+  eid('airev-body').querySelectorAll('[data-clarify-val]').forEach(b=>b.addEventListener('click',()=>finalizeNewClaim(b.dataset.clarifyVal)));
+}
+function finalizeNewClaim(sourceType) {
+  const{text,cat}=pendingAdd;
+  const id=newId('C'), ts=nowISOStr();
+  const fwMap={Pain:'BLAC: Blatant',Alternatives:'Lean Canvas: Alternatives',Solution:'4U: Unworkable (current)',Persona:'Skok: MVS',Commercial:'Lean Canvas: Revenue'};
+  const creatorMap={document:'AI auto-extraction (user-flagged document)',observed:'User (manual, observed/told)',inference:'User (manual, inference)'};
+  const srcMap={document:'User-provided, document-based',observed:'User-provided, observed/told',inference:'User-provided, inference'};
+  const newClaim={
+    id,cat,text:'"'+text+'"',fw:fwMap[cat]||'Lean Canvas: General',fw2:'Manually added',
+    status:'assumed',ev:[],tn:[],cf:[],exp:[],
+    note:'Manually added. Source type classified; not yet challenged in depth.',
+    prov:{src:srcMap[sourceType],extracted:'Manual entry, AI-reviewed',creator:creatorMap[sourceType],confidence:1.0,
+          srcQuote:text,trail:appendTrail([],{when:ts,who:'User (manual)',what:'Added manually'})},
+    crit:'This claim has not yet been critiqued. Once evidence is attached, AI will generate a full challenge with a falsification condition.'
+  };
+  newClaim.prov.trail=appendTrail(newClaim.prov.trail,{when:ts,who:'AI auto-discovery',what:'Source type classified as: '+sourceType});
+  ds.claims.push(newClaim);
+  STATE.view='populated';
+  closeAIReview(); switchToTab('claims'); render(); openPan(id,'claim');
+  pendingAdd=null; scheduleSave();
+}
+
+// ── Evidence: AI auto-classifies ──
+async function reviewNewEvidence(claimId,text,src) {
+  pendingAdd={claimId,text,src}; showAIReviewing();
+  const result=await AI.classifyEvidence({text});
+  pendingAdd.cls=result.cls; pendingAdd.etype=result.type;
+  eid('airev-title').textContent='Classification complete';
+  eid('airev-body').innerHTML=`<div class="airev-result"><b>Classified as ${escapeHtml(evLbl(result.cls))}</b> (${escapeHtml(result.type)}). Strength set to Weak until corroborated by additional sources.</div>`;
+  eid('airev-foot').innerHTML=`<button class="btn btn-p btn-sm" id="airev-done-ev">Done</button>`;
+  eid('airev-done-ev').onclick=finalizeNewEvidence;
+}
+function finalizeNewEvidence() {
+  const{claimId,text,src,cls,etype}=pendingAdd;
+  const id=newId('E'), ts=nowISOStr();
+  const newEv={id,claims:[claimId],text,src,type:etype,cls,str:1,
+    prov:{src:'Manual entry',extracted:'Manual entry, AI-classified',creator:'User',confidence:1.0,
+          srcQuote:text,trail:appendTrail([{when:ts,who:'User (manual)',what:'Added manually'}],{when:ts,who:'AI auto-classification',what:'Classified as '+cls+' / '+etype})}};
+  ds.evidence.push(newEv);
+  const cl=ds.claims.find(c=>c.id===claimId);
+  if(cl){cl.ev=cl.ev||[];if(!cl.ev.includes(id))cl.ev.push(id);}
+  closeAIReview(); switchToTab('evidence'); render(); openPan(id,'evidence');
+  pendingAdd=null; scheduleSave();
+}
+
+// ── Tensions: AI auto-classifies ──
+async function reviewNewTension(claimA,claimB,text) {
+  pendingAdd={claimA,claimB,text}; showAIReviewing();
+  const result=await AI.classifyTension({text});
+  pendingAdd.ttype=result.type; pendingAdd.pri=result.pri;
+  eid('airev-title').textContent='Classification complete';
+  eid('airev-body').innerHTML=`<div class="airev-result"><b>Typed as ${escapeHtml(tnTypeLbl(result.type))}</b>, priority <b>${result.pri.toUpperCase()}</b>. You can change either from the Tensions tab.</div>`;
+  eid('airev-foot').innerHTML=`<button class="btn btn-p btn-sm" id="airev-done-tn">Done</button>`;
+  eid('airev-done-tn').onclick=finalizeNewTension;
+}
+function finalizeNewTension() {
+  const{claimA,claimB,text,ttype,pri}=pendingAdd;
+  const id=newId('T'), ts=nowISOStr();
+  const claimsArr=(claimB&&claimB!==claimA)?[claimA,claimB]:[claimA];
+  const newT={id,title:text.substring(0,40)+(text.length>40?'…':''),claims:claimsArr,type:ttype,pri,status:'assumed',
+    desc:text,path:'Not yet resolved — review and choose a resolution path.',
+    prov:{src:'Manual entry',extracted:'Manual entry, AI-classified',creator:'User',confidence:1.0,
+          srcQuote:text,trail:appendTrail([{when:ts,who:'User (manual)',what:'Added manually'}],{when:ts,who:'AI auto-classification',what:'Typed as '+ttype+', priority '+pri})}};
+  ds.tensions.push(newT);
+  claimsArr.forEach(cid=>{const cl=ds.claims.find(c=>c.id===cid);if(cl){cl.tn=cl.tn||[];if(!cl.tn.includes(id))cl.tn.push(id);}});
+  closeAIReview(); switchToTab('tensions'); render(); openPan(id,'tension');
+  pendingAdd=null; scheduleSave();
+}
+
+// ── Counterfactuals: AI asks clarifying question ──
+async function reviewNewCounterfactual(claimId,text) {
+  pendingAdd={claimId,text}; showAIReviewing();
+  const result=await AI.clarifyForCounterfactual({text});
+  eid('airev-title').textContent='One quick question';
+  const opts=result.options.map(o=>`<button class="qp-btn" data-cf-val="${escapeHtml(o.value)}">${escapeHtml(o.label)}</button>`).join('');
+  eid('airev-body').innerHTML=`<div class="airev-q">${escapeHtml(result.question)}</div><div class="qp-row">${opts}</div>`;
+  eid('airev-body').querySelectorAll('[data-cf-val]').forEach(b=>b.addEventListener('click',()=>finalizeNewCF(b.dataset.cfVal)));
+}
+function finalizeNewCF(severity) {
+  const{claimId,text}=pendingAdd;
+  const id=newId('CF'), ts=nowISOStr();
+  const newCF={id,claims:[claimId],statement:text,severity,status:'proposed',
+    prov:{src:'Manual entry',extracted:'Manual entry, AI-reviewed',creator:'User',confidence:1.0,
+          srcQuote:text,trail:appendTrail([{when:ts,who:'User (manual)',what:'Added manually'}],{when:ts,who:'AI auto-discovery',what:'Severity classified as: '+severity})}};
+  ds.counterfactuals.push(newCF);
+  const cl=ds.claims.find(c=>c.id===claimId);
+  if(cl){cl.cf=cl.cf||[];if(!cl.cf.includes(id))cl.cf.push(id);}
+  closeAIReview(); switchToTab('counterfactuals'); render(); openPan(id,'counterfactual');
+  pendingAdd=null; scheduleSave();
+}
+
+// ═══════════════════════════════════════════════════════════
+// GENERATE EXPERIMENTS
+// ═══════════════════════════════════════════════════════════
+async function doGenerateExperiments() {
+  const eb=eid('extract-banner');
+  const result=await AI.generateExperiments({claims:ds.claims,tensions:ds.tensions,counterfactuals:ds.counterfactuals,experiments:ds.experiments});
+  if(!result){
+    if(eb){eb.innerHTML=`ℹ No new experiments to propose — all P0/P1 tensions and active counterfactuals already have an experiment linked. <button class="btn btn-sm btn-gh" style="margin-left:auto" id="btn-dismiss-banner3">Dismiss</button>`;eb.classList.add('on');eid('btn-dismiss-banner3').onclick=dismissBanner;}
+    return;
+  }
+  const id=newId('EXP'), ts=nowISOStr();
+  const exp={
+    id, ...result.experiment,
+    prov:{src:'AI synthesis · cross-entity reasoning',extracted:'AI experiment synthesis',creator:'AI auto-discovery',confidence:0.7,
+          srcQuote:'Synthesis pass scanned active P0/P1 tensions and confirmed/investigating counterfactuals without an existing linked experiment.',
+          trail:appendTrail([],{when:ts,who:'AI experiment synthesis',what:'Generated via Generate Experiments action'})}
+  };
+  ds.experiments.push(exp);
+  (exp.claims||[]).forEach(cid=>{const cl=ds.claims.find(x=>x.id===cid);if(cl){cl.exp=cl.exp||[];if(!cl.exp.includes(id))cl.exp.push(id);}});
+  switchToTab('experiments'); render(); openPan(id,'experiment'); scheduleSave();
+}
+
+// ═══════════════════════════════════════════════════════════
+// NEW ANALYSIS GATE MODAL
+// ═══════════════════════════════════════════════════════════
+let naState={name:'',tab:'upload',pendingFiles:[],pendingClaim:null,draftClaimText:'',draftClaimCat:'Pain'};
+function openNewAnalysisModal(){
+  if(!currentUser){openModal('modal-auth');return;}
+  naState={name:'',tab:'upload',pendingFiles:[],pendingClaim:null,draftClaimText:'',draftClaimCat:'Pain'};
+  eid('na-name').value='';
+  eid('na-tab-upload').classList.add('on'); eid('na-tab-claim').classList.remove('on');
+  renderNaBody(); naCheckReady(); openModal('modal-newanalysis');
+}
+function closeNewAnalysisModal(){ closeModal('modal-newanalysis'); }
+function naSwitchTab(t){
+  naState.tab=t;
+  eid('na-tab-upload').classList.toggle('on',t==='upload');
+  eid('na-tab-claim').classList.toggle('on',t==='claim');
+  renderNaBody();
+}
+function renderNaBody(){
+  const body=eid('na-body');
+  if(naState.tab==='upload'){
+    body.innerHTML=`
+      <div class="dropzone" id="na-dropzone">
+        <div class="dropzone-icon">⤓</div>
+        <div class="dropzone-txt">Drag files here, or click to browse</div>
+        <div class="dropzone-sub">PDF, DOCX, MD, TXT · multiple files supported · max 10MB each</div>
+      </div>
+      <input type="file" id="na-file-input" multiple style="display:none"/>
+      <div id="na-pending-files"></div>`;
+    eid('na-dropzone').onclick=()=>eid('na-file-input').click();
+    eid('na-dropzone').ondragover=e=>{e.preventDefault();eid('na-dropzone').style.borderColor='#1a1a1a';};
+    eid('na-dropzone').ondragleave=()=>{eid('na-dropzone').style.borderColor='';};
+    eid('na-dropzone').ondrop=naHandleDrop;
+    eid('na-file-input').onchange=naHandleFileSelect;
+    naRenderPendingFiles();
+  } else {
+    body.innerHTML=`
+      <div class="sec-l" style="margin-top:10px">Claim text</div>
+      <textarea id="na-claim-text" rows="3" placeholder="State the claim as a falsifiable assertion…"></textarea>
+      <div class="sec-l" style="margin-bottom:5px;margin-top:8px">Category</div>
+      <select id="na-claim-cat" style="width:100%">
+        <option value="Pain">Problem · Pain</option><option value="Alternatives">Alternatives</option>
+        <option value="Solution">Solution</option><option value="Persona">Market · Persona</option><option value="Commercial">Commercial</option>
+      </select>
+      <button class="btn btn-sm" style="margin-top:9px" id="btn-na-submit-claim">Add claim →</button>
+      <div id="na-claim-added" style="margin-top:10px"></div>`;
+    eid('btn-na-submit-claim').onclick=naSubmitClaim;
+    if(naState.pendingClaim){
+      const pc=naState.pendingClaim;
+      eid('na-claim-added').innerHTML=`<div class="airev-result">✓ Claim added: "${escapeHtml(pc.text)}" — category ${escapeHtml(pc.cat)}, source: ${escapeHtml(pc.sourceType)}.</div>`;
+    }
+  }
+}
+function naHandleFileSelect(ev){
+  Array.from(ev.target.files||[]).forEach(f=>naState.pendingFiles.push({name:f.name,size:fmtBytes(f.size)}));
+  naRenderPendingFiles(); naCheckReady(); ev.target.value='';
+}
+function naHandleDrop(ev){
+  ev.preventDefault(); ev.currentTarget.style.borderColor='';
+  Array.from(ev.dataTransfer.files||[]).forEach(f=>naState.pendingFiles.push({name:f.name,size:fmtBytes(f.size)}));
+  naRenderPendingFiles(); naCheckReady();
+}
+function naRenderPendingFiles(){
+  const el=eid('na-pending-files'); if(!el)return;
+  if(!naState.pendingFiles.length){el.innerHTML='';return;}
+  el.innerHTML=naState.pendingFiles.map((f,i)=>`
+    <div class="file-row"><div class="file-icon">+</div>
+    <div class="file-meta"><div class="file-name">${escapeHtml(f.name)}</div><div class="file-sub">${f.size} · ready to upload</div></div>
+    <button class="file-remove" data-na-rm="${i}">×</button></div>`).join('');
+  el.querySelectorAll('[data-na-rm]').forEach(b=>b.addEventListener('click',()=>{naState.pendingFiles.splice(Number(b.dataset.naRm),1);naRenderPendingFiles();naCheckReady();}));
+}
+async function naSubmitClaim(){
+  const textEl=eid('na-claim-text'), text=textEl?textEl.value.trim():'';
+  if(!text){if(textEl)textEl.focus();return;}
+  const cat=eid('na-claim-cat').value;
+  naState.draftClaimText=text; naState.draftClaimCat=cat;
+  eid('na-body').innerHTML=`<div style="display:flex;align-items:center;color:var(--ink-3);font-size:12.5px;padding:18px 0"><span class="spinner"></span>Analysing and classifying…</div>`;
+  const result=await AI.clarifyForClaim({text});
+  const opts=result.options.map(o=>`<button class="qp-btn" data-na-cla="${escapeHtml(o.value)}">${escapeHtml(o.label)}</button>`).join('');
+  eid('na-body').innerHTML=`<div class="airev-q">${escapeHtml(result.question)}</div><div class="qp-row">${opts}</div>`;
+  document.querySelectorAll('[data-na-cla]').forEach(b=>b.addEventListener('click',()=>naFinalizeClaim(b.dataset.naCla)));
+}
+function naFinalizeClaim(sourceType){
+  naState.pendingClaim={text:naState.draftClaimText,cat:naState.draftClaimCat,sourceType};
+  renderNaBody(); naCheckReady();
+}
+function naCheckReady(){
+  naState.name=(eid('na-name')||{}).value?eid('na-name').value.trim():'';
+  const nameOk=naState.name.length>0;
+  const contentOk=naState.pendingFiles.length>0||!!naState.pendingClaim;
+  const nr=eid('na-check-name'), cr=eid('na-check-content');
+  if(nr){nr.classList.toggle('ok',nameOk);eid('na-check-name-icon').textContent=nameOk?'✓':'○';}
+  if(cr){cr.classList.toggle('ok',contentOk);eid('na-check-content-icon').textContent=contentOk?'✓':'○';}
+  const sub=eid('na-submit'); if(sub) sub.disabled=!(nameOk&&contentOk);
+}
+async function createAnalysisFromModal(){
+  const sub=eid('na-submit'); if(sub&&sub.disabled)return;
+  const name=naState.name; if(!name)return;
+  const docId=await createDoc(currentUser.uid,name);
+  activeDocId=docId; cloudReady=true;
+  currentAnalysisName=name;
+  ds={claims:[],evidence:[],tensions:[],counterfactuals:[],experiments:[],sources:[]};
+  if(naState.pendingClaim){
+    const pc=naState.pendingClaim, ts=nowISOStr();
+    const fwMap={Pain:'BLAC: Blatant',Alternatives:'Lean Canvas: Alternatives',Solution:'4U: Unworkable (current)',Persona:'Skok: MVS',Commercial:'Lean Canvas: Revenue'};
+    const creatorMap={document:'AI auto-extraction (user-flagged document)',observed:'User (manual, observed/told)',inference:'User (manual, inference)'};
+    const srcMap={document:'User-provided, document-based',observed:'User-provided, observed/told',inference:'User-provided, inference'};
+    const cid=newId('C');
+    ds.claims.push({id:cid,cat:pc.cat,text:'"'+pc.text+'"',fw:fwMap[pc.cat]||'Lean Canvas: General',fw2:'Manually added',
+      status:'assumed',ev:[],tn:[],cf:[],exp:[],note:'Added during analysis creation.',
+      prov:{src:srcMap[pc.sourceType],extracted:'Manual entry, AI-reviewed',creator:creatorMap[pc.sourceType],confidence:1.0,srcQuote:pc.text,
+            trail:appendTrail([{when:ts,who:'User (manual)',what:'Added during analysis creation'}],{when:ts,who:'AI auto-discovery',what:'Source type classified as: '+pc.sourceType})},
+      crit:'This claim has not yet been critiqued in depth.'});
+  }
+  if(naState.pendingFiles.length>0){
+    ds.sources=naState.pendingFiles.map(f=>({name:f.name,added:todayStr(),size:f.size}));
+  }
+  closeNewAnalysisModal();
+  STATE.tab='claims';
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('on'));
+  const tc=eid('tab-claims'); if(tc) tc.classList.add('on');
+  updateFiltbarActions('claims');
+  closePan();
+  showAnalysisView();
+  onDocLoaded();
+  scheduleSave();
+  if(naState.pendingFiles.length>0 && ds.claims.length===0){
+    STATE.view='processing'; render();
+    setTimeout(()=>{const b=eid('proc-fill');if(b)b.style.width='100%';},80);
+    const result=await AI.extractClaims({text:'',fileNames:naState.pendingFiles.map(f=>f.name)});
+    ds.claims=result.claims||[]; ds.evidence=result.evidence||[];
+    ds.tensions=result.tensions||[]; ds.counterfactuals=result.counterfactuals||[];
+    ds.experiments=result.experiments||[];
+    STATE.view='populated'; render();
+    const eb=eid('extract-banner'); if(eb) eb.classList.add('on');
+    scheduleSave();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// MISC HELPERS + WIRING
+// ═══════════════════════════════════════════════════════════
+function dismissBanner(){ const eb=eid('extract-banner'); if(eb) eb.classList.remove('on'); }
+
+// Single delegated listener for entity table row clicks (main-area never replaced, innerHTML is)
+eid('main-area').addEventListener('click', tableRowClickHandler);
+
+// ── Button wiring ──
+eid('brand-link').addEventListener('click',()=>{if(currentUser||readonlyMode)goDash();});
+eid('btn-guide').addEventListener('click',()=>openModal('modal-guide'));
+eid('btn-new-analysis').addEventListener('click',openNewAnalysisModal);
+eid('user-menu-btn').addEventListener('click',toggleMenu);
+eid('btn-copy-share').addEventListener('click',()=>{closeMenu();copyShareLink();});
+eid('btn-sign-out').addEventListener('click',()=>{closeMenu();signOut();});
+eid('btn-google').addEventListener('click',signInGoogle);
+eid('btn-email-in').addEventListener('click',signInEmail);
+eid('btn-email-reg').addEventListener('click',registerEmail);
+eid('btn-google-empty').addEventListener('click',signInGoogle);
+eid('btn-close-pan').addEventListener('click',closePan);
+eid('btn-close-add').addEventListener('click',closeAdd);
+eid('add-modal-submit').addEventListener('click',submitAddModal);
+eid('btn-close-guide').addEventListener('click',()=>closeModal('modal-guide'));
+eid('btn-guide-ok').addEventListener('click',()=>closeModal('modal-guide'));
+eid('btn-close-na').addEventListener('click',closeNewAnalysisModal);
+eid('na-submit').addEventListener('click',createAnalysisFromModal);
+eid('na-tab-upload').addEventListener('click',()=>naSwitchTab('upload'));
+eid('na-tab-claim').addEventListener('click',()=>naSwitchTab('claim'));
+eid('na-name').addEventListener('input',naCheckReady);
+eid('an-title').addEventListener('input',e=>onTitleEdit(e.target.value));
+eid('btn-upload-doc').addEventListener('click',openUploadModal);
+eid('btn-close-upload').addEventListener('click',closeUploadModal);
+eid('btn-save-upload').addEventListener('click',saveUploadModal);
+eid('btn-workflow').addEventListener('click',()=>openModal('modal-workflow'));
+eid('btn-close-workflow').addEventListener('click',()=>closeModal('modal-workflow'));
+eid('btn-close-delconfirm').addEventListener('click',closeDelConfirm);
+eid('btn-confirm-delete').addEventListener('click',confirmDelete);
+eid('btn-dismiss-banner').addEventListener('click',dismissBanner);
+eid('btn-ro-copy').addEventListener('click',copyShareLink);
+// Dismiss banner2 (dynamically added)
+document.addEventListener('click',e=>{if(e.target.id==='btn-dismiss-banner2')dismissBanner();});
+
+// Close modals on bg click
+['modal-add','modal-guide','modal-newanalysis','modal-upload','modal-workflow','modal-delconfirm'].forEach(id=>{
+  const el=eid(id); if(!el) return;
+  el.addEventListener('click',e=>{if(e.target===el&&id!=='modal-newanalysis')closeModal(id);});
+});
+
+// ═══════════════════════════════════════════════════════════
+// PAGE INIT
+// ═══════════════════════════════════════════════════════════
+(async function init() {
+  routeShareToken = parseShareFromUrl();
+  if (routeShareToken) {
+    await loadPublicDoc(routeShareToken);
+    // onAuthStateChanged will fire next and call tryUpgradeIfOwner if user is signed in
+  }
+})();
+</script>
+</body>
+</html>

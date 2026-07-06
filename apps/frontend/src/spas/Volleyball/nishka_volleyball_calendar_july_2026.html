@@ -1,0 +1,423 @@
+<div id="wrap" style="position:relative; font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif);">
+<div class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;">Calendar of Nishka's volleyball activities from July 1 through August 7, 2026, every day shown with weekday labels and weekends shaded light gray, toggleable between a day-columns view and a day-rows view, with academy and camp events in blue, group training in teal, private training in coral, tryouts in purple, and Panther Creek High School events in hatched amber. Click any block to mark it as attending. Selections can be saved to and loaded from a file.</div>
+<div style="display:flex; gap:16px; margin:0 0 12px; font-size:12px; color:var(--text-secondary, #52514e); flex-wrap:wrap;">
+  <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#378ADD;"></span>Academy / camp event</span>
+  <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#1D9E75;"></span>Group training</span>
+  <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#D85A30;"></span>Private training</span>
+  <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#7F77DD;"></span>Tryouts</span>
+  <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background-color:#F2A623;background-image:repeating-linear-gradient(45deg, rgba(65,36,2,0.3) 0, rgba(65,36,2,0.3) 2px, transparent 2px, transparent 6px);"></span>School (PCHS)</span>
+  <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:rgba(137,135,129,0.18);border:0.5px solid var(--border,#e1e0d9);"></span>Weekend</span>
+</div>
+<div style="display:flex; align-items:center; gap:10px; margin:0 0 16px; flex-wrap:wrap;">
+  <button id="toggleBtn" style="font-size:12px; display:inline-flex; align-items:center; gap:6px;"><i class="ti ti-switch-horizontal" style="font-size:14px;" aria-hidden="true"></i>Switch to day rows</button>
+  <button id="saveBtn" style="font-size:12px; display:inline-flex; align-items:center; gap:6px;"><i class="ti ti-device-floppy" style="font-size:14px;" aria-hidden="true"></i>Save selections</button>
+  <button id="loadBtn" style="font-size:12px; display:inline-flex; align-items:center; gap:6px;"><i class="ti ti-upload" style="font-size:14px;" aria-hidden="true"></i>Load selections</button>
+  <input type="file" id="fileInput" accept="application/json" style="display:none;">
+  <span id="selCount" style="font-size:12px; color:var(--text-muted, #898781);">Click a block to mark it as attending</span>
+</div>
+<div id="cal" style="position:relative; overflow:auto; max-height:520px; width:100%; border-radius:var(--radius, 8px);"></div>
+</div>
+<script>
+const allDays = [
+  {date:'7/1', day:'Wed'}, {date:'7/2', day:'Thu'}, {date:'7/3', day:'Fri'}, {date:'7/4', day:'Sat'},
+  {date:'7/5', day:'Sun'}, {date:'7/6', day:'Mon'}, {date:'7/7', day:'Tue'}, {date:'7/8', day:'Wed'},
+  {date:'7/9', day:'Thu'}, {date:'7/10', day:'Fri'}, {date:'7/11', day:'Sat'}, {date:'7/12', day:'Sun'},
+  {date:'7/13', day:'Mon'}, {date:'7/14', day:'Tue'}, {date:'7/15', day:'Wed'}, {date:'7/16', day:'Thu'},
+  {date:'7/17', day:'Fri'}, {date:'7/18', day:'Sat'}, {date:'7/19', day:'Sun'}, {date:'7/20', day:'Mon'},
+  {date:'7/21', day:'Tue'}, {date:'7/22', day:'Wed'}, {date:'7/23', day:'Thu'}, {date:'7/24', day:'Fri'},
+  {date:'7/25', day:'Sat'}, {date:'7/26', day:'Sun'}, {date:'7/27', day:'Mon'}, {date:'7/28', day:'Tue'},
+  {date:'7/29', day:'Wed'}, {date:'7/30', day:'Thu'}, {date:'7/31', day:'Fri'}, {date:'8/1', day:'Sat'},
+  {date:'8/2', day:'Sun'}, {date:'8/3', day:'Mon'}, {date:'8/4', day:'Tue'}, {date:'8/5', day:'Wed'},
+  {date:'8/6', day:'Thu'}, {date:'8/7', day:'Fri'}
+];
+
+const events = [
+  {date:'7/3', day:'Fri', start:14, end:15, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/6', day:'Mon', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/6', day:'Mon', start:15, end:16, type:'group', name:"Romel's session (group)", label:'Romel'},
+  {date:'7/6', day:'Mon', start:18, end:19, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/6', day:'Mon', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/7', day:'Tue', start:15, end:16, type:'group', name:"Romel's session (group)", label:'Romel'},
+  {date:'7/7', day:'Tue', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/8', day:'Wed', start:15, end:16, type:'group', name:"Romel's session (group)", label:'Romel'},
+  {date:'7/8', day:'Wed', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/9', day:'Thu', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/10', day:'Fri', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/10', day:'Fri', start:16, end:17, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/10', day:'Fri', start:15, end:17, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/11', day:'Sat', start:9.5, end:11, type:'event', name:'N1 Academy: Open Gym', label:'Open gym'},
+  {date:'7/12', day:'Sun', start:11, end:12, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/13', day:'Mon', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/13', day:'Mon', start:15, end:16, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/13', day:'Mon', start:18, end:19, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/13', day:'Mon', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/14', day:'Tue', start:16, end:17, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/14', day:'Tue', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/15', day:'Wed', start:16, end:17, type:'group', name:"Romel's session (group)", label:'Romel'},
+  {date:'7/15', day:'Wed', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/16', day:'Thu', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/16', day:'Thu', start:12.5, end:18.5, type:'event', name:'Tar Heel Elite Camp II', label:'THE'},
+  {date:'7/17', day:'Fri', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/17', day:'Fri', start:14, end:15, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/17', day:'Fri', start:15, end:16, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/17', day:'Fri', start:11, end:13, type:'school', name:'PCHS volleyball workout', label:'PCHS'},
+  {date:'7/17', day:'Fri', start:9, end:14.5, type:'event', name:'Tar Heel Elite Camp II', label:'THE'},
+  {date:'7/18', day:'Sat', start:9.5, end:11, type:'event', name:'N1 Academy: Open Gym', label:'Open gym'},
+  {date:'7/19', day:'Sun', start:11, end:12, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/20', day:'Mon', start:12, end:14, type:'event', name:"N1 Academy: Jon's Invite", label:"John's"},
+  {date:'7/20', day:'Mon', start:14, end:15, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/20', day:'Mon', start:15, end:16, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/22', day:'Wed', start:18, end:19, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/24', day:'Fri', start:19, end:20, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/25', day:'Sat', start:13.5, end:16, type:'event', name:'N1 VB Acdmy Camp', label:'Camp'},
+  {date:'7/26', day:'Sun', start:13.5, end:16, type:'event', name:'N1 VB Acdmy Camp', label:'Camp'},
+  {date:'7/27', day:'Mon', start:18, end:19, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/27', day:'Mon', start:9, end:11, type:'school', name:'PCHS school tryouts', label:'Tryout'},
+  {date:'7/28', day:'Tue', start:9, end:11, type:'school', name:'PCHS school tryouts', label:'Tryout'},
+  {date:'7/29', day:'Wed', start:18.5, end:19.5, type:'private', name:"Romel's session", label:'Romel'},
+  {date:'7/31', day:'Fri', start:18, end:20, type:'tryout', name:'Academy Tryouts - Session 1', label:'Academy'},
+  {date:'8/1', day:'Sat', start:9, end:11.5, type:'tryout', name:'Triangle Tryouts - Session 1', label:'Triangle'},
+  {date:'8/1', day:'Sat', start:17, end:18.5, type:'tryout', name:'Academy Tryouts - Session 2', label:'Academy'},
+  {date:'8/2', day:'Sun', start:9.5, end:11.5, type:'tryout', name:'Triangle Tryouts - Session 2', label:'Triangle'}
+];
+
+const colors = {event:'#378ADD', group:'#1D9E75', private:'#D85A30', tryout:'#7F77DD', school:'#F2A623'};
+const textColors = {event:'#042C53', group:'#04342C', private:'#4A1B0C', tryout:'#26215C', school:'#412402'};
+const typeLabels = {event:'Event', group:'Group training', private:'Private training', tryout:'Tryout', school:'School (PCHS)'};
+const days = allDays;
+
+function fmt(h){
+  const hh = Math.floor(h);
+  const mm = Math.round((h-hh)*60);
+  const period = hh < 12 ? 'AM' : 'PM';
+  const hour12 = hh % 12 === 0 ? 12 : hh % 12;
+  const mmStr = mm === 0 ? '00' : String(mm).padStart(2,'0');
+  return hour12 + ':' + mmStr + ' ' + period;
+}
+function fmtHourLabel(h){
+  return h<12 ? h+'am' : (h===12 ? '12pm' : (h-12)+'pm');
+}
+function isWeekend(d){ return d.day === 'Sat' || d.day === 'Sun'; }
+
+const startHour = 9, endHour = 20.5, TOP_PAD = 10;
+const pxPerHourCols = 30, dayThickness = 56, timeAxisThickness = 40, dayLabelThicknessCols = 52, gapBetweenDays = 6;
+const dayLabelThicknessRows = 78, rowHeight = 56;
+const weekendBg = 'rgba(137,135,129,0.16)';
+
+const cal = document.getElementById('cal');
+const wrap = document.getElementById('wrap');
+const borderColor = 'var(--border, #e1e0d9)';
+const mutedColor = 'var(--text-muted, #898781)';
+const secondaryColor = 'var(--text-secondary, #52514e)';
+const primaryColor = 'var(--text-primary, #0b0b0b)';
+const surfaceColor = 'var(--surface-2, #ffffff)';
+
+const tooltip = document.createElement('div');
+tooltip.style.cssText = `position:absolute;pointer-events:none;background:#262625;color:#f5f4f0;font-size:12px;line-height:1.45;padding:8px 10px;border-radius:8px;opacity:0;transition:opacity 0.06s ease;z-index:50;max-width:220px;`;
+wrap.appendChild(tooltip);
+
+function showTooltip(e, bar){
+  tooltip.innerHTML = '';
+  const t1 = document.createElement('div');
+  t1.textContent = e.name;
+  t1.style.cssText = 'font-weight:500; margin-bottom:3px;';
+  const t2 = document.createElement('div');
+  t2.textContent = typeLabels[e.type];
+  t2.style.cssText = 'opacity:0.75; margin-bottom:1px; font-size:11px;';
+  const t3 = document.createElement('div');
+  t3.textContent = e.day + ' ' + e.date + '  \u00b7  ' + fmt(e.start) + ' - ' + fmt(e.end);
+  t3.style.cssText = 'opacity:0.75; font-size:11px;';
+  tooltip.appendChild(t1); tooltip.appendChild(t2); tooltip.appendChild(t3);
+
+  tooltip.style.top = '-9999px';
+  tooltip.style.left = '-9999px';
+  tooltip.style.transform = 'translate(-50%, 0)';
+  const th = tooltip.offsetHeight;
+
+  const barLeft = cal.offsetLeft + bar.offsetLeft - cal.scrollLeft;
+  const barTop = cal.offsetTop + bar.offsetTop - cal.scrollTop;
+  const centerX = barLeft + bar.offsetWidth/2;
+  const aboveTop = barTop - th - 8;
+
+  const finalTop = aboveTop < 4 ? (barTop + bar.offsetHeight + 8) : aboveTop;
+  tooltip.style.left = centerX + 'px';
+  tooltip.style.top = finalTop + 'px';
+  tooltip.style.opacity = '1';
+}
+function hideTooltip(){ tooltip.style.opacity = '0'; }
+
+function layoutDay(dayEvents){
+  const sorted = [...dayEvents].sort((a,b)=>a.start-b.start);
+  const clusters = [];
+  let current = [];
+  let currentEnd = -Infinity;
+  sorted.forEach(e=>{
+    if(current.length===0 || e.start < currentEnd){
+      current.push(e);
+      currentEnd = Math.max(currentEnd, e.end);
+    } else {
+      clusters.push(current);
+      current = [e];
+      currentEnd = e.end;
+    }
+  });
+  if(current.length) clusters.push(current);
+
+  clusters.forEach(cluster=>{
+    const columnEnds = [];
+    cluster.forEach(e=>{
+      let placed = false;
+      for(let c=0;c<columnEnds.length;c++){
+        if(columnEnds[c] <= e.start){
+          e.col = c;
+          columnEnds[c] = e.end;
+          placed = true;
+          break;
+        }
+      }
+      if(!placed){
+        e.col = columnEnds.length;
+        columnEnds.push(e.end);
+      }
+    });
+    cluster.forEach(e=> e.totalCols = columnEnds.length);
+  });
+  return sorted;
+}
+
+const selected = new Set();
+function eventKey(e){ return e.date+'|'+e.start+'|'+e.label; }
+
+function updateSelectionVisuals(){
+  document.querySelectorAll('.cal-bar').forEach(bar=>{
+    const key = bar.dataset.key;
+    if(selected.size === 0){
+      bar.style.opacity = '1';
+      bar.style.boxShadow = 'none';
+    } else {
+      const isSel = selected.has(key);
+      bar.style.opacity = isSel ? '1' : '0.3';
+      bar.style.boxShadow = isSel ? `0 0 0 2px ${primaryColor}` : 'none';
+    }
+  });
+  const countEl = document.getElementById('selCount');
+  countEl.textContent = selected.size ? selected.size + ' selected (attending)' : 'Click a block to mark it as attending';
+}
+
+function createBar(e, left, top, w, h){
+  const bar = document.createElement('div');
+  bar.className = 'cal-bar';
+  bar.dataset.key = eventKey(e);
+  let bg = `background-color:${colors[e.type]};`;
+  if(e.type === 'school'){
+    bg += `background-image:repeating-linear-gradient(45deg, rgba(65,36,2,0.3) 0, rgba(65,36,2,0.3) 2px, transparent 2px, transparent 6px);`;
+  }
+  bar.style.cssText = `position:absolute;left:${left}px;top:${top}px;width:${w}px;height:${h}px;${bg}border-radius:3px;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;cursor:pointer;padding:1px;transition:opacity 0.15s ease;z-index:2;`;
+  const span = document.createElement('span');
+  span.textContent = e.label;
+  span.style.cssText = `font-size:11px;font-weight:500;color:${textColors[e.type]};line-height:1.15;word-break:break-word;pointer-events:none;`;
+  bar.appendChild(span);
+  bar.addEventListener('mouseenter', () => showTooltip(e, bar));
+  bar.addEventListener('mouseleave', hideTooltip);
+  bar.addEventListener('click', () => {
+    const key = eventKey(e);
+    if(selected.has(key)) selected.delete(key); else selected.add(key);
+    updateSelectionVisuals();
+  });
+  cal.appendChild(bar);
+}
+
+function renderCols(){
+  cal.style.maxHeight = '520px';
+  cal.style.width = '100%';
+  const timeExtent = (endHour-startHour)*pxPerHourCols + TOP_PAD*2;
+  const contentHeight = timeExtent + dayLabelThicknessCols;
+  const contentWidth = timeAxisThickness + days.length*(dayThickness+gapBetweenDays);
+  cal.style.minWidth = contentWidth+'px';
+  cal.style.height = contentHeight+'px';
+
+  days.forEach((d,i)=>{
+    if(isWeekend(d)){
+      const x = timeAxisThickness + i*(dayThickness+gapBetweenDays);
+      const wknd = document.createElement('div');
+      wknd.style.cssText = `position:absolute; left:${x}px; top:${TOP_PAD}px; width:${dayThickness}px; height:${timeExtent-TOP_PAD}px; background:${weekendBg}; z-index:0;`;
+      cal.appendChild(wknd);
+    }
+  });
+
+  const axisCol = document.createElement('div');
+  axisCol.style.cssText = `position:sticky; left:0; top:0; width:${timeAxisThickness}px; height:${contentHeight}px; background:${surfaceColor}; z-index:6; flex-shrink:0;`;
+  cal.appendChild(axisCol);
+
+  for(let hh=startHour*2; hh<=endHour*2; hh++){
+    const h = hh/2;
+    const isHour = Number.isInteger(h);
+    const yPos = TOP_PAD + (h-startHour)*pxPerHourCols;
+    const line = document.createElement('div');
+    line.style.cssText = `position:absolute; left:${timeAxisThickness}px; top:${yPos}px; width:${contentWidth-timeAxisThickness}px; height:1px; background:${borderColor}; opacity:${isHour?1:0.45}; z-index:1;`;
+    cal.appendChild(line);
+    if(isHour){
+      const lbl = document.createElement('div');
+      lbl.textContent = fmtHourLabel(h);
+      lbl.style.cssText = `position:absolute; left:0; top:${yPos-6}px; width:${timeAxisThickness-6}px; font-size:11px; font-weight:500; color:${mutedColor}; text-align:right;`;
+      axisCol.appendChild(lbl);
+    }
+  }
+
+  days.forEach((d,i)=>{
+    const x = timeAxisThickness + i*(dayThickness+gapBetweenDays);
+    const colDiv = document.createElement('div');
+    colDiv.style.cssText = `position:absolute; left:${x}px; top:${TOP_PAD}px; width:${dayThickness}px; height:${timeExtent-TOP_PAD}px; border-left:0.5px solid ${borderColor}; z-index:1;`;
+    cal.appendChild(colDiv);
+
+    const label = document.createElement('div');
+    label.style.cssText = `position:absolute; left:${x}px; top:${timeExtent+6}px; width:${dayThickness}px; text-align:center; z-index:1;`;
+    const dateLine = document.createElement('div');
+    dateLine.textContent = d.date;
+    dateLine.style.cssText = `font-size:11px; font-weight:500; color:${secondaryColor};`;
+    const dowLine = document.createElement('div');
+    dowLine.textContent = d.day;
+    dowLine.style.cssText = `font-size:11px; font-weight:400; color:${mutedColor}; margin-top:1px;`;
+    label.appendChild(dateLine);
+    label.appendChild(dowLine);
+    cal.appendChild(label);
+
+    const dayEvents = layoutDay(events.filter(e=>e.date===d.date));
+    dayEvents.forEach(e=>{
+      const top = TOP_PAD + (e.start-startHour)*pxPerHourCols;
+      const h2 = Math.max((e.end-e.start)*pxPerHourCols, 14);
+      const innerGap = 2;
+      const w = (dayThickness-4-(e.totalCols-1)*innerGap)/e.totalCols;
+      const left = 2 + e.col*(w+innerGap);
+      createBar(e, x+left, top, w, h2);
+    });
+  });
+}
+
+function renderRows(){
+  cal.style.maxHeight = '85vh';
+  cal.style.width = '100%';
+  cal.style.minWidth = '0';
+
+  const availableWidth = cal.clientWidth || wrap.clientWidth || 600;
+  const timeSpanHours = endHour - startHour;
+  const usableForTime = Math.max(availableWidth - dayLabelThicknessRows - TOP_PAD*2, 200);
+  const pxPerHourRows = Math.max(usableForTime / timeSpanHours, 22);
+
+  const timeExtent = timeSpanHours*pxPerHourRows + TOP_PAD*2;
+  const contentWidth = dayLabelThicknessRows + timeExtent;
+  const contentHeight = timeAxisThickness + days.length*(rowHeight+gapBetweenDays);
+  cal.style.height = contentHeight+'px';
+
+  days.forEach((d,i)=>{
+    if(isWeekend(d)){
+      const y = timeAxisThickness + i*(rowHeight+gapBetweenDays);
+      const wknd = document.createElement('div');
+      wknd.style.cssText = `position:absolute; left:${dayLabelThicknessRows}px; top:${y}px; width:${timeExtent}px; height:${rowHeight}px; background:${weekendBg}; z-index:0;`;
+      cal.appendChild(wknd);
+    }
+  });
+
+  const axisRow = document.createElement('div');
+  axisRow.style.cssText = `position:sticky; top:0; left:0; width:${contentWidth}px; height:${timeAxisThickness}px; background:${surfaceColor}; z-index:6;`;
+  cal.appendChild(axisRow);
+
+  const dayLabelCorner = document.createElement('div');
+  dayLabelCorner.style.cssText = `position:absolute; left:0; top:0; width:${dayLabelThicknessRows}px; height:${timeAxisThickness}px; background:${surfaceColor};`;
+  axisRow.appendChild(dayLabelCorner);
+
+  for(let hh=startHour*2; hh<=endHour*2; hh++){
+    const h = hh/2;
+    const isHour = Number.isInteger(h);
+    const xPos = dayLabelThicknessRows + TOP_PAD + (h-startHour)*pxPerHourRows;
+    const line = document.createElement('div');
+    line.style.cssText = `position:absolute; left:${xPos}px; top:${timeAxisThickness}px; width:1px; height:${contentHeight-timeAxisThickness}px; background:${borderColor}; opacity:${isHour?1:0.45}; z-index:1;`;
+    cal.appendChild(line);
+    if(isHour){
+      const lbl = document.createElement('div');
+      lbl.textContent = fmtHourLabel(h);
+      lbl.style.cssText = `position:absolute; left:${xPos-16}px; top:${timeAxisThickness-22}px; width:32px; font-size:11px; font-weight:500; color:${mutedColor}; text-align:center;`;
+      axisRow.appendChild(lbl);
+    }
+  }
+
+  days.forEach((d,i)=>{
+    const y = timeAxisThickness + i*(rowHeight+gapBetweenDays);
+    const rowDiv = document.createElement('div');
+    rowDiv.style.cssText = `position:absolute; left:${dayLabelThicknessRows}px; top:${y}px; width:${timeExtent}px; height:${rowHeight}px; border-top:0.5px solid ${borderColor}; z-index:1;`;
+    cal.appendChild(rowDiv);
+
+    const label = document.createElement('div');
+    label.textContent = d.date + ' ' + d.day;
+    label.style.cssText = `position:absolute; left:0; top:${y}px; width:${dayLabelThicknessRows-10}px; height:${rowHeight}px; display:flex; align-items:center; font-size:12px; font-weight:500; color:${secondaryColor}; z-index:1;`;
+    cal.appendChild(label);
+
+    const dayEvents = layoutDay(events.filter(e=>e.date===d.date));
+    dayEvents.forEach(e=>{
+      const left = dayLabelThicknessRows + TOP_PAD + (e.start-startHour)*pxPerHourRows;
+      const w2 = Math.max((e.end-e.start)*pxPerHourRows, 28);
+      const innerGap = 2;
+      const h2 = (rowHeight-4-(e.totalCols-1)*innerGap)/e.totalCols;
+      const top = y + 2 + e.col*(h2+innerGap);
+      createBar(e, left, top, w2, h2);
+    });
+  });
+}
+
+let currentMode = 'cols';
+function render(){
+  cal.innerHTML = '';
+  if(currentMode === 'cols') renderCols(); else renderRows();
+  updateSelectionVisuals();
+}
+render();
+
+let resizeTimer = null;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>{ if(currentMode === 'rows') render(); }, 150);
+});
+
+document.getElementById('toggleBtn').addEventListener('click', ()=>{
+  currentMode = currentMode === 'cols' ? 'rows' : 'cols';
+  document.getElementById('toggleBtn').innerHTML = currentMode === 'cols'
+    ? '<i class="ti ti-switch-horizontal" style="font-size:14px;" aria-hidden="true"></i>Switch to day rows'
+    : '<i class="ti ti-switch-horizontal" style="font-size:14px;" aria-hidden="true"></i>Switch to day columns';
+  render();
+});
+
+document.getElementById('saveBtn').addEventListener('click', ()=>{
+  const data = Array.from(selected);
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'nishka_volleyball_selections.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('loadBtn').addEventListener('click', ()=>{
+  document.getElementById('fileInput').click();
+});
+
+document.getElementById('fileInput').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const arr = JSON.parse(reader.result);
+      selected.clear();
+      arr.forEach(k=>selected.add(k));
+      updateSelectionVisuals();
+    }catch(err){
+      document.getElementById('selCount').textContent = 'Could not read that file';
+    }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+});
+</script>
