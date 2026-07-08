@@ -6,7 +6,7 @@
   <script>(function () { var m = location.pathname.match(/^(.*\.html)\/([^/]*)\/?$/i); if (!m) return; var base = m[1], rest = (m[2] || '').replace(/\/$/, ''); if (rest && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(rest)) { location.replace(base + '?share=' + encodeURIComponent(rest) + location.search + location.hash); } else { location.replace(base + location.search + location.hash); } })();</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SportSquad — Practice Schedules</title>
+  <title>MyCrazyScheduler — Practice Schedules</title>
   <link rel="icon"
     href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231a1a1a'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='system-ui,sans-serif' font-size='16' font-weight='700' fill='%23fff'%3ES%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/light.css" />
@@ -769,9 +769,14 @@
     }
 
     .row-menu-info .rmi-type,
-    .row-menu-info .rmi-time {
+    .row-menu-info .rmi-time,
+    .row-menu-info .rmi-coach {
       font-size: 11px;
       color: var(--ink-4);
+    }
+
+    .row-menu-info .rmi-coach {
+      margin-top: 1px;
     }
 
     .row-menu-divider {
@@ -1235,8 +1240,8 @@
   <!-- ═══════════ GLOBAL TOP BAR ═══════════ -->
   <div class="gbar">
     <div class="gbrand" id="brand-link">
-      <div class="gbrand-box">S</div>
-      SportSquad
+      <div class="gbrand-box">M</div>
+      MyCrazyScheduler
     </div>
     <div class="gcrumb" id="gcrumb" style="display:none">
       <span class="sep">/</span>
@@ -1266,7 +1271,7 @@
   <!-- ═══════════ SIGN-IN ═══════════ -->
   <div id="sign-in" hidden>
     <div class="signin-card">
-      <h2>SportSquad</h2>
+      <h2>MyCrazyScheduler</h2>
       <p>Sign in to save your practice schedules and share them with family.</p>
       <div id="sign-in-error" hidden></div>
       <button class="btn-google" id="btn-google-empty">Continue with Google</button>
@@ -1301,6 +1306,7 @@
               <th id="th-name" data-sort="name">Name<span class="sort-arrow" id="ar-name"></span></th>
               <th id="th-created" data-sort="created">Date created<span class="sort-arrow" id="ar-created"></span></th>
               <th id="th-updated" data-sort="updated">Last updated<span class="sort-arrow" id="ar-updated"></span></th>
+              <th id="th-events" data-sort="events">Events<span class="sort-arrow" id="ar-events"></span></th>
               <th id="th-count" data-sort="count">Attending<span class="sort-arrow" id="ar-count"></span></th>
               <th style="width:50px;"></th>
             </tr>
@@ -1321,21 +1327,7 @@
           <span>Updated <b id="meta-updated">—</b></span>
           <span><b id="meta-count">0</b> selected</span>
         </div>
-        <div class="legend">
-          <span><span class="sw" style="background:#e41a1c;"></span>Club event</span>
-          <span><span class="sw" style="background:#377eb8;"></span>Group training</span>
-          <span><span class="sw" style="background:#4daf4a;"></span>Private training</span>
-          <span><span class="sw" style="background:#984ea3;"></span>Tryouts</span>
-          <span><span class="sw"
-              style="background-color:#ff7f00;background-image:repeating-linear-gradient(45deg, rgba(65,36,2,0.3) 0, rgba(65,36,2,0.3) 2px, transparent 2px, transparent 6px);"></span>School
-            (PCHS)</span>
-          <span><span class="sw" style="background:#ffff33;"></span>Match</span>
-          <span><span class="sw" style="background:#a65628;"></span>Strength training</span>
-          <span><span class="sw" style="background:#f781bf;"></span>Parent-Coach meeting</span>
-          <span><span class="sw" style="background:#999999;"></span>Other</span>
-          <span><span class="sw"
-              style="background:rgba(137,135,129,0.18);border:0.5px solid var(--line);"></span>Weekend</span>
-        </div>
+        <div class="legend" id="legend"></div>
         <div class="cal-toolbar">
           <sl-button id="toggleBtn" size="small"><sl-icon slot="prefix" name="arrow-left-right"></sl-icon>Switch to day
             rows</sl-button>
@@ -1414,7 +1406,7 @@
     <div class="modal modal-ie">
       <h3>Import / Export events</h3>
       <div class="modal-sub">
-        One event per line, comma-separated: <b>Event Name, Event Type, Coach, Start Date &amp; Time, End Date &amp;
+        One event per line, comma-separated: <b>Event Name, Event Type, Coach / Trainer / Teacher, Start Date &amp; Time, End Date &amp;
           Time, Repeat this event, Location</b>.
         Event Name, Event Type, and Start/End Date &amp; Time are required — dates should look like <b>07/05/2026 5:00
           PM</b>. Leave any other field blank if it doesn't apply.
@@ -1452,19 +1444,9 @@
             <input type="text" id="ee-type" list="ee-type-list" autocomplete="off" />
             <button type="button" class="ee-type-chevron" id="btn-ee-type-menu" aria-label="Show all event types">▾</button>
           </div>
-          <datalist id="ee-type-list">
-            <option value="Club event"></option>
-            <option value="Group training"></option>
-            <option value="Private training"></option>
-            <option value="Tryouts"></option>
-            <option value="School (PCHS)"></option>
-            <option value="Match"></option>
-            <option value="Strength training"></option>
-            <option value="Parent-Coach meeting"></option>
-            <option value="Other"></option>
-          </datalist>
+          <datalist id="ee-type-list"></datalist>
         </div>
-        <div class="ee-row"><label>Coach</label><input type="text" id="ee-coach" /></div>
+        <div class="ee-row"><label>Coach / Trainer / Teacher</label><input type="text" id="ee-coach" /></div>
       </div>
       <div class="ee-row"><label>Start Date &amp; Time *</label><input type="datetime-local" class="ee-dt"
           id="ee-start" /></div>
@@ -1658,6 +1640,29 @@
       return { bg, text: '#1a1a1a', label: (rawType || '').trim() || 'Event' };
     }
 
+    // Legend reflects only the types actually present in this schedule's own
+    // events — no global/default category list — plus a static Weekend swatch.
+    function renderLegend() {
+      const legend = eid('legend');
+      if (!legend) return;
+      const seen = new Set();
+      const types = [];
+      events.forEach(e => {
+        const raw = String(e.type || '').trim();
+        if (!raw) return;
+        const lower = raw.toLowerCase();
+        if (!seen.has(lower)) { seen.add(lower); types.push(raw); }
+      });
+      types.sort((a, b) => typeStyle(a).label.localeCompare(typeStyle(b).label));
+      legend.innerHTML = types.map(t => {
+        const st = typeStyle(t);
+        const bg = st.hatch
+          ? `background-color:${st.bg};background-image:repeating-linear-gradient(45deg, rgba(65,36,2,0.3) 0, rgba(65,36,2,0.3) 2px, transparent 2px, transparent 6px);`
+          : `background:${st.bg};`;
+        return `<span><span class="sw" style="${bg}"></span>${escapeHtml(st.label)}</span>`;
+      }).join('') + `<span><span class="sw" style="background:rgba(137,135,129,0.18);border:0.5px solid var(--line);"></span>Weekend</span>`;
+    }
+
     // Day range: every calendar day from the earliest to the latest event, inclusive.
     function computeDayRange(renderEvents) {
       if (!renderEvents.length) return [];
@@ -1711,6 +1716,22 @@
       return h < 12 ? hour12 + 'am' : hour12 + 'pm';
     }
     function isWeekend(d) { return d.day === 'Sat' || d.day === 'Sun'; }
+    function todayKey() {
+      const t = new Date();
+      return t.getFullYear() + '-' + pad2(t.getMonth() + 1) + '-' + pad2(t.getDate());
+    }
+    function isToday(d) { return d.dateKey === todayKey(); }
+    const todayBorderColor = '#8fb4f7';
+    const nowLineColor = '#e5342b';
+    // Returns the fractional hour for "now" if today is visible in the current
+    // day range and within the rendered hour axis, else null (nothing to draw).
+    function nowLinePosition() {
+      if (!days.some(isToday)) return null;
+      const now = new Date();
+      const h = now.getHours() + now.getMinutes() / 60;
+      if (h < startHour || h > endHour) return null;
+      return h;
+    }
 
     const TOP_PAD = 10;
     // Hour axis, day range, and event list are all per-schedule and recomputed
@@ -1754,13 +1775,20 @@
       const t1 = document.createElement('div');
       t1.textContent = e.name;
       t1.style.cssText = 'font-weight:500; margin-bottom:3px;';
+      tooltip.appendChild(t1);
+      if (e.coach) {
+        const t1b = document.createElement('div');
+        t1b.textContent = 'with ' + e.coach;
+        t1b.style.cssText = 'opacity:0.75; margin-bottom:3px; font-size:11px;';
+        tooltip.appendChild(t1b);
+      }
       const t2 = document.createElement('div');
       t2.textContent = typeStyle(e.type).label;
       t2.style.cssText = 'opacity:0.75; margin-bottom:1px; font-size:11px;';
       const t3 = document.createElement('div');
       t3.textContent = e.day + ' ' + e.date + '  ·  ' + fmt(e.start) + ' - ' + fmt(e.end);
       t3.style.cssText = 'opacity:0.75; font-size:11px;';
-      tooltip.appendChild(t1); tooltip.appendChild(t2); tooltip.appendChild(t3);
+      tooltip.appendChild(t2); tooltip.appendChild(t3);
 
       tooltip.style.top = '-9999px';
       tooltip.style.left = '-9999px';
@@ -1900,20 +1928,30 @@
         }
       }
 
+      const nowH = nowLinePosition();
+      if (nowH !== null) {
+        const nowY = TOP_PAD + (nowH - startHour) * pxPerHourCols;
+        const nowLine = document.createElement('div');
+        nowLine.style.cssText = `position:absolute; left:0; top:${nowY}px; width:${contentWidth}px; height:2px; background:${nowLineColor}; opacity:0.5; z-index:5; pointer-events:none;`;
+        cal.appendChild(nowLine);
+      }
+
       days.forEach((d, i) => {
         const x = timeAxisThickness + i * (dayThickness + gapBetweenDays);
         const colDiv = document.createElement('div');
-        colDiv.style.cssText = `position:absolute; left:${x}px; top:${TOP_PAD}px; width:${dayThickness}px; height:${timeExtent - TOP_PAD}px; border-left:0.5px solid ${borderColor}; z-index:1;`;
+        const todayCol = isToday(d);
+        colDiv.style.cssText = `position:absolute; left:${x}px; top:${TOP_PAD}px; width:${dayThickness}px; height:${timeExtent - TOP_PAD}px; border-left:0.5px solid ${borderColor}; z-index:1;` +
+          (todayCol ? `box-shadow: inset 2px 0 0 ${todayBorderColor}, inset -2px 0 0 ${todayBorderColor}, inset 0 2px 0 ${todayBorderColor}, inset 0 -2px 0 ${todayBorderColor}; border-radius:2px;` : '');
         cal.appendChild(colDiv);
 
         const label = document.createElement('div');
         label.style.cssText = `position:absolute; left:${x}px; top:${timeExtent + 6}px; width:${dayThickness}px; text-align:center; z-index:1;`;
         const dateLine = document.createElement('div');
         dateLine.textContent = d.date;
-        dateLine.style.cssText = `font-size:11px; font-weight:500; color:${secondaryColor};`;
+        dateLine.style.cssText = `font-size:11px; font-weight:500; color:${todayCol ? todayBorderColor : secondaryColor};`;
         const dowLine = document.createElement('div');
         dowLine.textContent = d.day;
-        dowLine.style.cssText = `font-size:11px; font-weight:400; color:${mutedColor}; margin-top:1px;`;
+        dowLine.style.cssText = `font-size:11px; font-weight:400; color:${todayCol ? todayBorderColor : mutedColor}; margin-top:1px;`;
         label.appendChild(dateLine);
         label.appendChild(dowLine);
         cal.appendChild(label);
@@ -1975,15 +2013,25 @@
         }
       }
 
+      const nowH = nowLinePosition();
+      if (nowH !== null) {
+        const nowX = dayLabelThicknessRows + TOP_PAD + (nowH - startHour) * pxPerHourRows;
+        const nowLine = document.createElement('div');
+        nowLine.style.cssText = `position:absolute; left:${nowX}px; top:0; width:2px; height:${contentHeight}px; background:${nowLineColor}; opacity:0.5; z-index:5; pointer-events:none;`;
+        cal.appendChild(nowLine);
+      }
+
       days.forEach((d, i) => {
         const y = timeAxisThickness + i * (rowHeight + gapBetweenDays);
         const rowDiv = document.createElement('div');
-        rowDiv.style.cssText = `position:absolute; left:${dayLabelThicknessRows}px; top:${y}px; width:${timeExtent}px; height:${rowHeight}px; border-top:0.5px solid ${borderColor}; z-index:1;`;
+        const todayRow = isToday(d);
+        rowDiv.style.cssText = `position:absolute; left:${dayLabelThicknessRows}px; top:${y}px; width:${timeExtent}px; height:${rowHeight}px; border-top:0.5px solid ${borderColor}; z-index:1;` +
+          (todayRow ? `box-shadow: inset 0 2px 0 ${todayBorderColor}, inset 0 -2px 0 ${todayBorderColor}, inset 2px 0 0 ${todayBorderColor}, inset -2px 0 0 ${todayBorderColor}; border-radius:2px;` : '');
         cal.appendChild(rowDiv);
 
         const label = document.createElement('div');
         label.textContent = d.date + ' ' + d.day;
-        label.style.cssText = `position:absolute; left:0; top:${y}px; width:${dayLabelThicknessRows - 10}px; height:${rowHeight}px; display:flex; align-items:center; font-size:12px; font-weight:500; color:${secondaryColor}; z-index:1;`;
+        label.style.cssText = `position:absolute; left:0; top:${y}px; width:${dayLabelThicknessRows - 10}px; height:${rowHeight}px; display:flex; align-items:center; font-size:12px; font-weight:500; color:${todayRow ? todayBorderColor : secondaryColor}; z-index:1;`;
         cal.appendChild(label);
 
         const dayEvents = layoutDay(renderEvents.filter(e => e.dateKey === d.dateKey));
@@ -2025,6 +2073,7 @@
     setToggleLabel();
 
     function renderCalendar() {
+      renderLegend();
       cal.innerHTML = '';
       if (!days.length) {
         cal.style.height = '';
@@ -2140,7 +2189,7 @@
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
         const entry = docList.find(d => d.id === docId);
-        if (entry) { entry.name = currentScheduleName; entry.selectionCount = selected.size; }
+        if (entry) { entry.name = currentScheduleName; entry.selectionCount = selected.size; entry.eventCount = events.length; }
         await syncPublic(currentUser.uid, docId, token);
         syncStatus('Saved', 'ok');
       } catch (e) { syncStatus('Save failed', 'err'); console.error(e); }
@@ -2213,12 +2262,12 @@
       const token = genToken();
       const localNow = new Date();
       await ref.set({
-        name, shareToken: token, selectionCount: 0, schemaVersion: 2,
+        name, shareToken: token, selectionCount: 0, eventCount: 0, schemaVersion: 2,
         payload: { selected: [], events: [] }, // new schedules start with no events — never the shared demo list
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-      docList.unshift({ id: ref.id, name, shareToken: token, selectionCount: 0, schemaVersion: 2, createdAt: localNow, updatedAt: localNow });
+      docList.unshift({ id: ref.id, name, shareToken: token, selectionCount: 0, eventCount: 0, schemaVersion: 2, createdAt: localNow, updatedAt: localNow });
       return ref.id;
     }
     async function deleteDoc(uid, id) {
@@ -2388,6 +2437,7 @@
       return {
         name: currentScheduleName,
         selectionCount: selected.size,
+        eventCount: events.length,
         schemaVersion: 2,
         payload: { selected: Array.from(selected), events }
       };
@@ -2407,7 +2457,7 @@
     function onDocLoaded() {
       const titleEl = eid('sc-title'); if (titleEl) titleEl.value = currentScheduleName;
       updateCrumb(); updateSubheadMeta();
-      document.title = (currentScheduleName || 'SportSquad') + ' · SportSquad';
+      document.title = (currentScheduleName || 'MyCrazyScheduler') + ' · MyCrazyScheduler';
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -2528,13 +2578,13 @@
     }
     function renderDash() {
       const cnt = eid('dash-count'); if (cnt) cnt.textContent = docList.length + ' ' + (docList.length === 1 ? 'schedule' : 'schedules');
-      const keyMap = { name: 'name', created: 'createdAt', updated: 'updatedAt', count: 'selectionCount' };
+      const keyMap = { name: 'name', created: 'createdAt', updated: 'updatedAt', count: 'selectionCount', events: 'eventCount' };
       const { sortKey, sortDir } = DASH_STATE;
       const fsKey = keyMap[sortKey] || sortKey;
 
       const sorted = [...docList].sort((a, b) => {
         let av = a[fsKey], bv = b[fsKey];
-        if (fsKey === 'selectionCount') { av = Number(av) || 0; bv = Number(bv) || 0; }
+        if (fsKey === 'selectionCount' || fsKey === 'eventCount') { av = Number(av) || 0; bv = Number(bv) || 0; }
         else {
           if (av && typeof av.toDate === 'function') av = av.toDate().getTime();
           else if (av instanceof Date) av = av.getTime();
@@ -2548,7 +2598,7 @@
         return 0;
       });
 
-      ['name', 'created', 'updated', 'count'].forEach(k => {
+      ['name', 'created', 'updated', 'events', 'count'].forEach(k => {
         const th = eid('th-' + k), ar = eid('ar-' + k);
         if (th) th.classList.toggle('sortcol', k === sortKey);
         if (ar) ar.textContent = k === sortKey ? (sortDir === 'asc' ? '▲' : '▼') : '';
@@ -2556,17 +2606,19 @@
 
       const tbody = eid('dash-tbody'); if (!tbody) return;
       if (!sorted.length) {
-        tbody.innerHTML = `<tr><td colspan="5"><div class="empty-dash">No schedules yet. Click "+ New Schedule" to get started.</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-dash">No schedules yet. Click "+ New Schedule" to get started.</div></td></tr>`;
         return;
       }
       tbody.innerHTML = sorted.map(a => {
         const sid = escapeHtml(a.id), sname = escapeHtml(a.name || 'Untitled Schedule');
         const cnt = Number(a.selectionCount) || 0;
+        const evCnt = a.eventCount != null ? Number(a.eventCount) : (Array.isArray(a.payload && a.payload.events) ? a.payload.events.length : 0);
         return `<tr>
       <td><span class="an-name" data-open-id="${sid}">${sname}</span></td>
       <td><span class="an-date">${fmtDate(a.createdAt)}</span></td>
       <td><span class="an-date">${fmtDate(a.updatedAt)}</span></td>
-      <td><span class="an-docs"><span class="an-docs-n">${cnt}</span> event${cnt !== 1 ? 's' : ''}</span></td>
+      <td><span class="an-docs"><span class="an-docs-n">${evCnt}</span></span></td>
+      <td><span class="an-docs"><span class="an-docs-n">${cnt}</span> attending</span></td>
       <td>
         <div class="row-menu-wrap">
           <button class="row-menu-btn" data-menu-id="${sid}">⋮</button>
@@ -2681,7 +2733,7 @@
       let h12 = h % 12; if (h12 === 0) h12 = 12;
       return `${pad2(mo)}/${pad2(day)}/${y} ${h12}:${pad2(mi)} ${ap}`;
     }
-    const IE_HEADER = 'Event Name, Event Type, Coach, Start Date & Time, End Date & Time, Repeat this event, Location';
+    const IE_HEADER = 'Event Name, Event Type, Coach / Trainer / Teacher, Start Date & Time, End Date & Time, Repeat this event, Location';
     function parseImportText(text) {
       const lines = String(text || '').split(/\r?\n/).map(l => l.trim()).filter(l => l.length);
       const now = new Date().toISOString();
@@ -2738,6 +2790,7 @@
       <div class="rmi-name">${escapeHtml(ev.name)}</div>
       <div class="rmi-type">${escapeHtml(typeStyle(ev.type).label)}</div>
       <div class="rmi-time">${escapeHtml(ev.day)} ${escapeHtml(ev.date)}  ·  ${fmt(ev.start)} - ${fmt(ev.end)}</div>
+      ${ev.coach ? `<div class="rmi-coach">Coach / Trainer / Teacher: ${escapeHtml(ev.coach)}</div>` : ''}
     </div>
     <div class="row-menu-divider"></div>
   ` : '';
@@ -2784,18 +2837,18 @@
     // button/menu (a full, unfiltered list — datalist suggestions get filtered
     // by the browser to whatever's already typed, which hides most options
     // once a value is set, so the button exists specifically to bypass that).
+    // Types are derived entirely from this schedule's own events — no global
+    // default list — so a blank schedule starts with no suggestions and builds
+    // up its own vocabulary as events are added/imported. Most-recently-added
+    // event's type surfaces first.
     function getAllTypeOptions() {
       const seen = new Set();
       const options = [];
-      Object.keys(KNOWN_TYPES).forEach(k => {
-        seen.add(k);                                   // raw short key (legacy-stored events)
-        seen.add(KNOWN_TYPES[k].label.toLowerCase());   // friendly label
-        options.push(KNOWN_TYPES[k].label);
-      });
-      events.forEach(e => {
+      [...events].reverse().forEach(e => {
         const raw = String(e.type || '').trim();
+        if (!raw) return;
         const lower = raw.toLowerCase();
-        if (raw && !seen.has(lower)) { seen.add(lower); options.push(raw); }
+        if (!seen.has(lower)) { seen.add(lower); options.push(raw); }
       });
       return options;
     }
@@ -2806,7 +2859,9 @@
     function openEeTypeMenu() {
       const options = getAllTypeOptions();
       const menu = eid('ee-type-menu');
-      menu.innerHTML = options.map(t => `<div class="row-menu-item" data-type-opt="${escapeHtml(t)}">${escapeHtml(t)}</div>`).join('');
+      menu.innerHTML = options.length
+        ? options.map(t => `<div class="row-menu-item" data-type-opt="${escapeHtml(t)}">${escapeHtml(t)}</div>`).join('')
+        : `<div class="row-menu-item" style="cursor:default;color:var(--ink-4);">No types yet — type one in above</div>`;
       menu.classList.add('on');
       positionRowMenu(menu, eid('btn-ee-type-menu'));
     }

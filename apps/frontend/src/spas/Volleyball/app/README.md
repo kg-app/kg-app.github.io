@@ -1,4 +1,4 @@
-# SportSquad — Practice Schedule Calendar
+# MyCrazyScheduler — Practice Schedule Calendar
 
 Firebase-backed SPA for tracking attendance across Nishka's summer 2026
 volleyball calendar (camps, group/private training, school workouts, tryouts).
@@ -24,7 +24,7 @@ crazy_practice_schedular.html   Original standalone (file-based save/load) versi
 
 ### 1. Firebase project
 
-SportSquad is a fully standalone Firebase project, `sportsquad-hq` —
+MyCrazyScheduler is a fully standalone Firebase project, `sportsquad-hq` —
 independent of Validait/Lean_Canvas, no shared collections or rules.
 
 1. https://console.firebase.google.com/project/sportsquad-hq/overview
