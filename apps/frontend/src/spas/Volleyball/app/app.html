@@ -756,6 +756,30 @@
       background: var(--warn-bg)
     }
 
+    .row-menu-info {
+      padding: 6px 11px 8px;
+      max-width: 220px;
+    }
+
+    .row-menu-info .rmi-name {
+      font-weight: 500;
+      font-size: 12.5px;
+      color: var(--ink);
+      margin-bottom: 3px;
+    }
+
+    .row-menu-info .rmi-type,
+    .row-menu-info .rmi-time {
+      font-size: 11px;
+      color: var(--ink-4);
+    }
+
+    .row-menu-divider {
+      height: 1px;
+      background: var(--line);
+      margin: 4px 2px;
+    }
+
     /* ─── compact edit-event form ─── */
     .modal.modal-ee {
       width: 420px
@@ -1828,11 +1852,14 @@
       span.textContent = e.label;
       span.style.cssText = `font-size:11px;font-weight:500;color:${st.text};line-height:1.15;word-break:break-word;pointer-events:none;`;
       bar.appendChild(span);
-      bar.addEventListener('mouseenter', () => showTooltip(e, bar));
-      bar.addEventListener('mouseleave', hideTooltip);
+      if (window.matchMedia('(hover: hover)').matches) {
+        bar.addEventListener('mouseenter', () => showTooltip(e, bar));
+        bar.addEventListener('mouseleave', hideTooltip);
+      }
       bar.addEventListener('click', (evt) => {
         if (readonlyMode) return;
         evt.stopPropagation();
+        hideTooltip();
         openEventMenu(e, bar);
       });
       cal.appendChild(bar);
@@ -2702,10 +2729,20 @@
     // ═══════════════════════════════════════════════════════════
     let activeMenuEventId = null;
     function openEventMenu(ev, anchorEl) {
+      hideTooltip();
       activeMenuEventId = ev.id;
       const isSel = selected.has(eventKey(ev));
       const menu = eid('ev-menu');
+      const infoHtml = isMobile ? `
+    <div class="row-menu-info">
+      <div class="rmi-name">${escapeHtml(ev.name)}</div>
+      <div class="rmi-type">${escapeHtml(typeStyle(ev.type).label)}</div>
+      <div class="rmi-time">${escapeHtml(ev.day)} ${escapeHtml(ev.date)}  ·  ${fmt(ev.start)} - ${fmt(ev.end)}</div>
+    </div>
+    <div class="row-menu-divider"></div>
+  ` : '';
       menu.innerHTML = `
+    ${infoHtml}
     <div class="row-menu-item" data-ev-action="toggle">${isSel ? '✕ Unselect' : '✓ Select'}</div>
     <div class="row-menu-item" data-ev-action="edit">✎ Edit</div>
     <div class="row-menu-item danger" data-ev-action="delete">🗑 Delete</div>
