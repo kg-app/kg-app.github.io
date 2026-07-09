@@ -582,6 +582,7 @@
     .dash {
       flex: 1;
       overflow-y: auto;
+      overflow-x: hidden;
       background: var(--surf)
     }
 
@@ -865,16 +866,57 @@
       display: none !important
     }
 
+    /* ─── repeat controls (Add/Edit Event) ─── */
+    .ee-check {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12.5px;
+      font-weight: 400;
+      color: var(--ink-2);
+      cursor: pointer
+    }
+
+    .ee-check input {
+      width: auto !important;
+      max-width: none !important;
+      padding: 0 !important;
+      border: none !important;
+      margin: 0
+    }
+
+    .ee-repeat-choices {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      margin-top: 2px
+    }
+
+    .ee-repeat-freq {
+      display: flex;
+      gap: 12px
+    }
+
+    .ee-repeat-freq.disabled {
+      opacity: .45;
+      pointer-events: none
+    }
+
+    .ee-repeat-hint {
+      font-size: 11px;
+      color: var(--ink-4);
+      margin-top: 4px
+    }
+
     /* ─── delete-event confirm popup ─── */
     .del-confirm-pop {
-      position: fixed;
       background: #fff;
       border: 1.5px solid var(--warn);
       border-radius: 4px;
       box-shadow: 0 8px 26px rgba(0, 0, 0, .18);
-      z-index: 300;
       padding: 12px 13px;
-      width: 220px
+      width: 260px
     }
 
     .del-confirm-pop .dcp-txt {
@@ -882,6 +924,14 @@
       color: var(--ink-2);
       margin-bottom: 9px;
       line-height: 1.5
+    }
+
+    .del-confirm-pop .dcp-repeat-row {
+      margin-bottom: 10px
+    }
+
+    .del-confirm-pop .dcp-repeat-row .ee-check {
+      line-height: 1.4
     }
 
     .del-confirm-pop .dcp-row {
@@ -1149,7 +1199,9 @@
       }
 
       .dash-wrap {
-        padding: 18px 12px 40px
+        padding: 18px 12px 40px;
+        max-width: 100%;
+        overflow-x: hidden
       }
 
       .dash-title {
@@ -1157,17 +1209,28 @@
       }
 
       .dash-tbl {
-        font-size: 12px
+        font-size: 12px;
+        table-layout: fixed
       }
 
       .dash-tbl thead th,
       .dash-tbl tbody td {
-        padding: 8px 8px
+        padding: 8px 6px;
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: break-word
       }
 
       .dash-tbl thead th:nth-child(2),
       .dash-tbl tbody td:nth-child(2) {
         display: none
+      }
+
+      .dash-tbl thead th:last-child,
+      .dash-tbl tbody td:last-child {
+        width: 34px;
+        padding-left: 2px;
+        padding-right: 2px
       }
 
       .an-name {
@@ -1452,10 +1515,25 @@
           id="ee-start" /></div>
       <div class="ee-row"><label>End Date &amp; Time *</label><input type="datetime-local" class="ee-dt" id="ee-end" />
       </div>
-      <div class="ee-grid">
-        <div class="ee-row"><label>Repeat this event</label><input type="text" id="ee-repeat" /></div>
-        <div class="ee-row"><label>Location</label><input type="text" id="ee-location" /></div>
+      <div class="ee-row">
+        <label>Status</label>
+        <div class="ee-repeat-choices">
+          <label class="ee-check"><input type="radio" name="ee-attend" id="ee-attend-yes" value="attending" checked /> Attending</label>
+          <label class="ee-check"><input type="radio" name="ee-attend" id="ee-attend-no" value="tentative" /> Tentative (add event only)</label>
+        </div>
       </div>
+      <div class="ee-row" id="ee-repeat-wrap">
+        <label>Repeat</label>
+        <div class="ee-repeat-choices">
+          <label class="ee-check"><input type="checkbox" id="ee-repeat-on" /> Repeat this event</label>
+          <span class="ee-repeat-freq disabled" id="ee-repeat-freq-wrap">
+            <label class="ee-check"><input type="radio" name="ee-repeat-freq" id="ee-repeat-daily" value="daily" checked disabled /> Daily</label>
+            <label class="ee-check"><input type="radio" name="ee-repeat-freq" id="ee-repeat-weekly" value="weekly" disabled /> Weekly</label>
+          </span>
+        </div>
+        <div class="ee-repeat-hint">Adds this event daily or weekly for the next 2 months.</div>
+      </div>
+      <div class="ee-row"><label>Location</label><input type="text" id="ee-location" /></div>
       <div style="margin-top:12px;display:flex;gap:8px;justify-content:space-between;align-items:center">
         <button class="btn btn-warn" id="btn-delete-ee">Delete event</button>
         <div style="display:flex;gap:8px">
@@ -1467,11 +1545,16 @@
   </div>
 
   <!-- ═══════════ DELETE EVENT CONFIRM ═══════════ -->
-  <div class="del-confirm-pop" id="del-item-pop" style="display:none">
-    <div class="dcp-txt">Delete this event? This can't be undone.</div>
-    <div class="dcp-row">
-      <button class="btn btn-sm" id="dcp-cancel">Cancel</button>
-      <button class="btn btn-sm btn-warn" id="dcp-delete">Delete</button>
+  <div class="modal-bg" id="del-item-pop-bg">
+    <div class="del-confirm-pop" id="del-item-pop">
+      <div class="dcp-txt">Delete this event? This can't be undone.</div>
+      <div class="dcp-repeat-row" id="dcp-repeat-row" style="display:none;">
+        <label class="ee-check"><input type="checkbox" id="dcp-delete-all" /> Delete all occurrences of this repeating event</label>
+      </div>
+      <div class="dcp-row">
+        <button class="btn btn-sm" id="dcp-cancel">Cancel</button>
+        <button class="btn btn-sm btn-warn" id="dcp-delete">Delete</button>
+      </div>
     </div>
   </div>
 
@@ -1591,6 +1674,28 @@
     const DEFAULT_EVENTS = legacyToCanonical(LEGACY_RAW_EVENTS);
 
     function newEventId() { return 'EV-' + (crypto.randomUUID ? crypto.randomUUID().slice(0, 8) : Math.random().toString(36).slice(2, 10)); }
+    function newGroupId() { return crypto.randomUUID ? crypto.randomUUID() : 'GRP-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+
+    function addDaysToLocal(dtStr, days) {
+      const d = new Date(dtStr);
+      d.setDate(d.getDate() + days);
+      return localISO(d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes());
+    }
+    // Builds every occurrence (including the original) from startISO through
+    // two calendar months later, stepping by 1 day (daily) or 7 days (weekly).
+    function buildRepeatOccurrences(startISO, endISO, freq) {
+      const stepDays = freq === 'weekly' ? 7 : 1;
+      const cutoff = new Date(startISO);
+      cutoff.setMonth(cutoff.getMonth() + 2);
+      const occurrences = [];
+      let curStart = startISO, curEnd = endISO;
+      while (new Date(curStart) <= cutoff) {
+        occurrences.push({ startISO: curStart, endISO: curEnd });
+        curStart = addDaysToLocal(curStart, stepDays);
+        curEnd = addDaysToLocal(curEnd, stepDays);
+      }
+      return occurrences;
+    }
 
     // Derive the fields the renderer needs (day-of-week, decimal hours, short label)
     // from an event's canonical start/end ISO timestamps.
@@ -1650,8 +1755,8 @@
       events.forEach(e => {
         const raw = String(e.type || '').trim();
         if (!raw) return;
-        const lower = raw.toLowerCase();
-        if (!seen.has(lower)) { seen.add(lower); types.push(raw); }
+        const labelKey = typeStyle(raw).label.toLowerCase();
+        if (!seen.has(labelKey)) { seen.add(labelKey); types.push(raw); }
       });
       types.sort((a, b) => typeStyle(a).label.localeCompare(typeStyle(b).label));
       legend.innerHTML = types.map(t => {
@@ -1664,6 +1769,8 @@
     }
 
     // Day range: every calendar day from the earliest to the latest event, inclusive.
+    // The visible range always starts at today (or later) — past days are
+    // never shown, so the scheduler always opens looking forward from now.
     function computeDayRange(renderEvents) {
       if (!renderEvents.length) return [];
       let min = null, max = null;
@@ -1672,6 +1779,9 @@
         if (min === null || d < min) min = d;
         if (max === null || d > max) max = d;
       });
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      if (today > max) return []; // everything in this schedule has already happened
+      min = today; // the visible range always starts today, whether the earliest event is before or after it
       const spansYears = min.getFullYear() !== max.getFullYear();
       const out = [];
       const cur = new Date(min);
@@ -1753,7 +1863,9 @@
     function recomputeCalendarRange() {
       renderEvents = events.map(deriveRenderEvent);
       days = computeDayRange(renderEvents);
-      const hr = computeHourRange(renderEvents);
+      const dayKeys = new Set(days.map(d => d.dateKey));
+      const visibleEvents = renderEvents.filter(e => dayKeys.has(e.dateKey));
+      const hr = computeHourRange(visibleEvents);
       startHour = hr.startHour; endHour = hr.endHour;
       labeledHours = computeLabeledHours(startHour, endHour);
       hourSuffixSet = new Set([labeledHours[0], labeledHours[Math.floor((labeledHours.length - 1) / 2)], labeledHours[labeledHours.length - 1]]);
@@ -2080,7 +2192,9 @@
         cal.style.maxHeight = currentMode === 'cols' ? '520px' : '';
         const empty = document.createElement('div');
         empty.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;min-height:220px;color:var(--ink-4);font-size:13px;text-align:center;padding:24px;';
-        empty.textContent = 'No events yet — use Import / Export to add some.';
+        empty.textContent = events.length
+          ? 'No upcoming events — everything in this schedule is in the past.'
+          : 'No events yet — use Import / Export to add some.';
         cal.appendChild(empty);
         requestAnimationFrame(() => { positionShadows(); updateScrollShadows(); });
         return;
@@ -2636,7 +2750,7 @@
       const th = e.target.closest('th[data-sort]');
       if (th) { sortDash(th.dataset.sort); return; }
       const oa = e.target.closest('[data-open-id]');
-      if (oa && !e.target.closest('.row-menu')) {
+      if (oa) {
         if (currentUser) openDoc(currentUser.uid, oa.dataset.openId);
         return;
       }
@@ -2824,8 +2938,7 @@
       } else if (action === 'edit') {
         openEditEventModal(ev);
       } else if (action === 'delete') {
-        const rect = item.getBoundingClientRect();
-        openDeleteConfirm(rect.left, rect.bottom + 6, ev.id);
+        openDeleteConfirm(ev.id);
       }
     });
 
@@ -2847,8 +2960,9 @@
       [...events].reverse().forEach(e => {
         const raw = String(e.type || '').trim();
         if (!raw) return;
-        const lower = raw.toLowerCase();
-        if (!seen.has(lower)) { seen.add(lower); options.push(raw); }
+        const label = typeStyle(raw).label;
+        const labelKey = label.toLowerCase();
+        if (!seen.has(labelKey)) { seen.add(labelKey); options.push(label); }
       });
       return options;
     }
@@ -2890,8 +3004,13 @@
       eid('ee-coach').value = ev.coach || '';
       eid('ee-start').value = ev.startISO || '';
       eid('ee-end').value = ev.endISO || '';
-      eid('ee-repeat').value = ev.repeat || '';
       eid('ee-location').value = ev.location || '';
+      const isAttending = selected.has(eventKey(ev));
+      eid('ee-attend-yes').checked = isAttending;
+      eid('ee-attend-no').checked = !isAttending;
+      // Recurrence is only set up at creation time — editing an existing
+      // occurrence never regenerates or alters the rest of its series.
+      eid('ee-repeat-wrap').style.display = 'none';
       openModal('modal-edit-event');
     }
     function nextHourISO() {
@@ -2917,10 +3036,21 @@
       const defaultStart = nextHourISO();
       eid('ee-start').value = defaultStart;
       eid('ee-end').value = addHourISO(defaultStart);
-      eid('ee-repeat').value = '';
       eid('ee-location').value = '';
+      eid('ee-attend-yes').checked = true;
+      eid('ee-repeat-wrap').style.display = '';
+      eid('ee-repeat-on').checked = false;
+      eid('ee-repeat-daily').checked = true;
+      updateRepeatFreqEnabled();
       openModal('modal-edit-event');
     }
+    function updateRepeatFreqEnabled() {
+      const on = eid('ee-repeat-on').checked;
+      eid('ee-repeat-daily').disabled = !on;
+      eid('ee-repeat-weekly').disabled = !on;
+      eid('ee-repeat-freq-wrap').classList.toggle('disabled', !on);
+    }
+    eid('ee-repeat-on').addEventListener('change', updateRepeatFreqEnabled);
     function closeEditEventModal() { closeModal('modal-edit-event'); editingEventId = null; }
     function readDateTimeLocal(id) {
       const v = eid(id).value;
@@ -2933,7 +3063,6 @@
       const coach = eid('ee-coach').value.trim();
       const startISO = readDateTimeLocal('ee-start');
       const endISO = readDateTimeLocal('ee-end');
-      const repeat = eid('ee-repeat').value.trim();
       const location = eid('ee-location').value.trim();
       if (!name || !type || !startISO || !endISO) {
         toast('Name, type, and valid start/end date & time are required');
@@ -2941,14 +3070,37 @@
       }
       const now = new Date().toISOString();
       const wasNew = editingEventId === null;
+      const attending = eid('ee-attend-yes').checked;
+      const affectedIds = [];
       if (wasNew) {
-        events.push({ id: newEventId(), name, type, coach, startISO, endISO, repeat, location, created: now, modified: now });
+        const repeatOn = eid('ee-repeat-on').checked;
+        if (repeatOn) {
+          const freq = eid('ee-repeat-weekly').checked ? 'weekly' : 'daily';
+          const repeatLabel = freq === 'weekly' ? 'Weekly' : 'Daily';
+          const groupId = newGroupId();
+          buildRepeatOccurrences(startISO, endISO, freq).forEach(o => {
+            const id = newEventId();
+            events.push({ id, name, type, coach, startISO: o.startISO, endISO: o.endISO, repeat: repeatLabel, event_group_id: groupId, location, created: now, modified: now });
+            affectedIds.push(id);
+          });
+        } else {
+          const id = newEventId();
+          events.push({ id, name, type, coach, startISO, endISO, repeat: '', location, created: now, modified: now });
+          affectedIds.push(id);
+        }
       } else {
         const idx = events.findIndex(e => e.id === editingEventId);
         if (idx === -1) { closeEditEventModal(); return; }
-        events[idx] = { ...events[idx], name, type, coach, startISO, endISO, repeat, location, modified: now };
+        events[idx] = { ...events[idx], name, type, coach, startISO, endISO, location, modified: now };
+        affectedIds.push(editingEventId);
       }
       recomputeCalendarRange();
+      // Sync the "attending" selection for the event(s) just added/edited —
+      // "Tentative" adds the event but leaves it unselected.
+      renderEvents.filter(e => affectedIds.includes(e.id)).forEach(e => {
+        const key = eventKey(e);
+        if (attending) selected.add(key); else selected.delete(key);
+      });
       renderCalendar();
       updateSubheadMeta();
       saveNow();
@@ -2956,27 +3108,21 @@
       toast(wasNew ? 'Event added' : 'Event updated');
     }
     function deleteEditingEvent() {
-      const rect = eid('btn-delete-ee').getBoundingClientRect();
-      openDeleteConfirm(rect.left, rect.bottom + 6, editingEventId);
+      openDeleteConfirm(editingEventId);
     }
 
     // ═══════════════════════════════════════════════════════════
     // DELETE EVENT (shared by context menu + edit modal)
     // ═══════════════════════════════════════════════════════════
     let pendingDeleteEventId = null;
-    function openDeleteConfirm(x, y, eventId) {
+    function openDeleteConfirm(eventId) {
       pendingDeleteEventId = eventId;
-      const pop = eid('del-item-pop');
-      const w = 220;
-      let left = x, top = y;
-      if (left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
-      if (left < 8) left = 8;
-      if (top + 80 > window.innerHeight - 8) top = y - 100;
-      pop.style.left = left + 'px';
-      pop.style.top = top + 'px';
-      pop.style.display = 'block';
+      const ev = events.find(e => e.id === eventId);
+      eid('dcp-delete-all').checked = false;
+      eid('dcp-repeat-row').style.display = (ev && ev.event_group_id) ? '' : 'none';
+      eid('del-item-pop-bg').classList.add('on');
     }
-    function closeDeleteConfirm() { eid('del-item-pop').style.display = 'none'; pendingDeleteEventId = null; }
+    function closeDeleteConfirm() { eid('del-item-pop-bg').classList.remove('on'); pendingDeleteEventId = null; }
     function deleteEventById(id) {
       events = events.filter(e => e.id !== id);
       recomputeCalendarRange();
@@ -2987,9 +3133,24 @@
       saveNow();
       toast('Event deleted');
     }
+    function deleteEventGroup(groupId) {
+      events = events.filter(e => e.event_group_id !== groupId);
+      recomputeCalendarRange();
+      const validKeys = new Set(renderEvents.map(eventKey));
+      selected = new Set([...selected].filter(k => validKeys.has(k)));
+      renderCalendar();
+      updateSubheadMeta();
+      saveNow();
+      toast('Repeating events deleted');
+    }
     function confirmDeleteEvent() {
       if (!pendingDeleteEventId) { closeDeleteConfirm(); return; }
-      deleteEventById(pendingDeleteEventId);
+      const ev = events.find(e => e.id === pendingDeleteEventId);
+      if (ev && ev.event_group_id && eid('dcp-delete-all').checked) {
+        deleteEventGroup(ev.event_group_id);
+      } else {
+        deleteEventById(pendingDeleteEventId);
+      }
       closeDeleteConfirm();
       if (editingEventId) closeEditEventModal();
     }
