@@ -770,14 +770,20 @@
     }
 
     .row-menu-info .rmi-type,
-    .row-menu-info .rmi-time,
-    .row-menu-info .rmi-coach {
+    .row-menu-info .rmi-time {
       font-size: 11px;
       color: var(--ink-4);
     }
 
-    .row-menu-info .rmi-coach {
-      margin-top: 1px;
+    .row-menu-info .rmi-coach-pill {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 500;
+      color: #2e6b1f;
+      background: #e3f6dc;
+      border-radius: 10px;
+      padding: 2px 8px;
+      margin-bottom: 5px;
     }
 
     .row-menu-divider {
@@ -2010,7 +2016,11 @@
       const timeExtent = (endHour - startHour) * pxPerHourCols + TOP_PAD * 2;
       const contentHeight = timeExtent + dayLabelThicknessCols;
       const contentWidth = timeAxisThickness + days.length * (dayThickness + gapBetweenDays);
-      cal.style.height = contentHeight + 'px';
+      // min-height (not height) so the calendar still expands to fill any
+      // leftover flex space when the content is shorter than the viewport,
+      // instead of leaving blank space below a short, fixed-height box.
+      cal.style.height = '';
+      cal.style.minHeight = contentHeight + 'px';
 
       days.forEach((d, i) => {
         if (isWeekend(d)) {
@@ -2082,13 +2092,29 @@
 
     function renderRows() {
       cal.style.width = '100%';
+      cal.scrollLeft = 0;
 
       const availableWidth = cal.clientWidth || 600;
       const timeSpanHours = endHour - startHour;
-      const usableForTime = Math.max(availableWidth - dayLabelThicknessRows - TOP_PAD * 2, 200);
-      const pxPerHourRows = Math.max(usableForTime / timeSpanHours, 22);
+      // Hour labels are 32px wide and centered on their gridline (±16px), so the
+      // horizontal margin reserved on each side of the time axis must be at
+      // least that half-width (otherwise the first/last label overflows past
+      // the computed content width and forces a horizontal scrollbar) — plus a
+      // little extra so the first/last timestamp has visible breathing room
+      // instead of sitting flush against the day-label column or the
+      // container's edge.
+      const hPad = Math.max(TOP_PAD, 16) + 8;
+      // On mobile the row layout must always fit the viewport width exactly —
+      // no minimum floor, so it shrinks to whatever the time span requires
+      // instead of overflowing into a horizontal scrollbar.
+      const usableForTime = isMobile
+        ? Math.max(availableWidth - dayLabelThicknessRows - hPad * 2, 0)
+        : Math.max(availableWidth - dayLabelThicknessRows - hPad * 2, 200);
+      const pxPerHourRows = isMobile
+        ? usableForTime / timeSpanHours
+        : Math.max(usableForTime / timeSpanHours, 22);
 
-      const timeExtent = timeSpanHours * pxPerHourRows + TOP_PAD * 2;
+      const timeExtent = timeSpanHours * pxPerHourRows + hPad * 2;
       const contentWidth = dayLabelThicknessRows + timeExtent;
       const contentHeight = timeAxisThickness + days.length * (rowHeight + gapBetweenDays);
       cal.style.height = contentHeight + 'px';
@@ -2113,7 +2139,7 @@
       for (let hh = startHour * 2; hh <= endHour * 2; hh++) {
         const h = hh / 2;
         const isHour = Number.isInteger(h);
-        const xPos = dayLabelThicknessRows + TOP_PAD + (h - startHour) * pxPerHourRows;
+        const xPos = dayLabelThicknessRows + hPad + (h - startHour) * pxPerHourRows;
         const line = document.createElement('div');
         line.style.cssText = `position:absolute; left:${xPos}px; top:${timeAxisThickness}px; width:1px; height:${contentHeight - timeAxisThickness}px; background:${borderColor}; opacity:${isHour ? 1 : 0.45}; z-index:1;`;
         cal.appendChild(line);
@@ -2127,7 +2153,7 @@
 
       const nowH = nowLinePosition();
       if (nowH !== null) {
-        const nowX = dayLabelThicknessRows + TOP_PAD + (nowH - startHour) * pxPerHourRows;
+        const nowX = dayLabelThicknessRows + hPad + (nowH - startHour) * pxPerHourRows;
         const nowLine = document.createElement('div');
         nowLine.style.cssText = `position:absolute; left:${nowX}px; top:0; width:2px; height:${contentHeight}px; background:${nowLineColor}; opacity:0.5; z-index:5; pointer-events:none;`;
         cal.appendChild(nowLine);
@@ -2142,14 +2168,22 @@
         cal.appendChild(rowDiv);
 
         const label = document.createElement('div');
-        label.textContent = d.date + ' ' + d.day;
-        label.style.cssText = `position:absolute; left:0; top:${y}px; width:${dayLabelThicknessRows - 10}px; height:${rowHeight}px; display:flex; align-items:center; font-size:12px; font-weight:500; color:${todayRow ? todayBorderColor : secondaryColor}; z-index:1;`;
+        label.style.cssText = `position:absolute; left:0; top:${y}px; width:${dayLabelThicknessRows - 10}px; height:${rowHeight}px; box-sizing:border-box; padding-left:8px; display:flex; flex-direction:column; justify-content:center; z-index:1;`;
+        const dateLine = document.createElement('div');
+        dateLine.textContent = d.date;
+        dateLine.style.cssText = `font-size:11px; font-weight:500; color:${todayRow ? todayBorderColor : secondaryColor};`;
+        const dowLine = document.createElement('div');
+        dowLine.textContent = d.day;
+        dowLine.style.cssText = `font-size:11px; font-weight:400; color:${todayRow ? todayBorderColor : mutedColor}; margin-top:1px;`;
+        label.appendChild(dateLine);
+        label.appendChild(dowLine);
         cal.appendChild(label);
 
         const dayEvents = layoutDay(renderEvents.filter(e => e.dateKey === d.dateKey));
         dayEvents.forEach(e => {
-          const left = dayLabelThicknessRows + TOP_PAD + (e.start - startHour) * pxPerHourRows;
-          const w2 = Math.max((e.end - e.start) * pxPerHourRows, 28);
+          const left = dayLabelThicknessRows + hPad + (e.start - startHour) * pxPerHourRows;
+          const rightEdge = dayLabelThicknessRows + timeExtent - hPad;
+          const w2 = Math.min(Math.max((e.end - e.start) * pxPerHourRows, 28), Math.max(rightEdge - left, 1));
           const innerGap = 2;
           const h2 = (rowHeight - 4 - (e.totalCols - 1) * innerGap) / e.totalCols;
           const top = y + 2 + e.col * (h2 + innerGap);
@@ -2189,7 +2223,7 @@
       cal.innerHTML = '';
       if (!days.length) {
         cal.style.height = '';
-        cal.style.maxHeight = currentMode === 'cols' ? '520px' : '';
+        cal.style.minHeight = '';
         const empty = document.createElement('div');
         empty.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;min-height:220px;color:var(--ink-4);font-size:13px;text-align:center;padding:24px;';
         empty.textContent = events.length
@@ -2199,7 +2233,6 @@
         requestAnimationFrame(() => { positionShadows(); updateScrollShadows(); });
         return;
       }
-      cal.style.maxHeight = currentMode === 'cols' ? '520px' : '';
       if (currentMode === 'cols') renderCols(); else renderRows();
       updateSelectionVisuals();
       requestAnimationFrame(() => { positionShadows(); updateScrollShadows(); });
@@ -2902,9 +2935,9 @@
       const infoHtml = isMobile ? `
     <div class="row-menu-info">
       <div class="rmi-name">${escapeHtml(ev.name)}</div>
+      ${ev.coach ? `<div class="rmi-coach-pill">${escapeHtml(ev.coach)}</div>` : ''}
       <div class="rmi-type">${escapeHtml(typeStyle(ev.type).label)}</div>
       <div class="rmi-time">${escapeHtml(ev.day)} ${escapeHtml(ev.date)}  ·  ${fmt(ev.start)} - ${fmt(ev.end)}</div>
-      ${ev.coach ? `<div class="rmi-coach">Coach / Trainer / Teacher: ${escapeHtml(ev.coach)}</div>` : ''}
     </div>
     <div class="row-menu-divider"></div>
   ` : '';
