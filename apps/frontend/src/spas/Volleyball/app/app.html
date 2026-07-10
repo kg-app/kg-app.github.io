@@ -899,21 +899,6 @@
       margin-top: 2px
     }
 
-    .ee-repeat-freq {
-      display: flex;
-      gap: 12px
-    }
-
-    .ee-repeat-freq.disabled {
-      opacity: .45;
-      pointer-events: none
-    }
-
-    .ee-repeat-hint {
-      font-size: 11px;
-      color: var(--ink-4);
-      margin-top: 4px
-    }
 
     /* ─── delete-event confirm popup ─── */
     .del-confirm-pop {
@@ -1532,12 +1517,17 @@
         <label>Repeat</label>
         <div class="ee-repeat-choices">
           <label class="ee-check"><input type="checkbox" id="ee-repeat-on" /> Repeat this event</label>
-          <span class="ee-repeat-freq disabled" id="ee-repeat-freq-wrap">
-            <label class="ee-check"><input type="radio" name="ee-repeat-freq" id="ee-repeat-daily" value="daily" checked disabled /> Daily</label>
-            <label class="ee-check"><input type="radio" name="ee-repeat-freq" id="ee-repeat-weekly" value="weekly" disabled /> Weekly</label>
-          </span>
         </div>
-        <div class="ee-repeat-hint">Adds this event daily or weekly for the next 2 months.</div>
+        <div id="ee-repeat-freq-wrap" style="display:none; margin-top:8px;">
+          <div class="ee-repeat-choices">
+            <label class="ee-check"><input type="radio" name="ee-repeat-freq" id="ee-repeat-daily" value="daily" checked /> Daily</label>
+            <label class="ee-check"><input type="radio" name="ee-repeat-freq" id="ee-repeat-weekly" value="weekly" /> Weekly</label>
+          </div>
+          <div class="ee-row" style="margin-top:8px; margin-bottom:0;">
+            <label>Repeat Until</label>
+            <input type="datetime-local" class="ee-dt" id="ee-repeat-until" />
+          </div>
+        </div>
       </div>
       <div class="ee-row"><label>Location</label><input type="text" id="ee-location" /></div>
       <div style="margin-top:12px;display:flex;gap:8px;justify-content:space-between;align-items:center">
@@ -1687,12 +1677,17 @@
       d.setDate(d.getDate() + days);
       return localISO(d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes());
     }
+    // Default "Repeat Until" — two calendar months after the given start.
+    function defaultRepeatUntil(startISO) {
+      const d = new Date(startISO);
+      d.setMonth(d.getMonth() + 2);
+      return localISO(d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes());
+    }
     // Builds every occurrence (including the original) from startISO through
-    // two calendar months later, stepping by 1 day (daily) or 7 days (weekly).
-    function buildRepeatOccurrences(startISO, endISO, freq) {
+    // untilISO (inclusive), stepping by 1 day (daily) or 7 days (weekly).
+    function buildRepeatOccurrences(startISO, endISO, freq, untilISO) {
       const stepDays = freq === 'weekly' ? 7 : 1;
-      const cutoff = new Date(startISO);
-      cutoff.setMonth(cutoff.getMonth() + 2);
+      const cutoff = new Date(untilISO && !isNaN(new Date(untilISO).getTime()) ? untilISO : defaultRepeatUntil(startISO));
       const occurrences = [];
       let curStart = startISO, curEnd = endISO;
       while (new Date(curStart) <= cutoff) {
@@ -3074,16 +3069,21 @@
       eid('ee-repeat-wrap').style.display = '';
       eid('ee-repeat-on').checked = false;
       eid('ee-repeat-daily').checked = true;
-      updateRepeatFreqEnabled();
+      eid('ee-repeat-until').value = defaultRepeatUntil(defaultStart);
+      updateRepeatFreqVisibility();
       openModal('modal-edit-event');
     }
-    function updateRepeatFreqEnabled() {
+    // The Daily/Weekly choice and the Repeat Until picker only appear once
+    // "Repeat this event" is checked — hidden entirely otherwise, not just
+    // disabled, since they're meaningless until repeat is turned on.
+    function updateRepeatFreqVisibility() {
       const on = eid('ee-repeat-on').checked;
-      eid('ee-repeat-daily').disabled = !on;
-      eid('ee-repeat-weekly').disabled = !on;
-      eid('ee-repeat-freq-wrap').classList.toggle('disabled', !on);
+      eid('ee-repeat-freq-wrap').style.display = on ? '' : 'none';
+      if (on && !eid('ee-repeat-until').value) {
+        eid('ee-repeat-until').value = defaultRepeatUntil(eid('ee-start').value || nextHourISO());
+      }
     }
-    eid('ee-repeat-on').addEventListener('change', updateRepeatFreqEnabled);
+    eid('ee-repeat-on').addEventListener('change', updateRepeatFreqVisibility);
     function closeEditEventModal() { closeModal('modal-edit-event'); editingEventId = null; }
     function readDateTimeLocal(id) {
       const v = eid(id).value;
@@ -3110,8 +3110,13 @@
         if (repeatOn) {
           const freq = eid('ee-repeat-weekly').checked ? 'weekly' : 'daily';
           const repeatLabel = freq === 'weekly' ? 'Weekly' : 'Daily';
+          const repeatUntilISO = readDateTimeLocal('ee-repeat-until');
+          if (!repeatUntilISO || new Date(repeatUntilISO) < new Date(startISO)) {
+            toast('Repeat Until must be a valid date on or after the start date');
+            return;
+          }
           const groupId = newGroupId();
-          buildRepeatOccurrences(startISO, endISO, freq).forEach(o => {
+          buildRepeatOccurrences(startISO, endISO, freq, repeatUntilISO).forEach(o => {
             const id = newEventId();
             events.push({ id, name, type, coach, startISO: o.startISO, endISO: o.endISO, repeat: repeatLabel, event_group_id: groupId, location, created: now, modified: now });
             affectedIds.push(id);
