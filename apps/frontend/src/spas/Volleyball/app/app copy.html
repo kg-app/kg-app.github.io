@@ -753,11 +753,6 @@
       color: var(--warn)
     }
 
-    .row-menu-item.active {
-      font-weight: 600;
-      color: var(--ink)
-    }
-
     .row-menu-item.danger:hover {
       background: var(--warn-bg)
     }
@@ -1390,7 +1385,6 @@
         <div class="cal-toolbar">
           <sl-button id="toggleBtn" size="small"><sl-icon slot="prefix" name="arrow-left-right"></sl-icon>Switch to day
             rows</sl-button>
-          <sl-button id="btn-today" size="small"><sl-icon slot="prefix" name="calendar-event"></sl-icon>Today</sl-button>
           <sl-button id="btn-import-export" size="small"><sl-icon slot="prefix" name="arrow-down-up"></sl-icon>Import /
             Export</sl-button>
           <sl-button id="btn-new-event" size="small"><sl-icon slot="prefix" name="plus-lg"></sl-icon>New
@@ -1515,9 +1509,8 @@
       <div class="ee-row">
         <label>Status</label>
         <div class="ee-repeat-choices">
-          <label class="ee-check"><input type="radio" name="ee-attend" id="ee-attend-yes" value="yes" checked /> Attending</label>
-          <label class="ee-check"><input type="radio" name="ee-attend" id="ee-attend-tentative" value="tentative" /> Tentative</label>
-          <label class="ee-check"><input type="radio" name="ee-attend" id="ee-attend-no" value="no" /> Not attending</label>
+          <label class="ee-check"><input type="radio" name="ee-attend" id="ee-attend-yes" value="attending" checked /> Attending</label>
+          <label class="ee-check"><input type="radio" name="ee-attend" id="ee-attend-no" value="tentative" /> Tentative (add event only)</label>
         </div>
       </div>
       <div class="ee-row" id="ee-repeat-wrap">
@@ -1589,6 +1582,7 @@
     let activeShareToken = null;
 
     let STATE = { view: 'dashboard' };
+    let selected = new Set();
     let currentScheduleName = '';
     const DASH_STATE = { sortKey: 'updated', sortDir: 'desc' };
 
@@ -1786,13 +1780,9 @@
         if (min === null || d < min) min = d;
         if (max === null || d > max) max = d;
       });
-      // Today is always padded into the range (even if every event is in the
-      // past or the future) so there's always a real day for the "Today"
-      // button / default view to snap to — but historic days are never
-      // dropped; the full earliest-to-latest span is always rendered.
       const today = new Date(); today.setHours(0, 0, 0, 0);
-      if (today < min) min = today;
-      if (today > max) max = today;
+      if (today > max) return []; // everything in this schedule has already happened
+      min = today; // the visible range always starts today, whether the earliest event is before or after it
       const spansYears = min.getFullYear() !== max.getFullYear();
       const out = [];
       const cur = new Date(min);
@@ -1843,7 +1833,6 @@
     }
     function isToday(d) { return d.dateKey === todayKey(); }
     const todayBorderColor = '#8fb4f7';
-    const todayFillColor = 'rgba(143, 180, 247, 0.16)';
     const nowLineColor = '#e5342b';
     // Returns the fractional hour for "now" if today is visible in the current
     // day range and within the rendered hour axis, else null (nothing to draw).
@@ -1971,48 +1960,35 @@
       return sorted;
     }
 
-    // Legacy key format used only to migrate old `payload.selected` arrays
-    // (see migrateAttending) — new data never writes or reads this.
-    function legacyEventKey(e) { return e.date + '|' + e.start + '|' + e.label; }
+    function eventKey(e) { return e.date + '|' + e.start + '|' + e.label; }
 
-    function applyAttendingStyle(bar, attending) {
-      if (attending === 'yes') {
-        bar.style.opacity = '1';
-        bar.style.boxShadow = `0 0 0 2px ${primaryColor}`;
-        bar.style.outline = 'none';
-      } else if (attending === 'tentative') {
-        bar.style.opacity = '1';
-        bar.style.boxShadow = 'none';
-        bar.style.outline = `2px dashed ${primaryColor}`;
-        bar.style.outlineOffset = '-2px';
-      } else {
-        // 'no', or missing/unrecognized — treat as not attending.
-        bar.style.opacity = '0.3';
-        bar.style.boxShadow = 'none';
-        bar.style.outline = 'none';
-      }
-    }
-
-    // Bars already carry the correct styling from createBar (driven by each
-    // event's own `attending` value) — this just refreshes the count texts.
-    function updateAttendingCounts() {
-      const attendingCount = events.filter(e => e.attending === 'yes').length;
+    function updateSelectionVisuals() {
+      document.querySelectorAll('.cal-bar').forEach(bar => {
+        const key = bar.dataset.key;
+        if (selected.size === 0) {
+          bar.style.opacity = '1';
+          bar.style.boxShadow = 'none';
+        } else {
+          const isSel = selected.has(key);
+          bar.style.opacity = isSel ? '1' : '0.3';
+          bar.style.boxShadow = isSel ? `0 0 0 2px ${primaryColor}` : 'none';
+        }
+      });
       const countEl = document.getElementById('selCount');
-      if (countEl) countEl.textContent = attendingCount ? attendingCount + ' selected (attending)' : 'Click a block to mark it as attending';
-      const mc = eid('meta-count'); if (mc) mc.textContent = attendingCount;
+      if (countEl) countEl.textContent = selected.size ? selected.size + ' selected (attending)' : 'Click a block to mark it as attending';
+      const mc = eid('meta-count'); if (mc) mc.textContent = selected.size;
     }
 
     function createBar(e, left, top, w, h) {
       const bar = document.createElement('div');
       bar.className = 'cal-bar';
-      bar.dataset.id = e.id;
+      bar.dataset.key = eventKey(e);
       const st = typeStyle(e.type);
       let bg = `background-color:${st.bg};`;
       if (st.hatch) {
         bg += `background-image:repeating-linear-gradient(45deg, rgba(65,36,2,0.3) 0, rgba(65,36,2,0.3) 2px, transparent 2px, transparent 6px);`;
       }
       bar.style.cssText = `position:absolute;left:${left}px;top:${top}px;width:${w}px;height:${h}px;${bg}border-radius:3px;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;cursor:${readonlyMode ? 'default' : 'pointer'};padding:1px;transition:opacity 0.15s ease;z-index:2;user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;`;
-      applyAttendingStyle(bar, e.attending);
       const span = document.createElement('span');
       span.textContent = e.label;
       span.style.cssText = `font-size:11px;font-weight:500;color:${st.text};line-height:1.15;word-break:break-word;pointer-events:none;`;
@@ -2021,29 +1997,9 @@
         bar.addEventListener('mouseenter', () => showTooltip(e, bar));
         bar.addEventListener('mouseleave', hideTooltip);
       }
-      // Touch devices (notably mobile Safari, which never reports `hover:
-      // hover`) get no mouseenter/mouseleave at all, so the only way to see
-      // event details today is by opening the context menu. A long-press
-      // shows the same tooltip as a lighter "peek" — pure touch events, so it
-      // doesn't depend on Safari's hover-media-query behavior. A quick tap
-      // still opens the context menu exactly as before.
-      let longPressTimer = null;
-      let longPressFired = false;
-      bar.addEventListener('touchstart', () => {
-        longPressFired = false;
-        clearTimeout(longPressTimer);
-        longPressTimer = setTimeout(() => {
-          longPressFired = true;
-          showTooltip(e, bar);
-        }, 420);
-      }, { passive: true });
-      bar.addEventListener('touchmove', () => clearTimeout(longPressTimer));
-      bar.addEventListener('touchend', () => clearTimeout(longPressTimer));
-      bar.addEventListener('touchcancel', () => { clearTimeout(longPressTimer); hideTooltip(); });
       bar.addEventListener('click', (evt) => {
         if (readonlyMode) return;
         evt.stopPropagation();
-        if (longPressFired) { hideTooltip(); longPressFired = false; return; }
         hideTooltip();
         openEventMenu(e, bar);
       });
@@ -2102,7 +2058,7 @@
         const colDiv = document.createElement('div');
         const todayCol = isToday(d);
         colDiv.style.cssText = `position:absolute; left:${x}px; top:${TOP_PAD}px; width:${dayThickness}px; height:${timeExtent - TOP_PAD}px; border-left:0.5px solid ${borderColor}; z-index:1;` +
-          (todayCol ? `background:${todayFillColor}; box-shadow: inset 2px 0 0 ${todayBorderColor}, inset -2px 0 0 ${todayBorderColor}, inset 0 2px 0 ${todayBorderColor}, inset 0 -2px 0 ${todayBorderColor}; border-radius:2px;` : '');
+          (todayCol ? `box-shadow: inset 2px 0 0 ${todayBorderColor}, inset -2px 0 0 ${todayBorderColor}, inset 0 2px 0 ${todayBorderColor}, inset 0 -2px 0 ${todayBorderColor}; border-radius:2px;` : '');
         cal.appendChild(colDiv);
 
         const label = document.createElement('div');
@@ -2203,7 +2159,7 @@
         const rowDiv = document.createElement('div');
         const todayRow = isToday(d);
         rowDiv.style.cssText = `position:absolute; left:${dayLabelThicknessRows}px; top:${y}px; width:${timeExtent}px; height:${rowHeight}px; border-top:0.5px solid ${borderColor}; z-index:1;` +
-          (todayRow ? `background:${todayFillColor}; box-shadow: inset 0 2px 0 ${todayBorderColor}, inset 0 -2px 0 ${todayBorderColor}, inset 2px 0 0 ${todayBorderColor}, inset -2px 0 0 ${todayBorderColor}; border-radius:2px;` : '');
+          (todayRow ? `box-shadow: inset 0 2px 0 ${todayBorderColor}, inset 0 -2px 0 ${todayBorderColor}, inset 2px 0 0 ${todayBorderColor}, inset -2px 0 0 ${todayBorderColor}; border-radius:2px;` : '');
         cal.appendChild(rowDiv);
 
         const label = document.createElement('div');
@@ -2265,13 +2221,15 @@
         cal.style.minHeight = '';
         const empty = document.createElement('div');
         empty.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;min-height:220px;color:var(--ink-4);font-size:13px;text-align:center;padding:24px;';
-        empty.textContent = 'No events yet — use Import / Export to add some.';
+        empty.textContent = events.length
+          ? 'No upcoming events — everything in this schedule is in the past.'
+          : 'No events yet — use Import / Export to add some.';
         cal.appendChild(empty);
         requestAnimationFrame(() => { positionShadows(); updateScrollShadows(); });
         return;
       }
       if (currentMode === 'cols') renderCols(); else renderRows();
-      updateAttendingCounts();
+      updateSelectionVisuals();
       requestAnimationFrame(() => { positionShadows(); updateScrollShadows(); });
     }
 
@@ -2295,36 +2253,6 @@
       setToggleLabel();
       renderCalendar();
     });
-
-    // Positions today's row/column at the very start of the visible area.
-    // The day range always includes today (see computeDayRange), but the
-    // schedule can span weeks of history before it and/or after it — this is
-    // only ever called on initial open and via the "Today" button, never on
-    // every re-render, so it doesn't yank the view out from under someone
-    // who's scrolled back to look at older events while editing.
-    function scrollToToday(smooth) {
-      const idx = days.findIndex(isToday);
-      if (idx === -1) return;
-      // Rows/columns are positioned starting at timeAxisThickness + idx*step,
-      // already leaving room for the sticky time-axis header — but that
-      // header stays pinned to the top/left of the *viewport* regardless of
-      // scroll position, so scrolling to `timeAxisThickness + idx*step`
-      // (the row/column's own coordinate) tucks it right behind the header
-      // instead of just below/right of it. Scrolling to `idx*step` instead
-      // leaves exactly `timeAxisThickness` of clearance, so the header sits
-      // above/left of the row/column rather than covering it.
-      const pos = currentMode === 'cols'
-        ? Math.max(0, idx * (dayThickness + gapBetweenDays) - 4)
-        : Math.max(0, idx * (rowHeight + gapBetweenDays) - 4);
-      if (smooth && typeof cal.scrollTo === 'function') {
-        cal.scrollTo(currentMode === 'cols' ? { left: pos, behavior: 'smooth' } : { top: pos, behavior: 'smooth' });
-      } else if (currentMode === 'cols') {
-        cal.scrollLeft = pos;
-      } else {
-        cal.scrollTop = pos;
-      }
-    }
-    eid('btn-today').addEventListener('click', () => scrollToToday(true));
 
     // ═══════════════════════════════════════════════════════════
     // UTILITY HELPERS
@@ -2403,7 +2331,7 @@
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
         const entry = docList.find(d => d.id === docId);
-        if (entry) { entry.name = currentScheduleName; entry.selectionCount = events.filter(e => e.attending === 'yes').length; entry.eventCount = events.length; }
+        if (entry) { entry.name = currentScheduleName; entry.selectionCount = selected.size; entry.eventCount = events.length; }
         await syncPublic(currentUser.uid, docId, token);
         syncStatus('Saved', 'ok');
       } catch (e) { syncStatus('Save failed', 'err'); console.error(e); }
@@ -2476,12 +2404,12 @@
       const token = genToken();
       const localNow = new Date();
       await ref.set({
-        name, shareToken: token, selectionCount: 0, eventCount: 0, schemaVersion: 3,
-        payload: { events: [] }, // new schedules start with no events — never the shared demo list
+        name, shareToken: token, selectionCount: 0, eventCount: 0, schemaVersion: 2,
+        payload: { selected: [], events: [] }, // new schedules start with no events — never the shared demo list
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-      docList.unshift({ id: ref.id, name, shareToken: token, selectionCount: 0, eventCount: 0, schemaVersion: 3, createdAt: localNow, updatedAt: localNow });
+      docList.unshift({ id: ref.id, name, shareToken: token, selectionCount: 0, eventCount: 0, schemaVersion: 2, createdAt: localNow, updatedAt: localNow });
       return ref.id;
     }
     async function deleteDoc(uid, id) {
@@ -2650,34 +2578,20 @@
     function getDocData() {
       return {
         name: currentScheduleName,
-        selectionCount: events.filter(e => e.attending === 'yes').length,
+        selectionCount: selected.size,
         eventCount: events.length,
-        schemaVersion: 3,
-        payload: { events }
+        schemaVersion: 2,
+        payload: { selected: Array.from(selected), events }
       };
-    }
-    // One-time upgrade from the old model (a separate payload.selected array of
-    // legacy "date|start|label" keys) to the new per-event `attending` field.
-    // Events that already carry a valid `attending` value pass through
-    // untouched; everything else gets 'yes' if its legacy key was in
-    // `selected`, else 'no'. Never mutates the input array/objects (DEFAULT_EVENTS
-    // is a shared module-level constant reused across every schedule load).
-    function migrateAttending(rawEvents, legacySelectedKeys) {
-      const selSet = new Set(legacySelectedKeys || []);
-      return rawEvents.map(e => {
-        if (e.attending === 'yes' || e.attending === 'no' || e.attending === 'tentative') return e;
-        const key = legacyEventKey(deriveRenderEvent(e));
-        return { ...e, attending: selSet.has(key) ? 'yes' : 'no' };
-      });
     }
     function applyDocData(data) {
       const p = (data && data.payload) || {};
       // Array.isArray (not just `|| DEFAULT_EVENTS`) distinguishes "never saved
       // events at all" (legacy doc, pre-dates this field) from "deliberately empty"
       // (a brand-new schedule) — only the former falls back to the shared demo list.
-      const rawEvents = Array.isArray(p.events) ? p.events : DEFAULT_EVENTS;
-      events = migrateAttending(rawEvents, p.selected);
+      events = Array.isArray(p.events) ? p.events : DEFAULT_EVENTS;
       recomputeCalendarRange();
+      selected = new Set(p.selected || []);
       currentScheduleName = (data && data.name) || 'Untitled Schedule';
       const titleEl = eid('sc-title'); if (titleEl) titleEl.value = currentScheduleName;
       if (eid('view-schedule').style.display !== 'none') renderCalendar();
@@ -2767,14 +2681,14 @@
       if (gc) gc.style.display = 'flex';
       updateCrumb(); updateSubheadMeta();
       renderCalendar();
-      requestAnimationFrame(() => requestAnimationFrame(() => scrollToToday(false)));
     }
     async function goDash() {
       if (activeDocId && !readonlyMode) {
         clearTimeout(saveTimer); saveTimer = null;
-        await saveNow(); // must finish reading events/currentScheduleName before we clear them below
+        await saveNow(); // must finish reading selected/currentScheduleName before we clear them below
       }
       activeDocId = null;
+      selected = new Set();
       currentScheduleName = '';
       showDashboardView();
     }
@@ -2974,7 +2888,7 @@
         const startISO = parseUsDateTime(startStr);
         const endISO = parseUsDateTime(endStr);
         if (!name || !type || !startISO || !endISO) { skipped++; return; }
-        result.push({ id: newEventId(), name, type, coach, startISO, endISO, repeat, location, attending: 'no', created: now, modified: now });
+        result.push({ id: newEventId(), name, type, coach, startISO, endISO, repeat, location, created: now, modified: now });
       });
       return { events: result, skipped };
     }
@@ -3005,13 +2919,13 @@
     }
 
     // ═══════════════════════════════════════════════════════════
-    // EVENT CONTEXT MENU (attending status, edit, delete)
+    // EVENT CONTEXT MENU (select/unselect, edit, delete)
     // ═══════════════════════════════════════════════════════════
     let activeMenuEventId = null;
     function openEventMenu(ev, anchorEl) {
       hideTooltip();
       activeMenuEventId = ev.id;
-      const attending = ev.attending || 'no';
+      const isSel = selected.has(eventKey(ev));
       const menu = eid('ev-menu');
       const infoHtml = isMobile ? `
     <div class="row-menu-info">
@@ -3022,13 +2936,9 @@
     </div>
     <div class="row-menu-divider"></div>
   ` : '';
-      const statusItem = (val, label) => `<div class="row-menu-item${attending === val ? ' active' : ''}" data-ev-action="status" data-status-val="${val}">${attending === val ? '● ' : '○ '}${label}</div>`;
       menu.innerHTML = `
     ${infoHtml}
-    ${statusItem('yes', 'Mark Attending')}
-    ${statusItem('tentative', 'Mark Tentative')}
-    ${statusItem('no', 'Mark Not Attending')}
-    <div class="row-menu-divider"></div>
+    <div class="row-menu-item" data-ev-action="toggle">${isSel ? '✕ Unselect' : '✓ Select'}</div>
     <div class="row-menu-item" data-ev-action="edit">✎ Edit</div>
     <div class="row-menu-item danger" data-ev-action="delete">🗑 Delete</div>
   `;
@@ -3048,15 +2958,11 @@
       const ev = renderEvents.find(x => x.id === activeMenuEventId);
       closeEventMenu();
       if (!ev) return;
-      if (action === 'status') {
-        const idx = events.findIndex(x => x.id === ev.id);
-        if (idx !== -1) {
-          events[idx] = { ...events[idx], attending: item.dataset.statusVal, modified: new Date().toISOString() };
-          recomputeCalendarRange();
-          renderCalendar();
-          updateSubheadMeta();
-          saveNow();
-        }
+      if (action === 'toggle') {
+        const key = eventKey(ev);
+        if (selected.has(key)) selected.delete(key); else selected.add(key);
+        updateSelectionVisuals();
+        saveNow();
       } else if (action === 'edit') {
         openEditEventModal(ev);
       } else if (action === 'delete') {
@@ -3127,10 +3033,9 @@
       eid('ee-start').value = ev.startISO || '';
       eid('ee-end').value = ev.endISO || '';
       eid('ee-location').value = ev.location || '';
-      const attendingVal = ev.attending || 'no';
-      eid('ee-attend-yes').checked = attendingVal === 'yes';
-      eid('ee-attend-tentative').checked = attendingVal === 'tentative';
-      eid('ee-attend-no').checked = attendingVal === 'no';
+      const isAttending = selected.has(eventKey(ev));
+      eid('ee-attend-yes').checked = isAttending;
+      eid('ee-attend-no').checked = !isAttending;
       // Recurrence is only set up at creation time — editing an existing
       // occurrence never regenerates or alters the rest of its series.
       eid('ee-repeat-wrap').style.display = 'none';
@@ -3198,7 +3103,8 @@
       }
       const now = new Date().toISOString();
       const wasNew = editingEventId === null;
-      const attending = eid('ee-attend-tentative').checked ? 'tentative' : (eid('ee-attend-no').checked ? 'no' : 'yes');
+      const attending = eid('ee-attend-yes').checked;
+      const affectedIds = [];
       if (wasNew) {
         const repeatOn = eid('ee-repeat-on').checked;
         if (repeatOn) {
@@ -3212,18 +3118,27 @@
           const groupId = newGroupId();
           buildRepeatOccurrences(startISO, endISO, freq, repeatUntilISO).forEach(o => {
             const id = newEventId();
-            events.push({ id, name, type, coach, startISO: o.startISO, endISO: o.endISO, repeat: repeatLabel, event_group_id: groupId, location, attending, created: now, modified: now });
+            events.push({ id, name, type, coach, startISO: o.startISO, endISO: o.endISO, repeat: repeatLabel, event_group_id: groupId, location, created: now, modified: now });
+            affectedIds.push(id);
           });
         } else {
           const id = newEventId();
-          events.push({ id, name, type, coach, startISO, endISO, repeat: '', location, attending, created: now, modified: now });
+          events.push({ id, name, type, coach, startISO, endISO, repeat: '', location, created: now, modified: now });
+          affectedIds.push(id);
         }
       } else {
         const idx = events.findIndex(e => e.id === editingEventId);
         if (idx === -1) { closeEditEventModal(); return; }
-        events[idx] = { ...events[idx], name, type, coach, startISO, endISO, location, attending, modified: now };
+        events[idx] = { ...events[idx], name, type, coach, startISO, endISO, location, modified: now };
+        affectedIds.push(editingEventId);
       }
       recomputeCalendarRange();
+      // Sync the "attending" selection for the event(s) just added/edited —
+      // "Tentative" adds the event but leaves it unselected.
+      renderEvents.filter(e => affectedIds.includes(e.id)).forEach(e => {
+        const key = eventKey(e);
+        if (attending) selected.add(key); else selected.delete(key);
+      });
       renderCalendar();
       updateSubheadMeta();
       saveNow();
@@ -3249,6 +3164,8 @@
     function deleteEventById(id) {
       events = events.filter(e => e.id !== id);
       recomputeCalendarRange();
+      const validKeys = new Set(renderEvents.map(eventKey));
+      selected = new Set([...selected].filter(k => validKeys.has(k)));
       renderCalendar();
       updateSubheadMeta();
       saveNow();
@@ -3257,6 +3174,8 @@
     function deleteEventGroup(groupId) {
       events = events.filter(e => e.event_group_id !== groupId);
       recomputeCalendarRange();
+      const validKeys = new Set(renderEvents.map(eventKey));
+      selected = new Set([...selected].filter(k => validKeys.has(k)));
       renderCalendar();
       updateSubheadMeta();
       saveNow();
