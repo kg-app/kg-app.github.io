@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Alpha-Val — Optionality Wireframe (lo-fi) v3</title>
+<style>
+  :root{
+    --bg:#fff; --panel:#f4f4f4; --line:#999; --line-lt:#ccc; --ink:#111; --ink-mute:#666;
+    --sel:#111; --sel-bg:#e2e2e2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}
+  body{background:#e9e9e9;color:var(--ink);font-size:13px}
+  .wire-tag{position:fixed;top:0;left:0;right:0;background:#111;color:#fff;font-size:11px;
+    padding:5px 10px;z-index:50;letter-spacing:.05em}
+  .shell{display:flex;height:100vh;padding-top:24px}
+
+  /* ===== LEFT RAIL ===== */
+  .rail{width:270px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--line);
+    display:flex;flex-direction:column;overflow-y:auto}
+  .rail-h{padding:9px 10px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-mute);border-bottom:1px solid var(--line);background:#fff}
+
+  .rail-tab{display:flex;align-items:center;gap:7px;padding:11px 12px;cursor:pointer;
+    font-size:12.5px;font-weight:bold;border-bottom:1px solid #fff;background:#fff}
+  .rail-tab:hover{background:#f2f2f2}
+  .rail-tab.on{background:var(--sel);color:#fff}
+  .rail-tab .sub{font-size:10px;font-weight:normal;color:var(--ink-mute);margin-left:auto}
+  .rail-tab.on .sub{color:#ccc}
+
+  .rail-divider{height:1px;background:var(--line);margin:0}
+  .rail-divider-label{font-size:9px;color:var(--ink-mute);text-align:center;padding:3px 0;
+    background:repeating-linear-gradient(90deg,transparent,transparent 4px,#ccc 4px,#ccc 5px)}
+
+  .tree{padding:6px 0}
+  .tnode{display:flex;align-items:center;gap:5px;padding:6px 8px;cursor:pointer;border-bottom:1px solid #fff;
+    font-size:12px}
+  .tnode:hover{background:#e6e6e6}
+  .tnode.on{background:var(--sel-bg);font-weight:bold}
+  .tnode .npv{margin-left:auto;color:var(--ink-mute);font-size:11px}
+  .tnode.d0{padding-left:8px}
+  .tnode.d1{padding-left:26px}
+  .tnode.d2{padding-left:44px}
+  .tnode.d3{padding-left:62px}
+  .twist{width:12px;text-align:center;color:var(--ink-mute);font-size:10px}
+  .dot{width:8px;height:8px;border-radius:50%;background:#aaa;flex-shrink:0}
+  .sec-h{padding:8px 8px 4px 8px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-mute);display:flex;align-items:center;gap:5px;border-top:1px solid var(--line-lt);
+    margin-top:2px}
+  .sec-h .cnt{background:#ddd;border-radius:8px;padding:0 6px;font-size:9px}
+  .badge{font-size:9px;padding:1px 4px;border:1px solid var(--line-lt);border-radius:2px;color:var(--ink-mute)}
+  .badge.gen{background:#eef}
+  .badge.man{background:#fee}
+
+  /* ===== MAIN ===== */
+  .main{flex:1;overflow-y:auto;background:#fff}
+  .crumb{padding:10px 20px;border-bottom:1px solid var(--line);font-size:11px;color:var(--ink-mute)}
+  .panel{padding:20px}
+  .box{border:1px dashed var(--line-lt);background:#fafafa;padding:14px;margin-bottom:14px}
+  .box h3{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-mute);margin-bottom:8px}
+  .placeholder{border:1px dashed var(--line-lt);background:repeating-linear-gradient(45deg,#f4f4f4,#f4f4f4 10px,#ececec 10px,#ececec 20px);
+    display:flex;align-items:center;justify-content:center;color:var(--ink-mute);font-size:11px;min-height:120px}
+
+  .pipeline{display:flex;gap:2px;margin-bottom:16px}
+  .pstage{flex:1;text-align:center;padding:10px 4px;background:#eee;border:1px solid var(--line-lt);font-size:11px}
+  .pstage.done{background:#dcdcdc}
+  .pstage.active{background:#111;color:#fff}
+
+  /* ===== SUB-TABS (optionality view) ===== */
+  .subtabs{display:flex;border-bottom:2px solid var(--line);padding:0 20px}
+  .subtab{padding:11px 16px;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:.03em;
+    cursor:pointer;color:var(--ink-mute);border-bottom:2px solid transparent;margin-bottom:-2px}
+  .subtab.on{color:var(--ink);border-bottom-color:var(--ink)}
+
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{border:1px solid var(--line-lt);padding:6px 8px;text-align:left}
+  th{background:#eee;font-size:10px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-mute)}
+  input[type=text],input[type=number]{border:1px solid var(--line-lt);padding:4px 6px;width:70px;font-size:12px}
+  input[disabled]{background:#eee;color:var(--ink-mute)}
+  .lock{font-size:9px;color:var(--ink-mute)}
+  .indent1{padding-left:26px !important}
+  .indent2{padding-left:44px !important}
+  .row-gen{background:#f7f7fb}
+  .row-man{background:#fbf7f7}
+  .row-sub{color:var(--ink-mute)}
+  .btn{background:#111;color:#fff;border:none;padding:7px 14px;font-size:12px;cursor:pointer;margin-right:8px}
+  .btn.ghost{background:#fff;color:#111;border:1px solid var(--line)}
+  .toprow{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .prog{width:60px;height:6px;background:#ddd;position:relative}
+  .prog i{position:absolute;left:0;top:0;bottom:0;background:#111;display:block}
+  .kgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .kpi{border:1px solid var(--line-lt);padding:10px;background:#fafafa}
+  .kpi .l{font-size:10px;color:var(--ink-mute);text-transform:uppercase}
+  .kpi .v{font-size:18px;font-weight:bold;margin-top:2px}
+  .confirm-note{font-size:11px;background:#fff8e1;border:1px solid #e0c060;padding:8px 10px;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<div class="wire-tag">LO-FI WIREFRAME v3 — structure only · Base Case / Optionality are tabs, divider separates them, Options tree sits below both</div>
+
+<div class="shell">
+
+  <!-- ============ LEFT RAIL ============ -->
+  <div class="rail">
+    <div class="rail-h">Design Tree</div>
+
+    <div class="rail-tab on" id="tabBase" onclick="selectTab('base')">
+      <span class="dot" style="background:#111"></span> Base Case <span class="sub">frozen</span>
+    </div>
+
+    <div class="rail-divider"></div>
+
+    <div class="rail-tab" id="tabOpt" onclick="selectTab('optionality')">
+      <span class="dot"></span> Optionality <span class="sub">29 cases</span>
+    </div>
+
+    <div class="tree" id="optionsTree">
+      <div class="sec-h">Options <span class="cnt">29</span></div>
+
+      <div class="tnode d1" onclick="selectNode(this,'c1')"><span class="twist">·</span><span class="dot"></span>
+        <span>Case 1 — 500tph / 17in <span class="badge gen">gen</span></span><span class="npv">$212M</span></div>
+      <div class="tnode d1" onclick="selectNode(this,'c2')"><span class="twist">·</span><span class="dot"></span>
+        <span>Case 2 — 500tph / 20in <span class="badge gen">gen</span></span><span class="npv">$218M</span></div>
+      <div class="tnode d1" onclick="selectNode(this,'c3')"><span class="twist">▾</span><span class="dot"></span>
+        <span>Case 3 — 1000tph / 17in <span class="badge gen">gen</span></span><span class="npv">$245M</span></div>
+      <div class="tnode d2" onclick="selectNode(this,'c3-1')"><span class="twist">·</span><span class="dot" style="background:#bbb"></span>
+        <span>Case 3.1 — 1200tph (+20%) <span class="badge man">derived</span></span><span class="npv">$251M</span></div>
+      <div class="tnode d1" onclick="selectNode(this,'c4')"><span class="twist">·</span><span class="dot"></span>
+        <span>Case 4 — 1000tph / 20in <span class="badge gen">gen</span> <span class="badge">base combo</span></span><span class="npv">$249M</span></div>
+      <div class="tnode d1" onclick="selectNode(this,'c5')"><span class="twist">▾</span><span class="dot"></span>
+        <span>Case 5 — Stockpile expansion basis <span class="badge man">manual</span></span><span class="npv">$231M</span></div>
+      <div class="tnode d2" onclick="selectNode(this,'c5-1')"><span class="twist">▾</span><span class="dot" style="background:#bbb"></span>
+        <span>Case 5.1 — Top size 15in (−25%) <span class="badge man">derived</span></span><span class="npv">$238M</span></div>
+      <div class="tnode d3" onclick="selectNode(this,'c5-1-1')"><span class="twist">·</span><span class="dot" style="background:#ccc"></span>
+        <span style="font-size:11px">Case 5.1.1 — Moisture 4.5% (−10%) <span class="badge">depth 2 — max</span></span><span class="npv">$241M</span></div>
+      <div class="tnode d1" onclick="selectNode(this,'c6')"><span class="twist">·</span><span class="dot"></span>
+        <span>Case 6 — ROM moisture handling <span class="badge man">manual</span></span><span class="npv">draft</span></div>
+      <div class="tnode d1" style="color:var(--ink-mute);font-style:italic" onclick="selectNode(this,'more')">
+        <span class="twist"></span><span style="width:8px"></span>
+        <span>… 20 more cases, one flat level</span></div>
+      <div class="tnode d1" style="color:var(--ink-mute)" onclick="void(0)">
+        <span class="twist">+</span><span style="width:8px"></span><span>Add option…</span></div>
+    </div>
+  </div>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+
+    <!-- BASE CASE TAB VIEW -->
+    <div id="mainBase">
+      <div class="crumb">Base Case</div>
+      <div class="panel">
+        <div class="pipeline">
+          <div class="pstage done">SoW Sources</div>
+          <div class="pstage done">Sized System</div>
+          <div class="pstage done">Eng Drawings</div>
+          <div class="pstage done">Equipment Costs</div>
+          <div class="pstage done">TIC</div>
+          <div class="pstage active">Econ &amp; NPV</div>
+        </div>
+        <div class="box">
+          <h3>Base Case detail (unchanged from v5 — stub for wireframe)</h3>
+          <div class="placeholder">original 6-stage flow: SoW Sources → Sized System → Eng Drawings → Equipment Costs → TIC → Econ &amp; NPV</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPTIONALITY TAB VIEW -->
+    <div id="mainOpt" style="display:none">
+      <div class="crumb">Optionality</div>
+      <div class="subtabs">
+        <div class="subtab on" id="stRanges" onclick="setSub('ranges')">Base Case &amp; Ranges</div>
+        <div class="subtab" id="stMatrix" onclick="setSub('matrix')">Case Matrix (29)</div>
+        <div class="subtab" id="stCompare" onclick="setSub('compare')">Comparison</div>
+      </div>
+
+      <!-- RANGES -->
+      <div class="panel" id="subRanges">
+        <div class="box" style="border-style:solid">
+          <h3>Base Case &amp; Ranges — base column locked to frozen base case</h3>
+          <table>
+            <thead><tr><th>Include</th><th>Parameter</th><th>Low</th><th>Base <span class="lock">🔒 from frozen base case</span></th><th>High</th><th>Levels</th></tr></thead>
+            <tbody>
+              <tr><td><input type="checkbox" checked></td><td>Throughput (tph)</td>
+                <td><input type="text" value="500"></td><td><input type="text" value="1000" disabled></td>
+                <td><input type="text" value="2000"></td><td><input type="text" value="3" style="width:36px"></td></tr>
+              <tr><td><input type="checkbox" checked></td><td>Top size (in)</td>
+                <td><input type="text" value="17"></td><td><input type="text" value="20" disabled></td>
+                <td><input type="text" value="23"></td><td><input type="text" value="3" style="width:36px"></td></tr>
+              <tr><td><input type="checkbox"></td><td>P80 (in)</td>
+                <td><input type="text" value="13.6"></td><td><input type="text" value="16" disabled></td>
+                <td><input type="text" value="18.4"></td><td><input type="text" value="3" style="width:36px"></td></tr>
+              <tr><td><input type="checkbox"></td><td>Moisture (%)</td>
+                <td><input type="text" value="4.25"></td><td><input type="text" value="5" disabled></td>
+                <td><input type="text" value="5.75"></td><td><input type="text" value="3" style="width:36px"></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <button class="btn" onclick="setSub('matrix')">Generate options →</button>
+        <span style="font-size:11px;color:var(--ink-mute)">2 params × 3 levels = 9 combinations · full-factorial (per current copy, no warning)</span>
+      </div>
+
+      <!-- MATRIX -->
+      <div class="panel" id="subMatrix" style="display:none">
+        <div class="toprow">
+          <div style="font-size:12px;color:var(--ink-mute)">Flat registry — one level for generated + manual, sub-options indented under their parent</div>
+          <div><button class="btn ghost">Add option manually</button><button class="btn">Run selected (3)</button></div>
+        </div>
+        <table>
+          <thead><tr><th style="width:26px"></th><th>Name</th><th>Type</th><th>Throughput</th><th>Top size</th><th>Status</th><th>Progress</th><th>NPV</th></tr></thead>
+          <tbody>
+            <tr class="row-gen"><td><input type="checkbox" checked></td><td>Case 1 — 500tph / 17in</td><td><span class="badge gen">generated</span></td><td>500</td><td>17</td><td>ready</td>
+              <td><div class="prog"><i style="width:100%"></i></div></td><td>$212M</td></tr>
+            <tr class="row-gen"><td><input type="checkbox"></td><td>Case 2 — 500tph / 20in</td><td><span class="badge gen">generated</span></td><td>500</td><td>20</td><td>queued</td>
+              <td><div class="prog"><i style="width:0%"></i></div></td><td>—</td></tr>
+            <tr class="row-gen"><td><input type="checkbox" checked></td><td>Case 3 — 1000tph / 17in</td><td><span class="badge gen">generated</span></td><td>1000</td><td>17</td><td>running</td>
+              <td><div class="prog"><i style="width:60%"></i></div></td><td>—</td></tr>
+            <tr class="row-sub"><td class="indent1"></td><td class="indent1">Case 3.1 — 1200tph (+20%)</td><td><span class="badge man">derived</span></td><td>1200</td><td>17</td><td>ready</td>
+              <td><div class="prog"><i style="width:100%"></i></div></td><td>$251M</td></tr>
+            <tr class="row-gen"><td><input type="checkbox" checked></td><td>Case 4 — 1000tph / 20in <span class="badge">base combo</span></td><td><span class="badge gen">generated</span></td><td>1000</td><td>20</td><td>ready</td>
+              <td><div class="prog"><i style="width:100%"></i></div></td><td>$249M</td></tr>
+            <tr class="row-gen" style="color:var(--ink-mute);font-style:italic"><td></td><td colspan="7">… 20 more generated cases, same flat level as Case 5 / 6 below</td></tr>
+            <tr class="row-man"><td><input type="checkbox"></td><td>Case 5 — Stockpile expansion basis</td><td><span class="badge man">manual</span></td><td>1000</td><td>20</td><td>ready</td>
+              <td><div class="prog"><i style="width:100%"></i></div></td><td>$231M</td></tr>
+            <tr class="row-sub"><td class="indent1"></td><td class="indent1">Case 5.1 — Top size 15in (−25%)</td><td><span class="badge man">derived</span></td><td>1000</td><td>15</td><td>ready</td>
+              <td><div class="prog"><i style="width:100%"></i></div></td><td>$238M</td></tr>
+            <tr class="row-sub"><td class="indent2"></td><td class="indent2">Case 5.1.1 — Moisture 4.5% (−10%)</td><td><span class="badge man">derived</span></td><td>1000</td><td>15</td><td>ready</td>
+              <td><div class="prog"><i style="width:100%"></i></div></td><td>$241M</td></tr>
+            <tr class="row-man"><td><input type="checkbox"></td><td>Case 6 — ROM moisture handling</td><td><span class="badge man">manual</span></td><td>1000</td><td>20</td><td>draft</td>
+              <td><div class="prog"><i style="width:0%"></i></div></td><td>—</td></tr>
+          </tbody>
+        </table>
+        <div class="confirm-note">⚠ If ranges are edited after cases exist: modal confirms "Add 9 new cases to the existing 29? Existing results are kept." (append, not replace)</div>
+      </div>
+
+      <!-- COMPARISON -->
+      <div class="panel" id="subCompare" style="display:none">
+        <div style="font-size:11px;color:var(--ink-mute);margin-bottom:10px">Former top-level "NPV Summary" — now lives only here. Rolls up every node in the Options tree, at any depth.</div>
+        <div class="kgrid">
+          <div class="kpi"><div class="l">Highest NPV</div><div class="v">$251M</div></div>
+          <div class="kpi"><div class="l">Frozen base case</div><div class="v">$220M</div></div>
+          <div class="kpi"><div class="l">NPV range</div><div class="v">$212–251M</div></div>
+        </div>
+        <div class="box"><h3>NPV by option (bar chart)</h3><div class="placeholder">chart placeholder</div></div>
+        <div class="box"><h3>Hill of Value — NPV vs. param vs. param (3D surface)</h3><div class="placeholder">chart placeholder</div></div>
+        <div class="box">
+          <h3>All nodes, sorted NPV ↓</h3>
+          <table>
+            <thead><tr><th>Node</th><th>Type</th><th>NPV</th><th>Δ base</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="indent1">Case 3.1 — 1200tph (+20%)</td><td>derived</td><td>$251M</td><td>+$31M</td><td>ready</td></tr>
+              <tr><td class="indent2">Case 5.1.1 — Moisture 4.5% (−10%)</td><td>derived</td><td>$241M</td><td>+$21M</td><td>ready</td></tr>
+              <tr><td>Case 4 — 1000/20 (base combo)</td><td>generated</td><td>$249M</td><td>+$29M</td><td>ready</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- INDIVIDUAL OPTION NODE VIEW -->
+    <div id="mainNode" style="display:none">
+      <div class="crumb" id="crumbNode">Base Case › Options › —</div>
+      <div class="panel">
+        <div class="pipeline">
+          <div class="pstage active">Scope</div>
+          <div class="pstage done">Sized System</div>
+          <div class="pstage done">Eng Drawings</div>
+          <div class="pstage done">Equipment Costs</div>
+          <div class="pstage done">TIC</div>
+          <div class="pstage done">Econ &amp; NPV</div>
+        </div>
+        <div class="box" style="border-style:solid">
+          <h3>Scope — modified vs. inherited from Base Case</h3>
+          <table>
+            <thead><tr><th>Parameter</th><th>Base Case</th><th>This Case</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Throughput (tph)</td><td>1000</td><td>500</td><td><span class="badge man">modified −50%</span></td></tr>
+              <tr><td>Top size (in)</td><td>20</td><td>17</td><td><span class="badge man">modified −15%</span></td></tr>
+              <tr><td>P80 (in)</td><td>16</td><td>16</td><td><span class="badge">inherited</span></td></tr>
+              <tr><td>Moisture (%)</td><td>5</td><td>5</td><td><span class="badge">inherited</span></td></tr>
+              <tr><td>ROM Stockpile (days)</td><td>10</td><td>10</td><td><span class="badge">inherited</span></td></tr>
+              <tr><td>SG</td><td>2.75</td><td>2.75</td><td><span class="badge">inherited</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="box">
+          <h3>Sized System / Eng Drawings / Equipment Costs / TIC / Econ &amp; NPV (unchanged from v5 — stub for wireframe)</h3>
+          <div class="placeholder">remaining 5 stages, per-node pipeline output stays as-is</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function setSub(which){
+  document.getElementById('stRanges').classList.toggle('on', which==='ranges');
+  document.getElementById('stMatrix').classList.toggle('on', which==='matrix');
+  document.getElementById('stCompare').classList.toggle('on', which==='compare');
+  document.getElementById('subRanges').style.display = which==='ranges' ? 'block':'none';
+  document.getElementById('subMatrix').style.display = which==='matrix' ? 'block':'none';
+  document.getElementById('subCompare').style.display = which==='compare' ? 'block':'none';
+}
+function selectTab(which){
+  document.querySelectorAll('.tnode').forEach(n=>n.classList.remove('on'));
+  document.getElementById('tabBase').classList.toggle('on', which==='base');
+  document.getElementById('tabOpt').classList.toggle('on', which==='optionality');
+  document.getElementById('mainBase').style.display = which==='base' ? 'block':'none';
+  document.getElementById('mainOpt').style.display = which==='optionality' ? 'block':'none';
+  document.getElementById('mainNode').style.display = 'none';
+}
+function selectNode(el,id){
+  document.getElementById('tabBase').classList.remove('on');
+  document.getElementById('tabOpt').classList.remove('on');
+  document.querySelectorAll('.tnode').forEach(n=>n.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('mainBase').style.display = 'none';
+  document.getElementById('mainOpt').style.display = 'none';
+  document.getElementById('mainNode').style.display = 'block';
+  const label = el.textContent.trim();
+  document.getElementById('crumbNode').textContent = 'Base Case › Options › ' + label;
+}
+</script>
+</body>
+</html>
