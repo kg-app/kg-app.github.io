@@ -5,5 +5,5 @@
 // (document extraction, claim critique, analysis summary) will show an
 // error toast instead of silently faking results.
 const AI_CONFIG = {
-  endpoint: "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/aiProxy"
+  endpoint: "https://aiproxy-lghf76ew2q-uc.a.run.app"
 };
