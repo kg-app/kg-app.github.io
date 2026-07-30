@@ -25,7 +25,6 @@
     --c-achievement: #16a34a; --c-achievement-bg: #dcfce7;
     --c-milestone:   #2563eb; --c-milestone-bg:   #dbeafe;
     --c-learning:    #d97706; --c-learning-bg:    #fef3c7;
-    --c-failure:     #e11d48; --c-failure-bg:     #ffe4e6;
   }
 
   html, body { height: 100%; }
@@ -88,7 +87,6 @@
   .cat-chip.active[data-cat="achievement"] { background: var(--c-achievement-bg); color: var(--c-achievement); border-color: transparent; }
   .cat-chip.active[data-cat="milestone"]   { background: var(--c-milestone-bg); color: var(--c-milestone); border-color: transparent; }
   .cat-chip.active[data-cat="learning"]    { background: var(--c-learning-bg); color: var(--c-learning); border-color: transparent; }
-  .cat-chip.active[data-cat="failure"]     { background: var(--c-failure-bg); color: var(--c-failure); border-color: transparent; }
 
   /* ---------- timeline ---------- */
   #timeline { padding: 14px; }
@@ -109,7 +107,6 @@
   .pill.cat-achievement { background: var(--c-achievement-bg); color: var(--c-achievement); }
   .pill.cat-milestone   { background: var(--c-milestone-bg); color: var(--c-milestone); }
   .pill.cat-learning    { background: var(--c-learning-bg); color: var(--c-learning); }
-  .pill.cat-failure     { background: var(--c-failure-bg); color: var(--c-failure); }
   #empty-state { text-align: center; color: var(--ink-mute); font-size: 13px; padding: 60px 20px; }
 
   /* ---------- FAB ---------- */
@@ -133,7 +130,6 @@
   .pick-chip.selected[data-cat="achievement"] { background: var(--c-achievement-bg); color: var(--c-achievement); border-color: transparent; }
   .pick-chip.selected[data-cat="milestone"]   { background: var(--c-milestone-bg); color: var(--c-milestone); border-color: transparent; }
   .pick-chip.selected[data-cat="learning"]    { background: var(--c-learning-bg); color: var(--c-learning); border-color: transparent; }
-  .pick-chip.selected[data-cat="failure"]     { background: var(--c-failure-bg); color: var(--c-failure); border-color: transparent; }
   #image-preview-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
   .img-thumb { position: relative; width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
   .img-thumb img { width: 100%; height: 100%; object-fit: cover; }
@@ -153,7 +149,9 @@
   .child-row, .share-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--line); }
   .child-row:last-child { border-bottom: none; }
   .child-left { display: flex; align-items: center; gap: 10px; }
-  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--c-milestone-bg); color: var(--c-milestone); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .avatar-sm { width: 18px; height: 18px; font-size: 10px; }
+  #child-toggle .seg { display: flex; align-items: center; justify-content: center; gap: 5px; }
   .child-name { font-size: 13px; font-weight: 600; }
   .child-meta { font-size: 11px; color: var(--ink-mute); }
   .list-card { background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 10px; }
@@ -171,6 +169,18 @@
   .modal { width: min(340px, 92vw); background: var(--bg-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 20px; text-align: center; }
   .modal h2 { font-size: 16px; margin-bottom: 6px; }
   .modal p { font-size: 12px; color: var(--ink-3); margin-bottom: 16px; }
+  .modal input { width: 100%; margin-bottom: 12px; text-align: center; }
+  .modal .challenge-code { font-weight: 700; letter-spacing: 1px; color: var(--ink); }
+
+  /* ---------- multi-select ---------- */
+  #select-toggle { flex-shrink: 0; }
+  .entry-row.select-mode .entry-card { cursor: pointer; }
+  .entry-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line-strong); background: var(--bg-surface); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: transparent; }
+  .entry-row.selected .entry-check { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .entry-row.selected .entry-card { border-color: var(--ink-3); }
+  #select-bar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 26; background: var(--bg-surface); border-top: 1px solid var(--line); padding: 10px 14px; align-items: center; gap: 10px; box-shadow: var(--shadow-md); }
+  #select-bar.open { display: flex; }
+  #select-bar .count { flex: 1; font-size: 13px; font-weight: 600; }
 
   /* ---------- toast ---------- */
   #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(0); background: var(--ink); color: #fff; font-size: 13px; padding: 9px 16px; border-radius: 20px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 70; }
@@ -195,9 +205,12 @@
 
 <div id="shell">
   <div id="controls" hidden>
-    <div id="search-row">
-      <span class="ic">&#128269;</span>
-      <input id="search" type="text" placeholder="Search entries" oninput="renderTimeline()">
+    <div id="search-row" style="display:flex; gap:8px; align-items:center;">
+      <div style="position:relative; flex:1;">
+        <span class="ic">&#128269;</span>
+        <input id="search" type="text" placeholder="Search entries" oninput="renderTimeline()">
+      </div>
+      <button class="btn btn-sm" id="select-toggle" onclick="toggleSelectMode()">Select</button>
     </div>
     <div id="child-toggle"></div>
     <div id="category-chips"></div>
@@ -208,6 +221,24 @@
 </div>
 
 <button id="fab" onclick="openEntrySheet()" hidden>+</button>
+
+<div id="select-bar">
+  <span class="count" id="select-count">0 selected</span>
+  <button class="btn btn-sm" onclick="toggleSelectMode()">Cancel</button>
+  <button class="btn btn-sm btn-danger" onclick="openDeleteConfirm()">&#128465; Delete</button>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <h2>Delete <span id="delete-count-label">entries</span>?</h2>
+    <p id="delete-modal-warning">This permanently removes the selected entries and their photos. This can't be undone.</p>
+    <p>Type <span class="challenge-code" id="delete-challenge-code">DELETE</span> to confirm.</p>
+    <input id="delete-challenge-input" autocomplete="off" oninput="onDeleteChallengeInput()">
+    <button class="btn btn-block btn-danger" id="delete-confirm-btn" onclick="confirmBulkDelete()" disabled>Delete</button>
+    <button class="btn btn-block" style="margin-top:8px;" onclick="closeOverlay('delete-modal')">Cancel</button>
+  </div>
+</div>
 
 <!-- ADD / EDIT ENTRY SHEET -->
 <div class="overlay" id="entry-overlay">
@@ -260,6 +291,35 @@
   </div>
 </div>
 
+<!-- BULK IMPORT SHEET -->
+<div class="overlay" id="bulk-overlay">
+  <div class="sheet">
+    <div class="sheet-grab"></div>
+    <div class="sheet-head">
+      <h2>Bulk import entries</h2>
+      <button class="sheet-close" onclick="closeOverlay('bulk-overlay')">&#10005;</button>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Who is this for</label>
+      <select id="bulk-child"></select>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Events (one per line)</label>
+      <div style="font-size:11px; color:var(--ink-3); margin-bottom:6px; line-height:1.5;">
+        Format: <code>date, title, category, description, tags</code><br>
+        Category is one of achievement / milestone / learning (optional, defaults to achievement). Separate tags with <code>;</code>. Wrap a field in quotes if it contains a comma. Sample rows are pre-filled below &mdash; replace them with your own.
+      </div>
+      <textarea id="bulk-rows" style="min-height:180px; font-family: ui-monospace, monospace; font-size:12px;"></textarea>
+    </div>
+
+    <div style="font-size:11px; color:var(--ink-mute); margin-bottom:10px;">Photos aren't included in bulk import &mdash; add those afterward on each entry.</div>
+
+    <button class="btn btn-primary btn-block" onclick="runBulkImport()" id="bulk-import-btn">Import entries</button>
+  </div>
+</div>
+
 <!-- ADMIN VIEW -->
 <div id="admin-view">
   <div class="admin-head">
@@ -273,6 +333,9 @@
     <div class="section-label">Children</div>
     <div class="list-card" id="admin-children"></div>
     <button class="btn btn-block" style="margin-bottom:22px;" onclick="promptAddChild()">+ Add child</button>
+
+    <div class="section-label">Bulk import entries</div>
+    <button class="btn btn-block" style="margin-bottom:22px;" onclick="openBulkImport()">&#128228; Bulk import</button>
 
     <div class="section-label">Share view-only / editable link</div>
     <div class="list-card" style="padding:12px;">
@@ -323,8 +386,8 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-const CATEGORIES = ['achievement', 'milestone', 'learning', 'failure'];
-const CATEGORY_LABEL = { achievement: 'Achievement', milestone: 'Milestone', learning: 'Learning', failure: 'Failure' };
+const CATEGORIES = ['achievement', 'milestone', 'learning'];
+const CATEGORY_LABEL = { achievement: 'Achievement', milestone: 'Milestone', learning: 'Learning' };
 
 let currentUser = null;
 let contexts = [];        // [{id: ownerUid, label, role: 'owner'|'editor'|'viewer'}]
@@ -340,6 +403,8 @@ let activeCategoryFilter = 'all';
 let pendingImages = [];   // [{file, previewUrl}] queued for the entry being edited
 let editingEntryId = null;
 let shareScope = 'all';
+let selectMode = false;
+let selectedIds = new Set();
 
 /* ---------- helpers ---------- */
 
@@ -355,7 +420,29 @@ function closeOverlay(id) { document.getElementById(id).classList.remove('open')
 function escapeHtml(s) {
   return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-function initials(name) { return (name || '?').trim().charAt(0).toUpperCase(); }
+function initials(name) {
+  const parts = (name || '?').trim().split(/\s+/);
+  return ((parts[0]?.[0] || '?') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+}
+
+const AVATAR_PALETTE = [
+  { bg: '#dcfce7', fg: '#16a34a' }, { bg: '#dbeafe', fg: '#2563eb' },
+  { bg: '#fef3c7', fg: '#d97706' }, { bg: '#fae8ff', fg: '#a21caf' },
+  { bg: '#ffe4e6', fg: '#e11d48' }, { bg: '#e0f2fe', fg: '#0284c7' },
+  { bg: '#ede9fe', fg: '#7c3aed' }, { bg: '#fef9c3', fg: '#a16207' },
+  { bg: '#ffedd5', fg: '#c2410c' }, { bg: '#ccfbf1', fg: '#0f766e' },
+];
+function hashStr(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) | 0; }
+  return Math.abs(h);
+}
+function childAvatarColor(childId) { return AVATAR_PALETTE[hashStr(childId || '') % AVATAR_PALETTE.length]; }
+function avatarHtml(child, size) {
+  const { bg, fg } = childAvatarColor(child.id);
+  const cls = size === 'sm' ? 'avatar avatar-sm' : 'avatar';
+  return `<div class="${cls}" style="background:${bg}; color:${fg};">${initials(child.name)}</div>`;
+}
 function todayStr() { const d = new Date(); return d.toISOString().slice(0,10); }
 function fmtDate(iso) {
   if (!iso) return '';
@@ -431,6 +518,9 @@ async function loadJournal(id) {
   ownerId = id;
   isOwnerView = (ownerId === currentUser.uid);
   document.getElementById('btn-admin').hidden = !isOwnerView;
+  selectMode = false; selectedIds = new Set();
+  document.getElementById('select-toggle').hidden = false;
+  updateSelectBar();
   await Promise.all([loadChildren(), loadEntries()]);
   if (isOwnerView) await loadShares();
   renderChildToggle();
@@ -481,11 +571,11 @@ async function loadShares() {
 function renderChildToggle() {
   const el = document.getElementById('child-toggle');
   el.innerHTML = '';
-  const segs = [{ id: 'all', name: 'Both' }, ...children.map(c => ({ id: c.id, name: c.name }))];
+  const segs = [{ id: 'all', name: 'Both' }, ...children];
   segs.forEach(s => {
     const d = document.createElement('div');
     d.className = 'seg' + (activeChildFilter === s.id ? ' active' : '');
-    d.textContent = s.name;
+    d.innerHTML = (s.id === 'all' ? '' : avatarHtml(s, 'sm')) + `<span>${escapeHtml(s.name)}</span>`;
     d.onclick = () => { activeChildFilter = s.id; renderChildToggle(); renderTimeline(); };
     el.appendChild(d);
   });
@@ -541,12 +631,12 @@ function renderTimeline() {
     }
 
     const row = document.createElement('div');
-    row.className = 'entry-row';
+    row.className = 'entry-row' + (selectMode ? ' select-mode' : '') + (selectedIds.has(e.id) ? ' selected' : '');
     const rail = document.createElement('div');
     rail.className = 'entry-rail';
     const card = document.createElement('div');
     card.className = 'entry-card';
-    card.onclick = () => openEntrySheet(e.id);
+    card.onclick = selectMode ? () => toggleEntrySelected(e.id) : () => openEntrySheet(e.id);
 
     const media = (e.mediaUrls || []).slice(0, 4).map(u => `<img src="${u}" alt="">`).join('');
     const tags = (e.tags || []).map(t => `<span class="pill">${escapeHtml(t)}</span>`).join('');
@@ -564,10 +654,87 @@ function renderTimeline() {
         ${tags}
       </div>
     `;
+    if (selectMode) {
+      const check = document.createElement('div');
+      check.className = 'entry-check';
+      check.innerHTML = '&#10003;';
+      check.onclick = () => toggleEntrySelected(e.id);
+      row.appendChild(check);
+    }
     row.appendChild(rail);
     row.appendChild(card);
     el.appendChild(row);
   });
+}
+
+/* ---------- multi-select delete ---------- */
+
+function toggleSelectMode() {
+  if (!selectMode && !isOwnerView) { toast('Only the journal owner can delete entries.'); return; }
+  selectMode = !selectMode;
+  selectedIds = new Set();
+  document.getElementById('select-toggle').hidden = selectMode;
+  document.getElementById('fab').hidden = selectMode || !currentUser;
+  updateSelectBar();
+  renderTimeline();
+}
+
+function toggleEntrySelected(id) {
+  if (selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id);
+  updateSelectBar();
+  renderTimeline();
+}
+
+function updateSelectBar() {
+  const bar = document.getElementById('select-bar');
+  bar.classList.toggle('open', selectMode);
+  document.getElementById('select-count').textContent = `${selectedIds.size} selected`;
+}
+
+function openDeleteConfirm() {
+  if (!selectedIds.size) { toast('Select at least one entry.'); return; }
+  const n = selectedIds.size;
+  document.getElementById('delete-count-label').textContent = n === 1 ? 'this entry' : `these ${n} entries`;
+  document.getElementById('delete-modal-warning').textContent =
+    `This permanently removes ${n === 1 ? 'the selected entry' : `all ${n} selected entries`} and their photos. This can't be undone.`;
+  document.getElementById('delete-challenge-code').textContent = 'DELETE';
+  const input = document.getElementById('delete-challenge-input');
+  input.value = '';
+  document.getElementById('delete-confirm-btn').disabled = true;
+  openOverlay('delete-modal');
+}
+
+function onDeleteChallengeInput() {
+  const match = document.getElementById('delete-challenge-input').value === document.getElementById('delete-challenge-code').textContent;
+  document.getElementById('delete-confirm-btn').disabled = !match;
+}
+
+async function confirmBulkDelete() {
+  const ids = [...selectedIds];
+  if (!ids.length) return;
+  const btn = document.getElementById('delete-confirm-btn');
+  btn.disabled = true; btn.textContent = 'Deleting...';
+  try {
+    for (const id of ids) {
+      const entry = entries.find(e => e.id === id);
+      if (entry && entry.mediaPaths) {
+        await Promise.all(entry.mediaPaths.map(p => storage.ref(p).delete().catch(e => console.warn('delete failed', p, e.code))));
+      }
+    }
+    const batch = db.batch();
+    ids.forEach(id => batch.delete(entriesCol().doc(id)));
+    await batch.commit();
+    toast(`Deleted ${ids.length} ${ids.length === 1 ? 'entry' : 'entries'}`);
+    closeOverlay('delete-modal');
+    toggleSelectMode();
+    await loadEntries();
+    renderTimeline();
+  } catch (err) {
+    console.error('confirmBulkDelete failed:', err.code, err.message);
+    toast(`Couldn't delete: ${err.code || err.message}`);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Delete';
+  }
 }
 
 /* ---------- add / edit entry ---------- */
@@ -704,6 +871,96 @@ async function saveEntry() {
   }
 }
 
+/* ---------- bulk import ---------- */
+
+const BULK_SAMPLE = `2026-06-11, Graduated from Martin Middle School, achievement, "Achieved grades of 5, 4, and 3 in Math, Science, and ELA", school
+2025-10-01, Accepted to 14 Diamond, milestone, Top volleyball team in NC Academy, volleyball
+2024-07-17, Presented at UNH Conference, achievement, "Abstract of 2023 summer research on violence prevention, presented at UNH/UKY conference", research; conference`;
+
+function openBulkImport() {
+  if (!isOwnerView) { toast('Only the journal owner can bulk import.'); return; }
+  if (!children.length) { toast('Add a child in Admin before importing.'); return; }
+  const sel = document.getElementById('bulk-child');
+  sel.innerHTML = children.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  document.getElementById('bulk-rows').value = BULK_SAMPLE;
+  openOverlay('bulk-overlay');
+}
+
+// Splits one line on commas, honoring "quoted, fields" so descriptions can contain commas.
+function parseCsvLine(line) {
+  const fields = [];
+  let cur = '', inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (inQuotes) {
+      if (c === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else { inQuotes = false; } }
+      else cur += c;
+    } else if (c === '"') inQuotes = true;
+    else if (c === ',') { fields.push(cur); cur = ''; }
+    else cur += c;
+  }
+  fields.push(cur);
+  return fields.map(f => f.trim());
+}
+
+// Accepts ISO dates plus loose human dates ("December 2025", "July 25-27 2024"); returns YYYY-MM-DD or null.
+function parseFlexibleDate(raw) {
+  let s = (raw || '').trim();
+  if (!s) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  s = s.replace(/([A-Za-z]+)-[A-Za-z]+(\s+\d{4})/, '$1$2'); // "February-June 2024" -> "February 2024"
+  s = s.replace(/(\d{1,2})-\d{1,2}(\s+\d{4})/, '$1$2');     // "July 25-27 2024" -> "July 25 2024"
+  s = s.replace(/,/g, ' ');
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return null;
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+async function runBulkImport() {
+  const childId = document.getElementById('bulk-child').value;
+  const lines = document.getElementById('bulk-rows').value.split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) { toast('Paste at least one row.'); return; }
+
+  const rows = [];
+  const skipped = [];
+  lines.forEach((line, i) => {
+    const [rawDate, title, rawCategory, description, rawTags] = parseCsvLine(line);
+    const date = parseFlexibleDate(rawDate);
+    if (!date || !title) { skipped.push(i + 1); return; }
+    const category = CATEGORIES.includes((rawCategory || '').trim().toLowerCase()) ? rawCategory.trim().toLowerCase() : CATEGORIES[0];
+    const tags = (rawTags || '').split(';').map(t => t.trim()).filter(Boolean);
+    rows.push({ date, title: title.trim(), category, description: (description || '').trim(), tags });
+  });
+
+  if (!rows.length) { toast('No valid rows found. Check the date and title columns.'); return; }
+
+  const btn = document.getElementById('bulk-import-btn');
+  btn.disabled = true; btn.textContent = 'Importing...';
+  try {
+    const batch = db.batch();
+    rows.forEach(r => {
+      batch.set(entriesCol().doc(), {
+        ...r, childId, mediaUrls: [], mediaPaths: [],
+        addedByUid: currentUser.uid, addedByEmail: currentUser.email || '',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    });
+    await batch.commit();
+    toast(`Imported ${rows.length} entr${rows.length === 1 ? 'y' : 'ies'}` + (skipped.length ? `, skipped line${skipped.length === 1 ? '' : 's'} ${skipped.join(', ')}` : ''));
+    closeOverlay('bulk-overlay');
+    await loadEntries();
+    renderTimeline();
+    renderAdminOverview();
+  } catch (err) {
+    console.error('runBulkImport failed:', err.code, err.message);
+    toast(`Couldn't import: ${err.code || err.message}`);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Import entries';
+  }
+}
+
 async function deleteEntry() {
   if (!editingEntryId || !isOwnerView) return;
   if (!confirm("Delete this entry and its photos? This can't be undone.")) return;
@@ -760,7 +1017,7 @@ function renderAdminChildren() {
     const count = entries.filter(e => e.childId === c.id).length;
     row.innerHTML = `
       <div class="child-left">
-        <div class="avatar">${initials(c.name)}</div>
+        ${avatarHtml(c)}
         <div>
           <div class="child-name">${escapeHtml(c.name)}</div>
           <div class="child-meta">${count} ${count === 1 ? 'entry' : 'entries'}</div>
