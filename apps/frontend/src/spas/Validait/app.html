@@ -499,6 +499,7 @@ body.readonly .asum-actions{display:none}
         <span>Updated <b id="meta-updated">—</b></span>
         <span><b id="meta-docs">0</b> documents</span>
         <div class="subhead-actions">
+          <button class="btn btn-sm" id="btn-analyze-all">✦ Analyze everything</button>
           <button class="btn btn-sm" id="btn-summarise">✦ Summarise</button>
           <button class="btn btn-sm" id="btn-upload-doc">📎 Upload doc</button>
           <button class="btn btn-sm" id="btn-workflow">⊞ Workflow</button>
@@ -609,8 +610,8 @@ body.readonly .asum-actions{display:none}
     </div>
     <div class="modal-sub" style="margin-bottom:18px">A falsificationist framework for stress-testing your business thesis — built to challenge claims, not confirm them.</div>
     <div class="guide-step"><div class="guide-num">1</div><div><div class="guide-title">Start an analysis</div><div class="guide-txt">Name it, then add a document or your first claim. Documents are parsed automatically into a starting set of claims; you can also add claims by hand at any time.</div></div></div>
-    <div class="guide-step"><div class="guide-num">2</div><div><div class="guide-title">Claims are challenged, not confirmed</div><div class="guide-txt">Every claim gets an AI critique designed to find its weakest point. Attach evidence and the AI classifies it as supporting, contradicting, or merely qualifying the claim — status updates accordingly.</div></div></div>
-    <div class="guide-step"><div class="guide-num">3</div><div><div class="guide-title">Tensions surface contradictions</div><div class="guide-txt">When two claims conflict — like assuming both an EPCM and an Owner PM are your primary buyer — AI flags it as a tension that needs an explicit resolution.</div></div></div>
+    <div class="guide-step"><div class="guide-num">2</div><div><div class="guide-title">Claims are challenged, not confirmed</div><div class="guide-txt">Add evidence and counterfactuals for a claim (Evidence and Counterfactuals tabs), then run "Critique with AI" on it to find its weakest point. Evidence gets classified as supporting, contradicting, or merely qualifying the claim, and the AI recommends a status you can apply or ignore.</div></div></div>
+    <div class="guide-step"><div class="guide-num">3</div><div><div class="guide-title">Tensions surface contradictions</div><div class="guide-txt">When two claims conflict — like assuming both an EPCM and an Owner PM are your primary buyer — critique flags it as a tension that needs an explicit resolution. Click "✦ Analyze everything" to critique every claim at once and surface all cross-claim tensions in one pass.</div></div></div>
     <div class="guide-step"><div class="guide-num">4</div><div><div class="guide-title">Counterfactuals name the failure condition</div><div class="guide-txt">For any claim, ask: what would have to be true for this to be false? AI proposes counterfactuals from its critiques; you can add your own and mark them confirmed or ruled out as you investigate.</div></div></div>
     <div class="guide-step"><div class="guide-num">5</div><div><div class="guide-title">Experiments turn analysis into action</div><div class="guide-txt">Click "Generate experiments" and AI reviews your highest-priority tensions and counterfactuals to propose concrete tests — with the reasoning behind each one shown alongside it.</div></div></div>
     <div class="guide-step" style="margin-bottom:6px"><div class="guide-num">6</div><div><div class="guide-title">Everything is traceable</div><div class="guide-txt">Click the 📎 icon on any item to see exactly where it came from — a document quote, an interview, or a manual entry — and its full edit history.</div></div></div>
@@ -1093,9 +1094,15 @@ async function initUserDocs(uid) {
 // AUTH
 // ═══════════════════════════════════════════════════════════
 const googleProvider = new firebase.auth.GoogleAuthProvider();
+// NOTE: signInWithRedirect round-trips through <project>.firebaseapp.com to persist the
+// pending-auth-result before navigating away, then reads it back on return. On localhost/
+// 127.0.0.1 that read/write is cross-site from the browser's point of view, so if third-party
+// cookies/storage are blocked (increasingly the default), the result is silently lost — no
+// error is thrown, getRedirectResult() just resolves with no user, and the app looks like sign-in
+// never happened. Popup avoids that persistence round-trip, so prefer it everywhere and only
+// fall back to redirect if the popup itself is blocked/cancelled (handled in the catch below).
 function preferAuthRedirect() {
-  const h = location.hostname;
-  return h === 'localhost' || h === '127.0.0.1';
+  return false;
 }
 async function signInGoogle() {
   if (location.protocol==='file:') { authMsg('Open via http, not a local file.'); return; }
@@ -1145,8 +1152,21 @@ function fmtAuthErr(e) {
 }
 
 auth.getRedirectResult().then(r=>{
-  if (r&&r.user) closeModal('modal-auth');
+  const wasRedirecting = sessionStorage.getItem('authRedirect');
+  if (r&&r.user) {
+    sessionStorage.removeItem('authRedirect');
+    closeModal('modal-auth');
+  } else if (wasRedirecting) {
+    // We navigated away to sign in and came back, but there is no user and no error either —
+    // the redirect result was lost silently (almost always third-party cookies/storage blocked
+    // for this site). Surface it instead of leaving the user staring at "Local only".
+    sessionStorage.removeItem('authRedirect');
+    console.error('Google sign-in redirect returned no user and no error — likely third-party cookies/storage are blocked for this site.');
+    authMsg('Sign-in did not complete. This is usually caused by third-party cookies being blocked — allow cookies for this site (and accounts.google.com) and try again.');
+    openModal('modal-auth');
+  }
 }).catch(e=>{
+  console.error('Google sign-in redirect failed:', e);
   if (sessionStorage.getItem('authRedirect')) {
     sessionStorage.removeItem('authRedirect');
     authMsg(fmtAuthErr(e)); openModal('modal-auth');
@@ -2018,6 +2038,113 @@ function renderPan() {
   body.querySelectorAll('[data-prov]').forEach(r=>r.addEventListener('click',e2=>{e2.stopPropagation();openProv(r.dataset.prov);}));
 }
 
+// Runs the AI critique for a single claim and applies its results directly onto
+// the claim + ds (evidence gaps, recommended status, new counterfactuals, new
+// tensions with other claims). Shared by the per-claim "Critique with AI" button
+// and the bulk "Analyze everything" action so both stay in sync.
+async function critiqueOneClaim(claim, idToken) {
+  const ts=nowISOStr();
+  const evidenceTexts=(claim.ev||[]).map(id=>{const ev=ds.evidence.find(x=>x.id===id);return ev?ev.text:null;}).filter(Boolean);
+  const otherClaims=ds.claims.filter(c=>c.id!==claim.id).map(c=>({id:c.id,text:c.text,status:c.status}));
+  const existingCounterfactuals=(claim.cf||[]).map(id=>ds.counterfactuals.find(x=>x.id===id)).filter(Boolean).map(cf=>({statement:cf.statement}));
+  const existingTensionClaimIds=Array.from(new Set(
+    (claim.tn||[]).map(id=>ds.tensions.find(x=>x.id===id)).filter(Boolean)
+      .flatMap(t=>(t.claims||[]).filter(cid=>cid!==claim.id))
+  ));
+  const result=await AI.critiqueClaim({
+    claim:{id:claim.id,text:claim.text,cat:claim.cat,status:claim.status},
+    analysisContext:{evidenceTexts,otherClaims,existingCounterfactuals,existingTensionClaimIds},
+    idToken
+  });
+  claim.crit=result.crit;
+  claim.evidenceGaps=result.evidenceGaps||[];
+  claim.recommendedStatus=result.recommendedStatus||null;
+  claim.statusRationale=result.statusRationale||'';
+  let cfsAdded=0, tensionsAdded=0;
+  (result.counterfactuals||[]).forEach(cf=>{
+    const id=newId('CF');
+    ds.counterfactuals.push({
+      id, claims:[claim.id], statement:cf.statement||'', severity:cf.severity==='weaken'?'weaken':'invalidate', status:'proposed',
+      prov:{src:'AI critique · claim '+claim.id, extracted:'AI critique', creator:'AI auto-discovery', confidence:0.6,
+            srcQuote:cf.statement||'', trail:appendTrail([],{when:ts,who:'AI critique',what:'Proposed during claim critique'})}
+    });
+    claim.cf=claim.cf||[]; if(!claim.cf.includes(id)){ claim.cf.push(id); cfsAdded++; }
+  });
+  (result.tensions||[]).forEach(tn=>{
+    const otherId=tn.withClaimId;
+    const other=otherId && ds.claims.find(c=>c.id===otherId);
+    if(!other) return;
+    // Skip if a tension between exactly this claim pair already exists.
+    const dup=ds.tensions.some(t=>(t.claims||[]).includes(claim.id)&&(t.claims||[]).includes(other.id));
+    if(dup) return;
+    const id=newId('T');
+    ds.tensions.push({
+      id, title:tn.title||'Untitled tension', claims:[claim.id,other.id],
+      desc:tn.desc||'', type:tn.type||'fra', pri:tn.pri||'p2', status:'assumed',
+      path:'Not yet resolved — review and choose a resolution path.',
+      prov:{src:'AI critique · claim '+claim.id, extracted:'AI critique', creator:'AI auto-discovery', confidence:0.6,
+            srcQuote:tn.desc||'', trail:appendTrail([],{when:ts,who:'AI critique',what:'Discovered during critique of '+claim.id})}
+    });
+    claim.tn=claim.tn||[]; if(!claim.tn.includes(id)) claim.tn.push(id);
+    other.tn=other.tn||[]; if(!other.tn.includes(id)) other.tn.push(id);
+    tensionsAdded++;
+  });
+  claim.prov.trail=appendTrail(claim.prov.trail,{when:ts,who:'AI critique',what:'Critique regenerated'});
+  if(claim.recommendedStatus && claim.recommendedStatus!==claim.status){
+    claim.prov.trail=appendTrail(claim.prov.trail,{when:ts,who:'AI critique',what:'Recommended status: '+bLbl(claim.recommendedStatus)+(claim.statusRationale?' — '+claim.statusRationale:'')});
+  }
+  return {cfsAdded, tensionsAdded};
+}
+
+// Bulk version: runs critiqueOneClaim across every claim in the analysis, so
+// cross-claim tensions surface without having to open + critique each claim
+// one by one. Runs sequentially (each pass sees tensions/counterfactuals
+// discovered by earlier passes in the same run, avoiding duplicate proposals).
+let analyzingAll=false;
+async function analyzeEverything() {
+  if(analyzingAll) return;
+  if(!currentUser){ toast('Sign in to use AI features.'); return; }
+  if(!ds.claims.length){ toast('Add at least one claim first.'); return; }
+  analyzingAll=true;
+  const btn=eid('btn-analyze-all');
+  if(btn) btn.disabled=true;
+  let totalCf=0, totalTn=0, failed=0;
+  const claims=ds.claims.slice();
+  try {
+    const idToken=await currentUser.getIdToken();
+    for(let i=0;i<claims.length;i++){
+      const claim=claims[i];
+      if(btn) btn.textContent=`✦ Analyzing ${i+1}/${claims.length}…`;
+      claim.critiquing=true;
+      if(STATE.selId===claim.id) renderPan();
+      try {
+        const {cfsAdded,tensionsAdded}=await critiqueOneClaim(claim, idToken);
+        totalCf+=cfsAdded; totalTn+=tensionsAdded;
+      } catch(err) {
+        failed++;
+        console.error('Analyze everything failed for '+claim.id, err);
+      } finally {
+        claim.critiquing=false;
+      }
+    }
+  } catch(err) {
+    toast('Analyze everything failed: '+err.message);
+  } finally {
+    analyzingAll=false;
+    if(btn){ btn.disabled=false; btn.textContent='✦ Analyze everything'; }
+  }
+  render();
+  if(STATE.selId){ const k=idKind(STATE.selId); if(k) openPan(STATE.selId,k); }
+  scheduleSave();
+  const parts=[];
+  if(totalTn) parts.push(totalTn+' tension'+(totalTn===1?'':'s'));
+  if(totalCf) parts.push(totalCf+' counterfactual'+(totalCf===1?'':'s'));
+  let msg = parts.length ? 'Analysis complete — found '+parts.join(' and ')+'.' : 'Analysis complete — no new tensions or counterfactuals found.';
+  if(failed) msg += ' ('+failed+' claim'+(failed===1?'':'s')+' failed — see console.)';
+  toast(msg);
+  if(totalTn) switchToTab('tensions');
+}
+
 async function panFootAction(e) {
   const action=e.currentTarget.dataset.panAction;
   const ent=STATE.panEntity; if(!ent)return;
@@ -2026,54 +2153,8 @@ async function panFootAction(e) {
     if(ent.critiquing) return;
     ent.critiquing=true; renderPan();
     try {
-      const evidenceTexts=(ent.ev||[]).map(id=>{const ev=ds.evidence.find(x=>x.id===id);return ev?ev.text:null;}).filter(Boolean);
-      const otherClaims=ds.claims.filter(c=>c.id!==ent.id).map(c=>({id:c.id,text:c.text,status:c.status}));
-      const existingCounterfactuals=(ent.cf||[]).map(id=>ds.counterfactuals.find(x=>x.id===id)).filter(Boolean).map(cf=>({statement:cf.statement}));
-      const existingTensionClaimIds=Array.from(new Set(
-        (ent.tn||[]).map(id=>ds.tensions.find(x=>x.id===id)).filter(Boolean)
-          .flatMap(t=>(t.claims||[]).filter(cid=>cid!==ent.id))
-      ));
       const idToken=await currentUser.getIdToken();
-      const result=await AI.critiqueClaim({
-        claim:{id:ent.id,text:ent.text,cat:ent.cat,status:ent.status},
-        analysisContext:{evidenceTexts,otherClaims,existingCounterfactuals,existingTensionClaimIds},
-        idToken
-      });
-      ent.crit=result.crit;
-      ent.evidenceGaps=result.evidenceGaps||[];
-      ent.recommendedStatus=result.recommendedStatus||null;
-      ent.statusRationale=result.statusRationale||'';
-      (result.counterfactuals||[]).forEach(cf=>{
-        const id=newId('CF');
-        ds.counterfactuals.push({
-          id, claims:[ent.id], statement:cf.statement||'', severity:cf.severity==='weaken'?'weaken':'invalidate', status:'proposed',
-          prov:{src:'AI critique · claim '+ent.id, extracted:'AI critique', creator:'AI auto-discovery', confidence:0.6,
-                srcQuote:cf.statement||'', trail:appendTrail([],{when:ts,who:'AI critique',what:'Proposed during claim critique'})}
-        });
-        ent.cf=ent.cf||[]; if(!ent.cf.includes(id)) ent.cf.push(id);
-      });
-      (result.tensions||[]).forEach(tn=>{
-        const otherId=tn.withClaimId;
-        const other=otherId && ds.claims.find(c=>c.id===otherId);
-        if(!other) return;
-        // Skip if a tension between exactly this claim pair already exists.
-        const dup=ds.tensions.some(t=>(t.claims||[]).includes(ent.id)&&(t.claims||[]).includes(other.id));
-        if(dup) return;
-        const id=newId('T');
-        ds.tensions.push({
-          id, title:tn.title||'Untitled tension', claims:[ent.id,other.id],
-          desc:tn.desc||'', type:tn.type||'fra', pri:tn.pri||'p2', status:'assumed',
-          path:'Not yet resolved — review and choose a resolution path.',
-          prov:{src:'AI critique · claim '+ent.id, extracted:'AI critique', creator:'AI auto-discovery', confidence:0.6,
-                srcQuote:tn.desc||'', trail:appendTrail([],{when:ts,who:'AI critique',what:'Discovered during critique of '+ent.id})}
-        });
-        ent.tn=ent.tn||[]; if(!ent.tn.includes(id)) ent.tn.push(id);
-        other.tn=other.tn||[]; if(!other.tn.includes(id)) other.tn.push(id);
-      });
-      ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'AI critique',what:'Critique regenerated'});
-      if(ent.recommendedStatus && ent.recommendedStatus!==ent.status){
-        ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'AI critique',what:'Recommended status: '+bLbl(ent.recommendedStatus)+(ent.statusRationale?' — '+ent.statusRationale:'')});
-      }
+      await critiqueOneClaim(ent, idToken);
       ent.critiquing=false;
       render(); openPan(ent.id,'claim'); scheduleSave();
     } catch(err) {
@@ -2666,6 +2747,7 @@ eid('na-tab-upload').addEventListener('click',()=>naSwitchTab('upload'));
 eid('na-tab-claim').addEventListener('click',()=>naSwitchTab('claim'));
 eid('na-name').addEventListener('input',naCheckReady);
 eid('an-title').addEventListener('input',e=>onTitleEdit(e.target.value));
+eid('btn-analyze-all').addEventListener('click',analyzeEverything);
 eid('btn-summarise').addEventListener('click',refreshAnalysisSummary);
 eid('btn-refresh-summary').addEventListener('click',refreshAnalysisSummary);
 eid('btn-dismiss-summary').addEventListener('click',()=>{const b=eid('asum-banner');if(b)b.classList.remove('on');});

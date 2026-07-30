@@ -34,7 +34,8 @@ async function requireUser(req) {
   try {
     return await admin.auth().verifyIdToken(m[1]);
   } catch (e) {
-    const err = new Error('Invalid or expired ID token.');
+    logger.error('requireUser: ID token verification failed', { code: e.code, message: e.message });
+    const err = new Error('Invalid or expired ID token' + (e.code ? ' (' + e.code + ')' : '') + '.');
     err.statusCode = 401;
     throw err;
   }
