@@ -1,0 +1,13 @@
+{
+  "name": "validait-functions",
+  "description": "Serverless AI proxy for ValidAIt — holds the Anthropic API key server-side so it is never exposed to the browser.",
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^14.2.0",
+    "firebase-functions": "^7.3.2"
+  },
+  "private": true
+}

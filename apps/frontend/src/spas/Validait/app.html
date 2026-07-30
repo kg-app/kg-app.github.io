@@ -176,6 +176,14 @@ table.dash-tbl{width:100%;border-collapse:collapse;font-size:13px;background:#ff
 .stat-mid .stat-n{color:var(--ink-3)}
 .extract-banner{background:var(--info-bg);border-bottom:1px solid var(--info-soft);padding:8px 18px;font-size:11.5px;color:var(--info);display:none;align-items:center;gap:10px;flex-shrink:0}
 .extract-banner.on{display:flex}
+.asum-banner{background:var(--surf-2);border-bottom:1px solid var(--line-2);padding:10px 18px;font-size:12px;color:var(--ink-2);display:none;align-items:flex-start;gap:10px;flex-shrink:0}
+.asum-banner.on{display:flex}
+.asum-pill{flex-shrink:0;padding:2px 9px;border-radius:10px;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-top:2px;border:1px solid transparent;white-space:nowrap}
+.asum-pill.conf-high{background:var(--good-bg);color:var(--good);border-color:var(--good-soft)}
+.asum-pill.conf-medium{background:var(--info-bg);color:var(--info);border-color:var(--info-soft)}
+.asum-pill.conf-low{background:var(--warn-bg);color:var(--warn);border-color:var(--warn-soft)}
+.asum-text{flex:1;line-height:1.5}
+.asum-actions{display:flex;gap:6px;flex-shrink:0}
 .filtbar{background:var(--surf-2);border-bottom:1px solid var(--line-2);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0}
 .search{flex:1;max-width:280px;position:relative}
 .search input{width:100%;padding:6px 11px 6px 28px;border:1px solid var(--line);border-radius:3px;font-size:12.5px;font-family:inherit;background:#fff}
@@ -386,6 +394,7 @@ body.readonly .del-btn{display:none}
 body.readonly .cell-edit::after{display:none}
 body.readonly #filtbar-actions{visibility:hidden}
 body.readonly .subhead-actions .btn:not([title="Export"]){display:none}
+body.readonly .asum-actions{display:none}
 </style>
 </head>
 <body class="auth-pending">
@@ -481,10 +490,20 @@ body.readonly .subhead-actions .btn:not([title="Export"]){display:none}
         <span>Updated <b id="meta-updated">—</b></span>
         <span><b id="meta-docs">0</b> documents</span>
         <div class="subhead-actions">
+          <button class="btn btn-sm" id="btn-summarise">✦ Summarise</button>
           <button class="btn btn-sm" id="btn-upload-doc">📎 Upload doc</button>
           <button class="btn btn-sm" id="btn-workflow">⊞ Workflow</button>
           <button class="btn btn-sm" title="Export">⤓ Export</button>
         </div>
+      </div>
+    </div>
+
+    <div class="asum-banner" id="asum-banner">
+      <span class="asum-pill" id="asum-pill">—</span>
+      <div class="asum-text" id="asum-text"></div>
+      <div class="asum-actions">
+        <button class="btn btn-sm btn-gh" id="btn-refresh-summary" title="Refresh">↻</button>
+        <button class="btn btn-sm btn-gh" id="btn-dismiss-summary">Dismiss</button>
       </div>
     </div>
 
@@ -722,6 +741,7 @@ body.readonly .subhead-actions .btn:not([title="Export"]){display:none}
 
 <!-- ═══════════ FIREBASE SDK ═══════════ -->
 <script src="firebase-config.js"></script>
+<script src="ai-config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
@@ -748,7 +768,7 @@ let activeShareToken = null;
 
 // App-level state
 let STATE = { view: 'dashboard', tab: 'claims', panTab: 'detail', selId: null, panEntity: null, panType: null };
-let ds = { claims:[], evidence:[], tensions:[], counterfactuals:[], experiments:[], sources:[] };
+let ds = { claims:[], evidence:[], tensions:[], counterfactuals:[], experiments:[], sources:[], summary:null };
 let currentAnalysisName = '';
 const DASH_STATE = { sortKey: 'updated', sortDir: 'desc' };
 
@@ -1153,7 +1173,8 @@ function getDocData() {
     schemaVersion: 1,
     payload: {
       claims: ds.claims, evidence: ds.evidence, tensions: ds.tensions,
-      counterfactuals: ds.counterfactuals, experiments: ds.experiments, sources: ds.sources
+      counterfactuals: ds.counterfactuals, experiments: ds.experiments, sources: ds.sources,
+      summary: ds.summary || null
     }
   };
 }
@@ -1168,7 +1189,8 @@ function applyDocData(data) {
     tensions:        p.tensions        || [],
     counterfactuals: p.counterfactuals || [],
     experiments:     p.experiments     || [],
-    sources:         p.sources         || []
+    sources:         p.sources         || [],
+    summary:         p.summary         || null
   };
   currentAnalysisName = (data && data.name) || 'Untitled Analysis';
 
@@ -1180,7 +1202,7 @@ function applyDocData(data) {
     const vd = eid('view-dashboard'); if(vd) vd.style.display='none';
     const va = eid('view-analysis');  if(va) va.style.display='flex';
     const gc = eid('gcrumb');         if(gc) gc.style.display='flex';
-    updateCrumb(); updateTabCounts(); updateStats();
+    updateCrumb(); updateTabCounts(); updateStats(); renderAnalysisSummary();
     document.querySelectorAll('.tab').forEach(el=>el.classList.remove('on'));
     const tc=eid('tab-claims'); if(tc) tc.classList.add('on');
     updateFiltbarActions('claims');
@@ -1193,7 +1215,7 @@ function applyDocData(data) {
 
 function onDocLoaded() {
   const titleEl = eid('an-title'); if (titleEl) titleEl.value = currentAnalysisName;
-  updateCrumb(); updateTabCounts(); updateStats(); updateSubheadMeta();
+  updateCrumb(); updateTabCounts(); updateStats(); updateSubheadMeta(); renderAnalysisSummary();
   document.title = (currentAnalysisName || 'ValidAIt') + ' · ValidAIt';
 }
 
@@ -1289,7 +1311,7 @@ function goDash() {
     saveNow(); // fire-and-forget; activeDocId still set at this call
   }
   activeDocId=null;
-  ds={claims:[],evidence:[],tensions:[],counterfactuals:[],experiments:[],sources:[]};
+  ds={claims:[],evidence:[],tensions:[],counterfactuals:[],experiments:[],sources:[],summary:null};
   currentAnalysisName='';
   STATE.view='dashboard';
   showDashboardView();
@@ -1304,6 +1326,34 @@ function updateSubheadMeta() {
   if(mc) mc.textContent = entry ? fmtDate(entry.createdAt) : '—';
   if(mu) mu.textContent = entry ? fmtDate(entry.updatedAt) : '—';
   if(md) md.textContent = ds.sources.length;
+}
+function renderAnalysisSummary() {
+  const banner=eid('asum-banner'); if(!banner)return;
+  if(!ds.summary){ banner.classList.remove('on'); return; }
+  const pill=eid('asum-pill'), txt=eid('asum-text');
+  const conf=(ds.summary.overallConfidence||'medium').toLowerCase();
+  if(pill){ pill.className='asum-pill conf-'+(['high','medium','low'].includes(conf)?conf:'medium'); pill.textContent=conf; }
+  if(txt) txt.textContent=ds.summary.overallSummary||'';
+  banner.classList.add('on');
+}
+let summarising=false;
+async function refreshAnalysisSummary() {
+  if(summarising || !currentUser || readonlyMode) return;
+  if(!ds.claims.length){ toast('Add at least one claim before summarising.'); return; }
+  summarising=true;
+  const btn=eid('btn-summarise'); if(btn){btn.disabled=true; btn.textContent='Summarising…';}
+  try {
+    const idToken=await currentUser.getIdToken();
+    const result=await AI.summariseAnalysis({claims:ds.claims,evidence:ds.evidence,tensions:ds.tensions,counterfactuals:ds.counterfactuals,experiments:ds.experiments,idToken});
+    ds.summary={overallConfidence:result.overallConfidence,overallSummary:result.overallSummary,generatedAt:nowISOStr()};
+    renderAnalysisSummary();
+    scheduleSave();
+  } catch(err) {
+    toast('Summary failed: '+err.message);
+  } finally {
+    summarising=false;
+    if(btn){btn.disabled=false; btn.textContent='✦ Summarise';}
+  }
 }
 function onTitleEdit(val) {
   currentAnalysisName = val || 'Untitled Analysis';
@@ -1444,13 +1494,24 @@ function openUploadModal() {
 }
 function closeUploadModal() { closeModal('modal-upload'); pendingNewFiles=[]; tempSources=[]; }
 function handleFileSelect(ev) {
-  Array.from(ev.target.files||[]).forEach(f=>pendingNewFiles.push({name:f.name,size:fmtBytes(f.size)}));
+  Array.from(ev.target.files||[]).forEach(f=>pendingNewFiles.push({name:f.name,size:fmtBytes(f.size),file:f}));
   renderPendingFiles(); ev.target.value='';
 }
 function handleDrop(ev) {
   ev.preventDefault(); ev.currentTarget.style.borderColor='';
-  Array.from(ev.dataTransfer.files||[]).forEach(f=>pendingNewFiles.push({name:f.name,size:fmtBytes(f.size)}));
+  Array.from(ev.dataTransfer.files||[]).forEach(f=>pendingNewFiles.push({name:f.name,size:fmtBytes(f.size),file:f}));
   renderPendingFiles();
+}
+// Reads plain-text-like files client-side for AI extraction (no PDF/DOCX parsing — out of scope).
+const TEXT_FILE_RE = /\.(txt|md|markdown|csv|json)$/i;
+async function readTextFromFiles(fileEntries) {
+  const parts=[];
+  for (const f of (fileEntries||[])) {
+    if (f.file && TEXT_FILE_RE.test(f.name)) {
+      try { parts.push('--- '+f.name+' ---\n'+await f.file.text()); } catch(_) {}
+    }
+  }
+  return parts.join('\n\n');
 }
 function renderPendingFiles() {
   const el=eid('pending-files'); if(!el)return;
@@ -1472,6 +1533,7 @@ async function saveUploadModal() {
   const hadZeroClaims=ds.claims.length===0;
   const addingNew=pendingNewFiles.length>0;
   const fileNames=pendingNewFiles.map(f=>f.name); // Capture before closeUploadModal clears it
+  const filesForText=pendingNewFiles.slice();
   const addedCount=pendingNewFiles.length;
   ds.sources=tempSources.concat(pendingNewFiles.map(f=>({name:f.name,added:todayStr(),size:f.size})));
   const md=eid('meta-docs'); if(md) md.textContent=ds.sources.length;
@@ -1481,13 +1543,25 @@ async function saveUploadModal() {
   if (addingNew && hadZeroClaims) {
     STATE.view='processing'; render();
     setTimeout(()=>{const b=eid('proc-fill');if(b)b.style.width='100%';},80);
-    const result=await AI.extractClaims({text:'',fileNames});
-    ds.claims=result.claims||[]; ds.evidence=result.evidence||[];
-    ds.tensions=result.tensions||[]; ds.counterfactuals=result.counterfactuals||[];
-    ds.experiments=result.experiments||[];
-    STATE.view='populated'; render();
-    const eb=eid('extract-banner'); if(eb) eb.classList.add('on');
-    scheduleSave();
+    try {
+      const text=await readTextFromFiles(filesForText);
+      const idToken=await currentUser.getIdToken();
+      const result=await AI.extractClaims({text,fileNames,idToken});
+      ds.claims=result.claims||[]; ds.evidence=result.evidence||[];
+      ds.tensions=result.tensions||[]; ds.counterfactuals=result.counterfactuals||[];
+      ds.experiments=result.experiments||[];
+      STATE.view=ds.claims.length?'populated':'empty'; render();
+      const eb=eid('extract-banner');
+      if(eb){
+        if(ds.claims.length){ eb.innerHTML='✓ Extraction complete — claims identified and framework mappings auto-applied <button class="btn btn-sm btn-gh" id="btn-dismiss-banner" style="margin-left:auto">Dismiss</button>'; eid('btn-dismiss-banner').onclick=dismissBanner; }
+        else { eb.innerHTML='ℹ No claims could be extracted — add one manually, or upload a .txt/.md/.csv/.json file with readable text. <button class="btn btn-sm btn-gh" id="btn-dismiss-banner" style="margin-left:auto">Dismiss</button>'; eid('btn-dismiss-banner').onclick=dismissBanner; }
+        eb.classList.add('on');
+      }
+      scheduleSave();
+    } catch(err) {
+      STATE.view='empty'; render();
+      toast('Claim extraction failed: '+err.message);
+    }
   } else {
     const va=eid('view-analysis'); if(va&&va.style.display!=='none') { updateTabCounts(); updateStats(); render(); }
     if (addingNew) {
@@ -1829,14 +1903,16 @@ function renderPan() {
           <div class="kv"><div class="kv-k">Status</div><div class="kv-v"><span class="bdg ${bCls(e.status)}">${bLbl(e.status)}</span></div></div>
         </div>
         <div class="sec"><div class="ai-l">AI critique</div>
-          <div class="ai-block">${safe(e.crit)||'No critique generated yet.'}</div></div>
+          <div class="ai-block">${e.critiquing?'<span style="display:flex;align-items:center;gap:8px;color:var(--ink-3)"><span class="spinner"></span>Critiquing…</span>':(safe(e.crit)||'No critique generated yet.')}</div></div>
+        <div class="sec"><div class="sec-l">Evidence gaps <span style="font-weight:400;color:var(--ink-4);text-transform:none;letter-spacing:0">(AI-identified)</span></div>
+          ${(e.evidenceGaps||[]).length?'<ul style="padding-left:16px;margin:0;font-size:11.5px;color:var(--ink-3);line-height:1.6">'+e.evidenceGaps.map(g=>`<li>${escapeHtml(g)}</li>`).join('')+'</ul>':'<span style="font-size:11px;color:var(--ink-4);font-style:italic">Run "Critique with AI" to identify missing evidence.</span>'}</div>
         <div class="sec"><div class="sec-l">Internal note</div>
           <div style="font-size:11.5px;color:var(--ink-3);line-height:1.5">${escapeHtml(e.note||'—')}</div></div>
         <div class="sec"><div class="sec-l">Counterfactuals (${(e.cf||[]).length})</div>
           ${(e.cf||[]).length?e.cf.map(id=>`<span class="ref" data-ref-id="${escapeHtml(id)}">${escapeHtml(id)}</span>`).join(' '):'<span style="font-size:11px;color:var(--ink-4);font-style:italic">None identified yet.</span>'}</div>
         <div class="sec"><div class="sec-l">Experiments (${(e.exp||[]).length})</div>
           ${(e.exp||[]).length?e.exp.map(id=>`<span class="ref" data-ref-id="${escapeHtml(id)}">${escapeHtml(id)}</span>`).join(' '):'<span style="font-size:11px;color:var(--ink-4);font-style:italic">None proposed yet.</span>'}</div>`;
-      foot.innerHTML=`<button class="btn btn-warn btn-sm" data-pan-action="dispute">Mark disputed</button><div style="flex:1"></div><button class="btn btn-p btn-sm" data-pan-action="save-claim">Save changes</button>`;
+      foot.innerHTML=`<button class="btn btn-sm" data-pan-action="critique"${e.critiquing?' disabled':''}>✦ ${e.critiquing?'Critiquing…':'Critique with AI'}</button><button class="btn btn-warn btn-sm" data-pan-action="dispute">Mark disputed</button><div style="flex:1"></div><button class="btn btn-p btn-sm" data-pan-action="save-claim">Save changes</button>`;
     } else if(STATE.panTab==='ev'){
       const evList=(e.ev||[]).map(id=>ds.evidence.find(x=>x.id===id)).filter(Boolean);
       body.innerHTML=`<div class="sec"><div class="sec-l">Attached evidence (${evList.length})</div>
@@ -1922,10 +1998,38 @@ function renderPan() {
   body.querySelectorAll('[data-prov]').forEach(r=>r.addEventListener('click',e2=>{e2.stopPropagation();openProv(r.dataset.prov);}));
 }
 
-function panFootAction(e) {
+async function panFootAction(e) {
   const action=e.currentTarget.dataset.panAction;
   const ent=STATE.panEntity; if(!ent)return;
   const ts=nowISOStr();
+  if(action==='critique'){
+    if(ent.critiquing) return;
+    ent.critiquing=true; renderPan();
+    try {
+      const evidenceTexts=(ent.ev||[]).map(id=>{const ev=ds.evidence.find(x=>x.id===id);return ev?ev.text:null;}).filter(Boolean);
+      const idToken=await currentUser.getIdToken();
+      const result=await AI.critiqueClaim({claim:{text:ent.text,cat:ent.cat,status:ent.status},analysisContext:{evidenceTexts},idToken});
+      ent.crit=result.crit;
+      ent.evidenceGaps=result.evidenceGaps||[];
+      (result.counterfactuals||[]).forEach(cf=>{
+        const id=newId('CF');
+        ds.counterfactuals.push({
+          id, claims:[ent.id], statement:cf.statement||'', severity:cf.severity==='weaken'?'weaken':'invalidate', status:'proposed',
+          prov:{src:'AI critique · claim '+ent.id, extracted:'AI critique', creator:'AI auto-discovery', confidence:0.6,
+                srcQuote:cf.statement||'', trail:appendTrail([],{when:ts,who:'AI critique',what:'Proposed during claim critique'})}
+        });
+        ent.cf=ent.cf||[]; if(!ent.cf.includes(id)) ent.cf.push(id);
+      });
+      ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'AI critique',what:'Critique regenerated'});
+      ent.critiquing=false;
+      render(); openPan(ent.id,'claim'); scheduleSave();
+    } catch(err) {
+      ent.critiquing=false;
+      renderPan();
+      toast('Critique failed: '+err.message);
+    }
+    return;
+  }
   if(action==='dispute'){
     ent.status='disputed';
     ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'User',what:'Status changed to: disputed'});
@@ -2321,12 +2425,12 @@ function renderNaBody(){
   }
 }
 function naHandleFileSelect(ev){
-  Array.from(ev.target.files||[]).forEach(f=>naState.pendingFiles.push({name:f.name,size:fmtBytes(f.size)}));
+  Array.from(ev.target.files||[]).forEach(f=>naState.pendingFiles.push({name:f.name,size:fmtBytes(f.size),file:f}));
   naRenderPendingFiles(); naCheckReady(); ev.target.value='';
 }
 function naHandleDrop(ev){
   ev.preventDefault(); ev.currentTarget.style.borderColor='';
-  Array.from(ev.dataTransfer.files||[]).forEach(f=>naState.pendingFiles.push({name:f.name,size:fmtBytes(f.size)}));
+  Array.from(ev.dataTransfer.files||[]).forEach(f=>naState.pendingFiles.push({name:f.name,size:fmtBytes(f.size),file:f}));
   naRenderPendingFiles(); naCheckReady();
 }
 function naRenderPendingFiles(){
@@ -2368,7 +2472,7 @@ async function createAnalysisFromModal(){
   const docId=await createDoc(currentUser.uid,name);
   activeDocId=docId; cloudReady=true;
   currentAnalysisName=name;
-  ds={claims:[],evidence:[],tensions:[],counterfactuals:[],experiments:[],sources:[]};
+  ds={claims:[],evidence:[],tensions:[],counterfactuals:[],experiments:[],sources:[],summary:null};
   if(naState.pendingClaim){
     const pc=naState.pendingClaim, ts=nowISOStr();
     const fwMap={Pain:'BLAC: Blatant',Alternatives:'Lean Canvas: Alternatives',Solution:'4U: Unworkable (current)',Persona:'Skok: MVS',Commercial:'Lean Canvas: Revenue'};
@@ -2396,13 +2500,25 @@ async function createAnalysisFromModal(){
   if(naState.pendingFiles.length>0 && ds.claims.length===0){
     STATE.view='processing'; render();
     setTimeout(()=>{const b=eid('proc-fill');if(b)b.style.width='100%';},80);
-    const result=await AI.extractClaims({text:'',fileNames:naState.pendingFiles.map(f=>f.name)});
-    ds.claims=result.claims||[]; ds.evidence=result.evidence||[];
-    ds.tensions=result.tensions||[]; ds.counterfactuals=result.counterfactuals||[];
-    ds.experiments=result.experiments||[];
-    STATE.view='populated'; render();
-    const eb=eid('extract-banner'); if(eb) eb.classList.add('on');
-    scheduleSave();
+    try {
+      const text=await readTextFromFiles(naState.pendingFiles);
+      const idToken=await currentUser.getIdToken();
+      const result=await AI.extractClaims({text,fileNames:naState.pendingFiles.map(f=>f.name),idToken});
+      ds.claims=result.claims||[]; ds.evidence=result.evidence||[];
+      ds.tensions=result.tensions||[]; ds.counterfactuals=result.counterfactuals||[];
+      ds.experiments=result.experiments||[];
+      STATE.view=ds.claims.length?'populated':'empty'; render();
+      const eb=eid('extract-banner');
+      if(eb){
+        if(ds.claims.length){ eb.innerHTML='✓ Extraction complete — claims identified and framework mappings auto-applied <button class="btn btn-sm btn-gh" id="btn-dismiss-banner" style="margin-left:auto">Dismiss</button>'; eid('btn-dismiss-banner').onclick=dismissBanner; }
+        else { eb.innerHTML='ℹ No claims could be extracted — add one manually, or upload a .txt/.md/.csv/.json file with readable text. <button class="btn btn-sm btn-gh" id="btn-dismiss-banner" style="margin-left:auto">Dismiss</button>'; eid('btn-dismiss-banner').onclick=dismissBanner; }
+        eb.classList.add('on');
+      }
+      scheduleSave();
+    } catch(err) {
+      STATE.view='empty'; render();
+      toast('Claim extraction failed: '+err.message);
+    }
   }
 }
 
@@ -2436,6 +2552,9 @@ eid('na-tab-upload').addEventListener('click',()=>naSwitchTab('upload'));
 eid('na-tab-claim').addEventListener('click',()=>naSwitchTab('claim'));
 eid('na-name').addEventListener('input',naCheckReady);
 eid('an-title').addEventListener('input',e=>onTitleEdit(e.target.value));
+eid('btn-summarise').addEventListener('click',refreshAnalysisSummary);
+eid('btn-refresh-summary').addEventListener('click',refreshAnalysisSummary);
+eid('btn-dismiss-summary').addEventListener('click',()=>{const b=eid('asum-banner');if(b)b.classList.remove('on');});
 eid('btn-upload-doc').addEventListener('click',openUploadModal);
 eid('btn-close-upload').addEventListener('click',closeUploadModal);
 eid('btn-save-upload').addEventListener('click',saveUploadModal);
