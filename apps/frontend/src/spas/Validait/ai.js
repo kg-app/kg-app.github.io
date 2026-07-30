@@ -1,13 +1,19 @@
 // ═══════════════════════════════════════════════════════════
 // ai.js — AI seam
 //
-// extractClaims, critiqueClaim, and summariseAnalysis call a serverless
-// proxy (see functions/index.js) which holds the real Anthropic API key —
-// the browser never sees it. Configure the proxy URL in ai-config.js.
+// Claims are the primary artifact. extractClaims produces claims + directly
+// text-grounded evidence only. Everything else — evidence gaps, counter-
+// factuals, tensions, and a recommended status — is discovered by
+// critiqueClaim(), which reasons over the claim plus the rest of the
+// analysis graph. generateExperiments reviews P0/P1 tensions, confirmed
+// counterfactuals, and disputed claims holistically. All three call a
+// serverless proxy (see functions/index.js) which holds the real Anthropic
+// API key — the browser never sees it. Configure the proxy URL in
+// ai-config.js.
 //
-// classifyEvidence, classifyTension, clarifyForClaim,
-// clarifyForCounterfactual, and generateExperiments remain heuristic
-// stubs — swap their bodies for proxy calls the same way when ready.
+// classifyEvidence, classifyTension, clarifyForClaim, and
+// clarifyForCounterfactual remain heuristic stubs for the manual-add path —
+// swap their bodies for proxy calls the same way when ready.
 // Signatures are the contract; keep them stable across swaps.
 // ═══════════════════════════════════════════════════════════
 
@@ -37,11 +43,10 @@ async function callAiProxy(action, payload, idToken) {
 
 const AI = {
 
-  // Document / paste ingestion → starting claim set.
-  // Calls the AI proxy with source text (and/or file names); the proxy
-  // returns claim/evidence/tension/counterfactual drafts referencing each
-  // other by array index, which we convert into ds-ready entities with
-  // real IDs, provenance, and cross-reference arrays here.
+  // Document / paste ingestion → starting claim set + directly-grounded
+  // evidence only. Tensions and counterfactuals are deliberately NOT
+  // produced here — see critiqueClaim() below, which is where they get
+  // discovered once claims (and their evidence) actually exist.
   async extractClaims({ text, fileNames, idToken }) {
     const raw = await callAiProxy('extractClaims', { text, fileNames }, idToken);
     const ts = nowISOStr();
@@ -57,13 +62,15 @@ const AI = {
       ev: [], tn: [], cf: [], exp: [],
       note: c.note || '',
       evidenceGaps: [],
+      recommendedStatus: null,
+      statusRationale: '',
       prov: {
         src: srcLabel, extracted: 'AI extraction · pass 1', creator: 'AI auto-extraction',
         confidence: typeof c.confidence === 'number' ? c.confidence : 0.6,
         srcQuote: c.sourceQuote || '',
         trail: appendTrail([], { when: ts, who: 'AI extraction', what: 'Extracted from ' + srcLabel })
       },
-      crit: 'This claim has not yet been critiqued. Open it and run "Critique with AI" to generate a full challenge.'
+      crit: 'This claim has not yet been critiqued. Open it and run "Critique with AI" to discover evidence gaps, counterfactuals, tensions, and a recommended status.'
     }));
 
     const evidence = (raw.evidence || []).map(e => {
@@ -82,47 +89,22 @@ const AI = {
       };
     });
 
-    const tensions = (raw.tensions || []).map(t => {
-      const id = newId('T');
-      const claimIds = (t.claimIndexes || []).map(i => claims[i] && claims[i].id).filter(Boolean);
-      claimIds.forEach(cid => { const c = claims.find(x => x.id === cid); if (c) c.tn.push(id); });
-      return {
-        id, title: t.title || 'Untitled tension', claims: claimIds,
-        desc: t.desc || '', type: t.type || 'fra', pri: t.pri || 'p2', status: 'assumed',
-        path: 'Not yet resolved — review and choose a resolution path.',
-        prov: {
-          src: 'Auto-detected · cross-claim analysis', extracted: 'AI tension detection', creator: 'AI auto-detection',
-          confidence: 0.6, srcQuote: t.desc || '',
-          trail: appendTrail([], { when: ts, who: 'AI tension detection', what: 'Auto-detected during extraction' })
-        }
-      };
-    });
-
-    const counterfactuals = (raw.counterfactuals || []).map(cf => {
-      const id = newId('CF');
-      const claimIds = (cf.claimIndexes || []).map(i => claims[i] && claims[i].id).filter(Boolean);
-      claimIds.forEach(cid => { const c = claims.find(x => x.id === cid); if (c) c.cf.push(id); });
-      return {
-        id, claims: claimIds, statement: cf.statement || '', severity: cf.severity === 'weaken' ? 'weaken' : 'invalidate',
-        status: 'proposed',
-        prov: {
-          src: 'Auto-detected · cross-claim analysis', extracted: 'AI auto-discovery', creator: 'AI auto-discovery',
-          confidence: 0.6, srcQuote: cf.statement || '',
-          trail: appendTrail([], { when: ts, who: 'AI auto-discovery', what: 'Proposed during extraction' })
-        }
-      };
-    });
-
-    return { claims, evidence, tensions, counterfactuals, experiments: [] };
+    return { claims, evidence, tensions: [], counterfactuals: [], experiments: [] };
   },
 
-  // Per-claim critique + evidence-gap + counterfactual discovery.
+  // The discovery engine. Given one claim plus the rest of the analysis
+  // graph, returns evidence gaps, a recommended status, counterfactuals,
+  // and (at most one) genuine tension with another claim — all grounded in
+  // claims/evidence that already exist, not raw source text.
   async critiqueClaim({ claim, analysisContext, idToken }) {
     const raw = await callAiProxy('critiqueClaim', { claim, analysisContext }, idToken);
     return {
       crit: raw.crit || 'AI did not return a critique.',
       evidenceGaps: raw.evidence_gaps || raw.evidenceGaps || [],
-      counterfactuals: raw.counterfactuals || []
+      recommendedStatus: raw.recommended_status || raw.recommendedStatus || null,
+      statusRationale: raw.status_rationale || raw.statusRationale || '',
+      counterfactuals: raw.counterfactuals || [],
+      tensions: raw.tensions || []
     };
   },
 
@@ -191,60 +173,31 @@ const AI = {
     };
   },
 
-  // Experiment synthesis from the analysis graph.
-  // Stub: port of mock's selection logic — picks highest-priority unaddressed tension /
-  // confirmed counterfactual that has no existing experiment linked.
-  // Returns null when nothing to propose.
-  async generateExperiments({ claims, tensions, counterfactuals, experiments }) {
-    await delay(1500);
-
+  // Holistic experiment synthesis: reviews P0/P1 tensions, confirmed
+  // counterfactuals, and disputed claims together and proposes up to 3
+  // ranked candidate experiments. Returns an empty array when there's
+  // nothing worth testing. The caller presents candidates for the user to
+  // pick from — nothing is auto-inserted.
+  async generateExperiments({ claims, tensions, counterfactuals, experiments, idToken }) {
     const usedTensionIds = new Set(experiments.flatMap(e => (e.derivedFrom && e.derivedFrom.tensions) || []));
     const usedCfIds = new Set(experiments.flatMap(e => (e.derivedFrom && e.derivedFrom.counterfactuals) || []));
 
-    const candidateTension = tensions.find(
-      t => (t.pri === 'p0' || t.pri === 'p1') && !usedTensionIds.has(t.id)
-    );
-    const candidateCf = counterfactuals.find(
-      c => (c.status === 'confirmed' || c.status === 'investigating') && !usedCfIds.has(c.id)
-    );
+    const p0p1Tensions = tensions
+      .filter(t => (t.pri === 'p0' || t.pri === 'p1') && !usedTensionIds.has(t.id))
+      .map(t => ({ id: t.id, pri: t.pri, title: t.title, desc: t.desc }));
+    const confirmedCounterfactuals = counterfactuals
+      .filter(c => c.status === 'confirmed' && !usedCfIds.has(c.id))
+      .map(c => ({ id: c.id, severity: c.severity, statement: c.statement }));
+    const disputedClaims = claims
+      .filter(c => c.status === 'disputed')
+      .map(c => ({ id: c.id, cat: c.cat, text: c.text }));
+    const existingExperiments = experiments.map(e => ({ id: e.id, title: e.title }));
 
-    if (!candidateTension && !candidateCf) return null;
+    const raw = await callAiProxy('generateExperiments', {
+      p0p1Tensions, confirmedCounterfactuals, disputedClaims, existingExperiments
+    }, idToken);
 
-    const relatedClaims = new Set();
-    if (candidateTension) candidateTension.claims.forEach(c => relatedClaims.add(c));
-    if (candidateCf) candidateCf.claims.forEach(c => relatedClaims.add(c));
-    const claimsArr = Array.from(relatedClaims);
-
-    const titleSrc = candidateTension
-      ? candidateTension.title
-      : (candidateCf.statement.substring(0, 55) + '…');
-
-    const reasoningParts = [];
-    if (candidateTension) reasoningParts.push('Tension ' + candidateTension.id);
-    if (candidateCf)      reasoningParts.push('Counterfactual ' + candidateCf.id);
-
-    return {
-      experiment: {
-        title: 'Investigate: ' + titleSrc,
-        claims: claimsArr,
-        derivedFrom: {
-          tensions:        candidateTension ? [candidateTension.id] : [],
-          counterfactuals: candidateCf      ? [candidateCf.id]      : [],
-          claims:          []
-        },
-        hypothesis:
-          'Gather direct evidence to resolve whether this ' +
-          (candidateTension ? 'tension' : 'counterfactual') +
-          ' holds, using a structured test rather than continued analysis.',
-        method:   'Customer interview',
-        timeline: '3 weeks',
-        metric:   'Clear directional evidence (supports or contradicts) gathered from at least 2 independent sources',
-        status:   'proposed',
-        reasoning:
-          'Synthesised from ' + reasoningParts.join(' and ') +
-          '. This was the highest-priority unaddressed item with no experiment currently proposed against it.'
-      }
-    };
+    return { experiments: raw.experiments || [] };
   }
 };
 

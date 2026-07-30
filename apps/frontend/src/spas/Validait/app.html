@@ -273,6 +273,9 @@ tbody tr.sel{box-shadow:inset 3px 0 0 var(--ink)}
 .ai-block ul{padding-left:14px;margin-top:5px}.ai-block li{margin-bottom:4px}
 .ai-block em{display:block;margin-top:7px;font-size:11px;color:var(--ink-4);font-style:italic}
 .ai-l{font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--ink-4);text-transform:uppercase;margin-bottom:6px}
+.ai-suggest{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#faf2dc;border:1px solid #d9bf70;color:var(--gold);border-radius:5px;padding:8px 10px;margin-bottom:10px;font-size:11.5px;line-height:1.4;cursor:pointer}
+.ai-suggest:hover{background:#f5e8c8}
+.ai-suggest-apply{flex-shrink:0;font-weight:700;font-size:10.5px;white-space:nowrap}
 textarea,input[type=text]{width:100%;border:1px solid var(--line);border-radius:3px;padding:7px 10px;font-family:inherit;font-size:12.5px;color:var(--ink);background:#fff;resize:vertical;outline:none}
 textarea:focus,input:focus{border-color:var(--ink-3)}
 textarea{min-height:60px}
@@ -359,6 +362,12 @@ select{padding:5px 22px 5px 8px;border:1px solid var(--line);border-radius:3px;f
 .qp-btn:hover{border-color:var(--ink);background:#f5f5f5}
 .airev-result{background:var(--good-bg);border:1px solid var(--good-soft);border-left:3px solid var(--good);border-radius:0 4px 4px 0;padding:11px 13px;font-size:12.5px;color:var(--ink-2);line-height:1.6}
 .airev-result b{color:var(--good)}
+.exp-cand{border:1px solid var(--line);border-radius:5px;padding:11px 12px;margin-bottom:10px}
+.exp-cand:last-child{margin-bottom:0}
+.exp-cand-title{font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.exp-cand-meta{display:flex;gap:10px;font-size:11px;color:var(--ink-3);margin:6px 0}
+.exp-cand-reason{font-size:11px;color:var(--ink-4);font-style:italic;line-height:1.5;margin-bottom:8px}
+.exp-cand-foot{display:flex;justify-content:flex-end}
 
 /* New analysis gate */
 .etabs{display:flex;gap:0;border-bottom:1px solid var(--line);margin-bottom:12px}
@@ -1902,6 +1911,13 @@ function renderPan() {
           <div class="kv"><div class="kv-k">Framework</div><div class="kv-v"><span class="fw-tag">${escapeHtml(e.fw)} · ${escapeHtml(e.fw2)}</span></div></div>
           <div class="kv"><div class="kv-k">Status</div><div class="kv-v"><span class="bdg ${bCls(e.status)}">${bLbl(e.status)}</span></div></div>
         </div>
+        ${(e.recommendedStatus && e.recommendedStatus!==e.status)?`
+        <div class="sec" style="padding-top:0;padding-bottom:0">
+          <div class="ai-suggest" data-pan-action="apply-status" role="button" tabindex="0" title="Click to apply">
+            <span>✦ AI suggests: <strong>${bLbl(e.recommendedStatus)}</strong>${e.statusRationale?' — '+escapeHtml(e.statusRationale):''}</span>
+            <span class="ai-suggest-apply">Apply →</span>
+          </div>
+        </div>`:''}
         <div class="sec"><div class="ai-l">AI critique</div>
           <div class="ai-block">${e.critiquing?'<span style="display:flex;align-items:center;gap:8px;color:var(--ink-3)"><span class="spinner"></span>Critiquing…</span>':(safe(e.crit)||'No critique generated yet.')}</div></div>
         <div class="sec"><div class="sec-l">Evidence gaps <span style="font-weight:400;color:var(--ink-4);text-transform:none;letter-spacing:0">(AI-identified)</span></div>
@@ -1989,8 +2005,12 @@ function renderPan() {
     }
   }
 
-  // Panel foot action listener
+  // Panel foot action listener (also covers action affordances rendered in the body, e.g. AI-suggested status)
   foot.querySelectorAll('[data-pan-action]').forEach(btn=>btn.addEventListener('click',panFootAction));
+  body.querySelectorAll('[data-pan-action]').forEach(btn=>{
+    btn.addEventListener('click',panFootAction);
+    btn.addEventListener('keydown',e2=>{ if(e2.key==='Enter'||e2.key===' '){ e2.preventDefault(); panFootAction(e2); } });
+  });
   foot.querySelectorAll('[data-ptab]').forEach(btn=>btn.addEventListener('click',()=>swPanTab(btn.dataset.ptab)));
   // Ref chips inside panel body
   body.querySelectorAll('.ref[data-ref-id]').forEach(r=>r.addEventListener('click',e2=>{e2.stopPropagation();openPan(r.dataset.refId,idKind(r.dataset.refId));}));
@@ -2007,10 +2027,22 @@ async function panFootAction(e) {
     ent.critiquing=true; renderPan();
     try {
       const evidenceTexts=(ent.ev||[]).map(id=>{const ev=ds.evidence.find(x=>x.id===id);return ev?ev.text:null;}).filter(Boolean);
+      const otherClaims=ds.claims.filter(c=>c.id!==ent.id).map(c=>({id:c.id,text:c.text,status:c.status}));
+      const existingCounterfactuals=(ent.cf||[]).map(id=>ds.counterfactuals.find(x=>x.id===id)).filter(Boolean).map(cf=>({statement:cf.statement}));
+      const existingTensionClaimIds=Array.from(new Set(
+        (ent.tn||[]).map(id=>ds.tensions.find(x=>x.id===id)).filter(Boolean)
+          .flatMap(t=>(t.claims||[]).filter(cid=>cid!==ent.id))
+      ));
       const idToken=await currentUser.getIdToken();
-      const result=await AI.critiqueClaim({claim:{text:ent.text,cat:ent.cat,status:ent.status},analysisContext:{evidenceTexts},idToken});
+      const result=await AI.critiqueClaim({
+        claim:{id:ent.id,text:ent.text,cat:ent.cat,status:ent.status},
+        analysisContext:{evidenceTexts,otherClaims,existingCounterfactuals,existingTensionClaimIds},
+        idToken
+      });
       ent.crit=result.crit;
       ent.evidenceGaps=result.evidenceGaps||[];
+      ent.recommendedStatus=result.recommendedStatus||null;
+      ent.statusRationale=result.statusRationale||'';
       (result.counterfactuals||[]).forEach(cf=>{
         const id=newId('CF');
         ds.counterfactuals.push({
@@ -2020,13 +2052,43 @@ async function panFootAction(e) {
         });
         ent.cf=ent.cf||[]; if(!ent.cf.includes(id)) ent.cf.push(id);
       });
+      (result.tensions||[]).forEach(tn=>{
+        const otherId=tn.withClaimId;
+        const other=otherId && ds.claims.find(c=>c.id===otherId);
+        if(!other) return;
+        // Skip if a tension between exactly this claim pair already exists.
+        const dup=ds.tensions.some(t=>(t.claims||[]).includes(ent.id)&&(t.claims||[]).includes(other.id));
+        if(dup) return;
+        const id=newId('T');
+        ds.tensions.push({
+          id, title:tn.title||'Untitled tension', claims:[ent.id,other.id],
+          desc:tn.desc||'', type:tn.type||'fra', pri:tn.pri||'p2', status:'assumed',
+          path:'Not yet resolved — review and choose a resolution path.',
+          prov:{src:'AI critique · claim '+ent.id, extracted:'AI critique', creator:'AI auto-discovery', confidence:0.6,
+                srcQuote:tn.desc||'', trail:appendTrail([],{when:ts,who:'AI critique',what:'Discovered during critique of '+ent.id})}
+        });
+        ent.tn=ent.tn||[]; if(!ent.tn.includes(id)) ent.tn.push(id);
+        other.tn=other.tn||[]; if(!other.tn.includes(id)) other.tn.push(id);
+      });
       ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'AI critique',what:'Critique regenerated'});
+      if(ent.recommendedStatus && ent.recommendedStatus!==ent.status){
+        ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'AI critique',what:'Recommended status: '+bLbl(ent.recommendedStatus)+(ent.statusRationale?' — '+ent.statusRationale:'')});
+      }
       ent.critiquing=false;
       render(); openPan(ent.id,'claim'); scheduleSave();
     } catch(err) {
       ent.critiquing=false;
       renderPan();
       toast('Critique failed: '+err.message);
+    }
+    return;
+  }
+  if(action==='apply-status'){
+    if(ent.recommendedStatus){
+      ent.status=ent.recommendedStatus;
+      ent.prov.trail=appendTrail(ent.prov.trail,{when:ts,who:'User',what:'Applied AI-recommended status: '+bLbl(ent.recommendedStatus)});
+      ent.recommendedStatus=null; ent.statusRationale='';
+      render(); openPan(ent.id,'claim'); scheduleSave();
     }
     return;
   }
@@ -2167,6 +2229,7 @@ function confirmDeleteItem() {
 // ADD ITEM MODAL
 // ═══════════════════════════════════════════════════════════
 let pendingAdd=null;
+let expCandidates=[];
 function openAddModal(type) {
   window._addType=type;
   const bodyEl=eid('add-modal-body');
@@ -2353,22 +2416,73 @@ function finalizeNewCF(severity) {
 // GENERATE EXPERIMENTS
 // ═══════════════════════════════════════════════════════════
 async function doGenerateExperiments() {
-  const eb=eid('extract-banner');
-  const result=await AI.generateExperiments({claims:ds.claims,tensions:ds.tensions,counterfactuals:ds.counterfactuals,experiments:ds.experiments});
-  if(!result){
-    if(eb){eb.innerHTML=`ℹ No new experiments to propose — all P0/P1 tensions and active counterfactuals already have an experiment linked. <button class="btn btn-sm btn-gh" style="margin-left:auto" id="btn-dismiss-banner3">Dismiss</button>`;eb.classList.add('on');eid('btn-dismiss-banner3').onclick=dismissBanner;}
+  eid('airev-title').textContent='Reviewing your analysis…';
+  eid('airev-body').innerHTML=`<div style="display:flex;align-items:center;color:var(--ink-3);font-size:12.5px"><span class="spinner"></span>Reviewing P0/P1 tensions, confirmed counterfactuals, and disputed claims…</div>`;
+  eid('airev-foot').innerHTML='';
+  openModal('modal-airev');
+  try {
+    const idToken=await currentUser.getIdToken();
+    const result=await AI.generateExperiments({claims:ds.claims,tensions:ds.tensions,counterfactuals:ds.counterfactuals,experiments:ds.experiments,idToken});
+    expCandidates=result.experiments||[];
+    renderExpCandidates();
+  } catch(err) {
+    eid('airev-title').textContent='Could not generate experiments';
+    eid('airev-body').innerHTML=`<div style="font-size:12.5px;color:var(--warn)">${escapeHtml(err.message)}</div>`;
+    eid('airev-foot').innerHTML=`<button class="btn btn-sm" id="airev-close-err">Close</button>`;
+    eid('airev-close-err').onclick=closeAIReview;
+  }
+}
+function renderExpCandidates(){
+  eid('airev-title').textContent='Suggested experiments';
+  if(!expCandidates.length){
+    eid('airev-body').innerHTML=`<div class="airev-result">ℹ No new experiments to propose — all P0/P1 tensions, confirmed counterfactuals, and disputed claims already have an experiment addressing them, or there is nothing unresolved yet.</div>`;
+    eid('airev-foot').innerHTML=`<button class="btn btn-p btn-sm" id="airev-done-exp">Close</button>`;
+    eid('airev-done-exp').onclick=closeAIReview;
     return;
   }
+  eid('airev-body').innerHTML=expCandidates.map((c,i)=>{
+    const derived=[
+      ...(c.derivedFromTensionIds||[]).map(id=>`<span class="ref" data-ref-id="${escapeHtml(id)}" style="background:var(--warn-bg);border-color:var(--warn-soft);color:var(--warn)">${escapeHtml(id)}</span>`),
+      ...(c.derivedFromCounterfactualIds||[]).map(id=>`<span class="ref" data-ref-id="${escapeHtml(id)}" style="background:#faf2dc;border-color:#d9bf70;color:var(--gold)">${escapeHtml(id)}</span>`),
+      ...(c.derivedFromClaimIds||[]).map(id=>`<span class="ref" data-ref-id="${escapeHtml(id)}">${escapeHtml(id)}</span>`)
+    ].join(' ');
+    return `<div class="exp-cand" data-cand-idx="${i}">
+      <div class="exp-cand-title">${escapeHtml(c.title||'Untitled experiment')}</div>
+      <div style="font-size:11.5px;color:var(--ink-3);line-height:1.5">${escapeHtml(c.hypothesis||'')}</div>
+      <div class="exp-cand-meta"><span>${escapeHtml(c.method||'')}</span><span>${escapeHtml(c.timeline||'')}</span></div>
+      ${derived?`<div class="derive-chips" style="margin-bottom:8px">${derived}</div>`:''}
+      ${c.reasoning?`<div class="exp-cand-reason">${escapeHtml(c.reasoning)}</div>`:''}
+      <div class="exp-cand-foot"><button class="btn btn-p btn-sm" data-add-cand="${i}">+ Add experiment</button></div>
+    </div>`;
+  }).join('');
+  eid('airev-body').querySelectorAll('[data-add-cand]').forEach(b=>b.addEventListener('click',()=>addExpCandidate(parseInt(b.dataset.addCand,10))));
+  eid('airev-foot').innerHTML=`<button class="btn btn-sm" id="airev-done-exp">Close</button>`;
+  eid('airev-done-exp').onclick=closeAIReview;
+}
+function addExpCandidate(idx){
+  const c=expCandidates[idx]; if(!c)return;
   const id=newId('EXP'), ts=nowISOStr();
+  const claimsArr=Array.from(new Set(c.derivedFromClaimIds||[]));
   const exp={
-    id, ...result.experiment,
+    id, title:c.title||'Untitled experiment', claims:claimsArr,
+    derivedFrom:{
+      tensions: c.derivedFromTensionIds||[],
+      counterfactuals: c.derivedFromCounterfactualIds||[],
+      claims: c.derivedFromClaimIds||[]
+    },
+    hypothesis:c.hypothesis||'', method:c.method||'Customer interview', timeline:c.timeline||'2 weeks',
+    metric:c.metric||'', status:'proposed',
+    reasoning:c.reasoning||'',
     prov:{src:'AI synthesis · cross-entity reasoning',extracted:'AI experiment synthesis',creator:'AI auto-discovery',confidence:0.7,
-          srcQuote:'Synthesis pass scanned active P0/P1 tensions and confirmed/investigating counterfactuals without an existing linked experiment.',
+          srcQuote:c.reasoning||'Synthesis pass reviewed P0/P1 tensions, confirmed counterfactuals, and disputed claims.',
           trail:appendTrail([],{when:ts,who:'AI experiment synthesis',what:'Generated via Generate Experiments action'})}
   };
   ds.experiments.push(exp);
-  (exp.claims||[]).forEach(cid=>{const cl=ds.claims.find(x=>x.id===cid);if(cl){cl.exp=cl.exp||[];if(!cl.exp.includes(id))cl.exp.push(id);}});
-  switchToTab('experiments'); render(); openPan(id,'experiment'); scheduleSave();
+  claimsArr.forEach(cid=>{const cl=ds.claims.find(x=>x.id===cid);if(cl){cl.exp=cl.exp||[];if(!cl.exp.includes(id))cl.exp.push(id);}});
+  expCandidates.splice(idx,1);
+  switchToTab('experiments'); render(); scheduleSave();
+  if(expCandidates.length){ renderExpCandidates(); toast('Experiment added.'); }
+  else { closeAIReview(); openPan(id,'experiment'); }
 }
 
 // ═══════════════════════════════════════════════════════════

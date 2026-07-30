@@ -9,8 +9,8 @@ Deployable to GitHub Pages or any static host. No build step required.
 app.html             Main SPA — all infra + UI shell + TODO hooks
 firebase-config.js   Your Firebase client keys (replace placeholder values)
 ai-config.js         Your deployed AI proxy Cloud Function URL (replace placeholder)
-ai.js                AI seam — extractClaims/critiqueClaim/summariseAnalysis call the proxy;
-                     the rest remain local heuristic stubs
+ai.js                AI seam — extractClaims/critiqueClaim/summariseAnalysis/generateExperiments
+                     call the proxy; the rest remain local heuristic stubs
 functions/           Firebase Cloud Function — holds the real Anthropic API key server-side
 firebase.json        Firebase CLI config (Firestore rules + indexes + functions)
 firestore.rules      Security rules (private user docs + public share docs)
