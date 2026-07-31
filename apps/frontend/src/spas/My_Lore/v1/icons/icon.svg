@@ -1,0 +1,30 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#23a893"/>
+      <stop offset="1" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="pageGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f3eefc"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="14" flood-color="#1a1030" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+
+  <!-- open book -->
+  <g filter="url(#soft)">
+    <path d="M256 168c-26-20-62-29-101-24-8 1-13 8-13 15v166c0 10 8 15 16 14 36-5 70 2 98 22 28-20 62-27 98-22 8 1 16-4 16-14V159c0-7-5-14-13-15-39-5-75 4-101 24z" fill="url(#pageGrad)"/>
+    <path d="M256 168v186" stroke="#c9b8f3" stroke-width="5" stroke-linecap="round"/>
+    <path d="M172 178c22-4 46-2 64 8" stroke="#b9a6ed" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.7"/>
+    <path d="M172 206c22-4 46-2 64 8" stroke="#b9a6ed" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.5"/>
+    <path d="M276 186c18-10 42-12 64-8" stroke="#b9a6ed" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.7"/>
+    <path d="M276 214c18-10 42-12 64-8" stroke="#b9a6ed" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.5"/>
+  </g>
+
+  <!-- sparkle mark -->
+  <path d="M378 96l9 22 22 9-22 9-9 22-9-22-22-9 22-9z" fill="#ffd166"/>
+</svg>
