@@ -16,7 +16,10 @@ const { defineSecret } = require('firebase-functions/params');
 const logger = require('firebase-functions/logger');
 const admin = require('firebase-admin');
 
-admin.initializeApp();
+// Gen 2 Cloud Functions don't always auto-populate projectId on the default Admin app,
+// which makes verifyIdToken() throw a TypeError instead of a proper auth error.
+const PROJECT_ID = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || 'validait-ideas';
+admin.initializeApp({ projectId: PROJECT_ID });
 
 const ANTHROPIC_API_KEY = defineSecret('ANTHROPIC_API_KEY');
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-5-20250929';

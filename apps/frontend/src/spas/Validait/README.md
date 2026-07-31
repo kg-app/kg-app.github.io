@@ -6,7 +6,7 @@ Deployable to GitHub Pages or any static host. No build step required.
 ## File structure
 
 ```
-app.html             Main SPA — all infra + UI shell + TODO hooks
+app.html             Main SPA — unified analysis layout (claims table + claim editor), overlays for tensions/experiments, provenance drawer
 firebase-config.js   Your Firebase client keys (replace placeholder values)
 ai-config.js         Your deployed AI proxy Cloud Function URL (replace placeholder)
 ai.js                AI seam — extractClaims/critiqueClaim/summariseAnalysis/generateExperiments
@@ -152,6 +152,12 @@ If the signed-in user is the owner of the shared doc, they are automatically
 upgraded to edit mode without leaving the page.
 
 Call `copyShareLink()` from any UI element to copy the current doc's share URL.
+
+---
+
+## Analysis UX
+
+The analysis view uses a split layout: a searchable claims table on the left and a fixed claim editor on the right. Workspace tabs (**Claims**, **Evidence**, **Counterfactuals**, **Tensions**) let you browse all artifacts and jump to linked claims. Evidence and counterfactuals are also managed per-claim in the editor. **Experiments** open as a full-screen overlay from the toolbar.
 
 ---
 

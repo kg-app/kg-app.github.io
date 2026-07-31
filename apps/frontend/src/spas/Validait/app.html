@@ -199,6 +199,57 @@ table.dash-tbl{width:100%;border-collapse:collapse;font-size:13px;background:#ff
 .panel{width:0;background:var(--surf);border-left:2px solid var(--line);overflow:hidden;flex-shrink:0;transition:width .22s ease;display:flex;flex-direction:column}
 .panel.on{width:440px}
 
+/* ─── unified analysis layout (wireframe) ─── */
+.unified-toolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--line);flex-shrink:0;background:var(--surf)}
+.unified-brand{font-size:11px;letter-spacing:.5px;color:var(--ink-4);font-weight:700}
+.unified-toolbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.unified-toolbar-actions input{width:130px;padding:6px 10px;border:1px solid var(--line);border-radius:0;font-size:12px;font-family:inherit}
+.unified-toolbar-actions input:focus{outline:none;border-color:var(--ink-3)}
+.unified-tabbar{display:flex;align-items:center;gap:0;padding:0 18px;border-bottom:1px solid var(--line);flex-shrink:0;background:var(--surf)}
+.unified-tabbar .tab{margin-bottom:-1px}
+.unified-work{flex:1;display:flex;overflow:hidden;min-height:0;background:var(--surf)}
+.unified-claims{flex:1;min-width:0;overflow:auto;padding:12px 18px}
+.unified-editor{flex:0 0 280px;border-left:1px solid var(--line);padding:12px 16px;overflow-y:auto;background:var(--surf)}
+.unified-section-l{font-size:11px;color:var(--ink-4);letter-spacing:.04em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.unified-count{border:1px solid var(--line);font-size:11px;padding:0 6px;border-radius:0}
+.unified-claims table{table-layout:fixed}
+.unified-claims .unified-row.sel td{background:var(--surf-2)}
+.unified-claims .unified-row.sel{box-shadow:inset 3px 0 0 var(--ink)}
+.unified-row-claim{font-size:13px;line-height:1.45;color:var(--ink);margin-bottom:8px}
+.unified-row-block{margin-top:8px}
+.unified-row-block-l{font-size:10px;color:var(--ink-4);letter-spacing:.04em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.unified-row-mini{border:1px solid var(--line-2);padding:4px 8px;font-size:11px;color:var(--ink-2);line-height:1.4;margin-bottom:4px;background:var(--surf)}
+.unified-row-mini:last-child{margin-bottom:0}
+.unified-row-empty-inline{font-size:11px;color:var(--ink-4);font-style:italic}
+.unified-claims .unified-row td{vertical-align:top}
+.unified-footer{font-size:11px;color:var(--ink-4);margin-top:10px}
+.unified-claim-box{border:1px solid var(--line);padding:10px 12px;font-size:13px;margin-bottom:14px;background:var(--surf-2)}
+.unified-claim-box textarea{border:none;background:transparent;padding:0;min-height:48px;resize:vertical}
+.unified-linked-item{border:1px solid var(--line);padding:6px 10px;font-size:12px;margin-bottom:6px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.unified-linked-text{flex:1;line-height:1.4}
+.unified-linked-actions{display:flex;gap:4px;flex-shrink:0;align-items:center}
+.unified-unlink{cursor:pointer;color:var(--ink-4);background:none;border:none;font-size:14px;padding:0 2px;font-family:inherit}
+.unified-unlink:hover{color:var(--warn)}
+.unified-inline-input{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:0;padding:6px 10px;font-size:12px;margin-bottom:6px;font-family:inherit}
+.unified-editor-foot{display:flex;gap:8px;border-top:1px solid var(--line);padding-top:12px;margin-top:14px}
+.unified-editor-foot .btn{flex:1;border-radius:0}
+.unified-editor-foot .btn-p{border-radius:0}
+.unified-placeholder{font-size:12px;color:var(--ink-4);font-style:italic;padding:20px 0}
+.unified-last-change{font-size:10.5px;color:var(--ink-4);margin:-8px 0 12px;line-height:1.4}
+.unified-editor-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.unified-editor-hdr .unified-section-l{margin:0}
+.modal.unified-overlay{width:min(920px,94vw);max-height:88vh;padding:0;display:flex;flex-direction:column}
+.overlay-detail{border-bottom:1px solid var(--line);padding:14px 18px;background:var(--surf-2);flex-shrink:0}
+.overlay-detail .overlay-detail-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.overlay-detail .overlay-detail-hdr h4{margin:0;font-size:13px}
+.overlay-detail-actions{display:flex;gap:8px;margin-top:10px}
+.overlay-body{flex:1;overflow:auto;padding:0 18px 18px}
+.overlay-body table{font-size:12px}
+.overlay-foot{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;background:var(--surf-2)}
+body.readonly .unified-toolbar-actions .btn:not(#btn-experiments-overlay){display:none}
+body.readonly .unified-unlink,body.readonly .unified-inline-input,body.readonly .unified-editor-foot,body.readonly #ue-add-ev,body.readonly #ue-add-cf{display:none!important}
+body.readonly .unified-claim-box textarea{pointer-events:none;opacity:.9}
+
 /* ─── entity table ─── */
 table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
 thead th{position:sticky;top:0;background:var(--surf-2);padding:8px 11px;text-align:left;font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--ink-4);text-transform:uppercase;border-bottom:1.5px solid var(--line);white-space:nowrap;z-index:5}
@@ -487,87 +538,67 @@ body.readonly .asum-actions{display:none}
     </div>
   </div>
 
-  <!-- ── ANALYSIS VIEW ── -->
+  <!-- ── ANALYSIS VIEW (unified wireframe) ── -->
   <div id="view-analysis" style="display:none">
+    <input type="hidden" id="an-title" value="Untitled Analysis"/>
 
-    <div class="subhead">
-      <div class="subhead-top">
-        <input type="text" class="an-title-edit" id="an-title" value="Untitled Analysis"/>
-      </div>
-      <div class="subhead-meta">
-        <span>Created <b id="meta-created">—</b></span>
-        <span>Updated <b id="meta-updated">—</b></span>
-        <span><b id="meta-docs">0</b> documents</span>
-        <div class="subhead-actions">
-          <button class="btn btn-sm" id="btn-analyze-all">✦ Analyze everything</button>
-          <button class="btn btn-sm" id="btn-summarise">✦ Summarise</button>
-          <button class="btn btn-sm" id="btn-upload-doc">📎 Upload doc</button>
-          <button class="btn btn-sm" id="btn-workflow">⊞ Workflow</button>
-          <button class="btn btn-sm" title="Export">⤓ Export</button>
-        </div>
+    <div class="unified-toolbar">
+      <span class="unified-brand">VALIDAIT</span>
+      <div class="unified-toolbar-actions">
+        <input type="text" id="unified-search" placeholder="Search..." />
+        <button class="btn btn-sm" id="btn-add-claim">+ Add claim</button>
+        <button class="btn btn-sm btn-p" id="btn-analyze-all">Analyze all</button>
+        <button class="btn btn-sm" id="btn-experiments-overlay">Experiments <span class="unified-count" id="cnt-experiments">0</span></button>
       </div>
     </div>
 
-    <div class="asum-banner" id="asum-banner">
-      <span class="asum-pill" id="asum-pill">—</span>
-      <div class="asum-text" id="asum-text"></div>
-      <div class="asum-actions">
-        <button class="btn btn-sm btn-gh" id="btn-refresh-summary" title="Refresh">↻</button>
-        <button class="btn btn-sm btn-gh" id="btn-dismiss-summary">Dismiss</button>
-      </div>
+    <div class="unified-tabbar" id="unified-tabbar" hidden>
+      <button class="tab on" type="button" data-utab="claims">Claims <span class="tab-cnt" id="cnt-claims-tab">0</span></button>
+      <button class="tab" type="button" data-utab="evidence">Evidence <span class="tab-cnt" id="cnt-evidence-tab">0</span></button>
+      <button class="tab" type="button" data-utab="counterfactuals">Counterfactuals <span class="tab-cnt" id="cnt-cf-tab">0</span></button>
+      <button class="tab" type="button" data-utab="tensions">Tensions <span class="tab-cnt" id="cnt-tensions-tab">0</span></button>
     </div>
-
-    <div class="subbar">
-      <button class="tab on" id="tab-claims" data-tab="claims">Claims <span class="tab-cnt" id="cnt-claims">0</span></button>
-      <button class="tab" id="tab-evidence" data-tab="evidence">Evidence <span class="tab-cnt" id="cnt-evidence">0</span></button>
-      <button class="tab" id="tab-tensions" data-tab="tensions">Tensions <span class="tab-cnt" id="cnt-tensions">0</span></button>
-      <button class="tab" id="tab-counterfactuals" data-tab="counterfactuals">Counterfactuals <span class="tab-cnt" id="cnt-counterfactuals">0</span></button>
-      <button class="tab" id="tab-experiments" data-tab="experiments">Experiments <span class="tab-cnt" id="cnt-experiments">0</span></button>
-      <button class="tab tab-disabled" id="tab-canvas">Canvas <span class="tab-soon">soon</span></button>
-      <div class="bar-spacer"></div>
-    </div>
-
-    <div class="stats" id="stats-strip"></div>
 
     <div class="extract-banner" id="extract-banner">
-      ✓ Extraction complete — claims identified and framework mappings auto-applied
+      ✓ Extraction complete
       <button class="btn btn-sm btn-gh" id="btn-dismiss-banner" style="margin-left:auto">Dismiss</button>
     </div>
 
-    <div class="filtbar">
-      <div class="search"><input type="text" id="filtbar-search" placeholder="Search claims, evidence, tensions…"/></div>
-      <div class="flt-grp" id="flt-grp">
-        <button class="flt on" data-flt="all">All</button>
-        <button class="flt" data-flt="assumed">Assumed</button>
-        <button class="flt" data-flt="supported">Supported</button>
-        <button class="flt" data-flt="disputed">Disputed</button>
-        <button class="flt" data-flt="gap">Critical gaps</button>
-      </div>
-      <div style="margin-left:auto;display:flex;gap:6px" id="filtbar-actions"></div>
-    </div>
-
-    <div class="work">
-      <div class="main" id="main-area"></div>
-      <div class="panel" id="panel">
-        <div class="pan-hdr">
-          <div class="pan-hdr-l">
-            <span class="pan-id" id="pan-id">—</span>
-            <span class="pan-title" id="pan-title">Detail</span>
-          </div>
-          <button class="pan-x" id="btn-close-pan">×</button>
-        </div>
-        <div class="pan-tabs">
-          <button class="pan-tab on" id="ptab-detail" data-ptab="detail">Detail</button>
-          <button class="pan-tab" id="ptab-ev" data-ptab="ev">Evidence <span class="pan-tab-cnt" id="ptab-ev-cnt">0</span></button>
-          <button class="pan-tab" id="ptab-tn" data-ptab="tn">Tensions <span class="pan-tab-cnt" id="ptab-tn-cnt">0</span></button>
-          <button class="pan-tab" id="ptab-prov" data-ptab="prov">📎 Provenance</button>
-        </div>
-        <div class="pan-body" id="pan-body"></div>
-        <div class="pan-foot" id="pan-foot"></div>
+    <div class="unified-work">
+      <div class="unified-claims" id="unified-claims-pane"></div>
+      <div class="unified-editor" id="unified-editor-pane">
+        <div class="unified-placeholder">Select a claim to edit</div>
       </div>
     </div>
-
   </div><!-- /view-analysis -->
+
+  <!-- Experiments overlay -->
+  <div class="modal-bg" id="overlay-experiments">
+    <div class="modal unified-overlay">
+      <div class="wf-hdr">
+        <h3>Experiments <span class="unified-count" id="cnt-experiments-ov">0</span></h3>
+        <button class="pan-x" id="btn-close-experiments-ov">×</button>
+      </div>
+      <div class="overlay-detail" id="overlay-experiments-detail" hidden></div>
+      <div class="overlay-body" id="overlay-experiments-body"></div>
+      <div class="overlay-foot">
+        <button class="btn gen-exp-btn btn-sm" id="btn-gen-exp-overlay">✦ Generate experiments</button>
+        <button class="btn btn-sm" id="btn-close-experiments-ov2">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Provenance drawer -->
+  <div class="modal-bg" id="prov-drawer">
+    <div class="modal" style="width:440px;padding:0">
+      <div class="wf-hdr">
+        <h3 id="prov-drawer-title">Provenance</h3>
+        <button class="pan-x" id="btn-close-prov">×</button>
+      </div>
+      <div id="prov-drawer-body" style="padding:16px 22px;max-height:70vh;overflow-y:auto"></div>
+    </div>
+  </div>
+
 </div><!-- /app -->
 
 <!-- ═══════════ AUTH MODAL ═══════════ -->
@@ -610,11 +641,11 @@ body.readonly .asum-actions{display:none}
     </div>
     <div class="modal-sub" style="margin-bottom:18px">A falsificationist framework for stress-testing your business thesis — built to challenge claims, not confirm them.</div>
     <div class="guide-step"><div class="guide-num">1</div><div><div class="guide-title">Start an analysis</div><div class="guide-txt">Name it, then add a document or your first claim. Documents are parsed automatically into a starting set of claims; you can also add claims by hand at any time.</div></div></div>
-    <div class="guide-step"><div class="guide-num">2</div><div><div class="guide-title">Claims are challenged, not confirmed</div><div class="guide-txt">Add evidence and counterfactuals for a claim (Evidence and Counterfactuals tabs), then run "Critique with AI" on it to find its weakest point. Evidence gets classified as supporting, contradicting, or merely qualifying the claim, and the AI recommends a status you can apply or ignore.</div></div></div>
-    <div class="guide-step"><div class="guide-num">3</div><div><div class="guide-title">Tensions surface contradictions</div><div class="guide-txt">When two claims conflict — like assuming both an EPCM and an Owner PM are your primary buyer — critique flags it as a tension that needs an explicit resolution. Click "✦ Analyze everything" to critique every claim at once and surface all cross-claim tensions in one pass.</div></div></div>
-    <div class="guide-step"><div class="guide-num">4</div><div><div class="guide-title">Counterfactuals name the failure condition</div><div class="guide-txt">For any claim, ask: what would have to be true for this to be false? AI proposes counterfactuals from its critiques; you can add your own and mark them confirmed or ruled out as you investigate.</div></div></div>
-    <div class="guide-step"><div class="guide-num">5</div><div><div class="guide-title">Experiments turn analysis into action</div><div class="guide-txt">Click "Generate experiments" and AI reviews your highest-priority tensions and counterfactuals to propose concrete tests — with the reasoning behind each one shown alongside it.</div></div></div>
-    <div class="guide-step" style="margin-bottom:6px"><div class="guide-num">6</div><div><div class="guide-title">Everything is traceable</div><div class="guide-txt">Click the 📎 icon on any item to see exactly where it came from — a document quote, an interview, or a manual entry — and its full edit history.</div></div></div>
+    <div class="guide-step"><div class="guide-num">2</div><div><div class="guide-title">Claims are challenged, not confirmed</div><div class="guide-txt">Select a claim in the table to edit it in the right panel. Add evidence and counterfactuals inline, then click <strong>Analyze</strong> to find its weakest point. The AI recommends a status you can apply or ignore.</div></div></div>
+    <div class="guide-step"><div class="guide-num">3</div><div><div class="guide-title">Tensions surface contradictions</div><div class="guide-txt">When two claims conflict, critique flags it as a tension. Open the <strong>Tensions</strong> workspace tab to review them, or use <strong>Analyze all</strong> to critique every claim at once.</div></div></div>
+    <div class="guide-step"><div class="guide-num">4</div><div><div class="guide-title">Counterfactuals name the failure condition</div><div class="guide-txt">For any claim, ask: what would have to be true for this to be false? Use the <strong>Counterfactuals</strong> tab to browse all counterfactuals and their linked claims, or add them inline on a claim.</div></div></div>
+    <div class="guide-step"><div class="guide-num">5</div><div><div class="guide-title">Experiments turn analysis into action</div><div class="guide-txt">Open <strong>Experiments</strong> from the toolbar and click <strong>Generate experiments</strong>. AI reviews your highest-priority tensions and counterfactuals to propose concrete tests.</div></div></div>
+    <div class="guide-step" style="margin-bottom:6px"><div class="guide-num">6</div><div><div class="guide-title">Everything is traceable</div><div class="guide-txt">Click the 📎 icon on a claim, linked evidence, linked counterfactual, or overlay row to open the provenance drawer with origin details and the full modification trail.</div></div></div>
     <div style="margin-top:6px;display:flex;justify-content:flex-end">
       <button class="btn btn-p" id="btn-guide-ok">Got it</button>
     </div>
@@ -777,7 +808,7 @@ let routeShareToken  = null;
 let activeShareToken = null;
 
 // App-level state
-let STATE = { view: 'dashboard', tab: 'claims', panTab: 'detail', selId: null, panEntity: null, panType: null };
+let STATE = { view: 'dashboard', tab: 'claims', panTab: 'detail', selId: null, panEntity: null, panType: null, analysisOverlay: null, unifiedSearch: '', unifiedTab: 'claims', artifactSelId: null };
 let ds = { claims:[], evidence:[], tensions:[], counterfactuals:[], experiments:[], sources:[], summary:null };
 let currentAnalysisName = '';
 const DASH_STATE = { sortKey: 'updated', sortDir: 'desc' };
@@ -798,6 +829,11 @@ function appendTrail(trail, newEntry) {
     return [{ when:'', who:'system', what:`+ ${excess} earlier entries` }, ...t.slice(t.length - (MAX_TRAIL - 1))];
   }
   return t;
+}
+function logProv(entity, what, who) {
+  if (!entity) return;
+  entity.prov = entity.prov || { src:'—', creator:'—', extracted:'—', confidence:1, srcQuote:'', trail:[] };
+  entity.prov.trail = appendTrail(entity.prov.trail, { when: nowISOStr(), who: who || 'User', what });
 }
 
 function nowISOStr() {
@@ -1027,11 +1063,7 @@ async function openDoc(uid, id) {
   if (!ok) { toast('Could not load analysis'); return; }
   activeShareToken = (docList.find(d=>d.id===id)||{}).shareToken||null;
   if (activeShareToken && !readonlyMode) syncPublic(uid, id, activeShareToken);
-  STATE.tab = 'claims';
-  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('on'));
-  const tc = eid('tab-claims'); if(tc) tc.classList.add('on');
-  updateFiltbarActions('claims');
-  closePan();
+  STATE.selId=null;
   showAnalysisView();
   onDocLoaded();
 }
@@ -1224,17 +1256,13 @@ function applyDocData(data) {
   currentAnalysisName = (data && data.name) || 'Untitled Analysis';
 
   if (readonlyMode) {
-    // Shared view: show analysis immediately
     const titleEl = eid('an-title'); if (titleEl) titleEl.value = currentAnalysisName;
     STATE.view = ds.claims.length===0 ? 'empty' : 'populated';
-    STATE.tab  = 'claims';
     const vd = eid('view-dashboard'); if(vd) vd.style.display='none';
     const va = eid('view-analysis');  if(va) va.style.display='flex';
     const gc = eid('gcrumb');         if(gc) gc.style.display='flex';
-    updateCrumb(); updateTabCounts(); updateStats(); renderAnalysisSummary();
-    document.querySelectorAll('.tab').forEach(el=>el.classList.remove('on'));
-    const tc=eid('tab-claims'); if(tc) tc.classList.add('on');
-    updateFiltbarActions('claims');
+    updateCrumb(); updateTabCounts(); renderAnalysisSummary();
+    ensureClaimSelected();
     render();
   } else if (STATE.view !== 'dashboard') {
     const titleEl = eid('an-title'); if (titleEl) titleEl.value = currentAnalysisName;
@@ -1317,6 +1345,7 @@ document.addEventListener('click',closeMenu);
 
 function showDashboardView() {
   STATE.view = 'dashboard';
+  STATE.selId = null;
   const vd=eid('view-dashboard'), va=eid('view-analysis'), gc=eid('gcrumb');
   if(vd) vd.style.display='';
   if(va) va.style.display='none';
@@ -1328,9 +1357,10 @@ function showAnalysisView() {
   const vd=eid('view-dashboard'), va=eid('view-analysis'), gc=eid('gcrumb');
   if(vd) vd.style.display='none';
   if(va) va.style.display='flex';
-  if(gc) { gc.style.display='flex'; }
-  updateCrumb(); updateSubheadMeta(); updateTabCounts(); updateStats();
-  updateFiltbarActions(STATE.tab);
+  if(gc) gc.style.display='flex';
+  updateCrumb();
+  closeAnalysisOverlay();
+  ensureClaimSelected();
   STATE.view = ds.claims.length===0 ? 'empty' : 'populated';
   render();
 }
@@ -1349,12 +1379,7 @@ function updateCrumb() {
   const e=eid('gcrumb-name'); if(e) e.textContent=currentAnalysisName||'Untitled';
 }
 function updateSubheadMeta() {
-  const entry = docList.find(d=>d.id===activeDocId);
   const te=eid('an-title'); if(te) te.value=currentAnalysisName;
-  const mc=eid('meta-created'), mu=eid('meta-updated'), md=eid('meta-docs');
-  if(mc) mc.textContent = entry ? fmtDate(entry.createdAt) : '—';
-  if(mu) mu.textContent = entry ? fmtDate(entry.updatedAt) : '—';
-  if(md) md.textContent = ds.sources.length;
 }
 function renderAnalysisSummary() {
   const banner=eid('asum-banner'); if(!banner)return;
@@ -1479,8 +1504,11 @@ document.addEventListener('click',e=>{
   document.querySelectorAll('.row-menu').forEach(m=>m.classList.remove('on'));
   // Prov mini button
   const pm=e.target.closest('[data-prov]');
-  if(pm) { e.stopPropagation(); openProv(pm.dataset.prov); return; }
-  // Tab switch
+  if(pm) { e.stopPropagation(); openProvDrawer(pm.dataset.prov); return; }
+  // Unified workspace tab switch
+  const utab=e.target.closest('[data-utab]');
+  if(utab) { switchUnifiedTab(utab.dataset.utab); return; }
+  // Tab switch (legacy)
   const tab=e.target.closest('.tab[data-tab]');
   if(tab) { swTab(tab.dataset.tab); return; }
   // Panel tab switch
@@ -1488,7 +1516,13 @@ document.addEventListener('click',e=>{
   if(ptab) { swPanTab(ptab.dataset.ptab); return; }
   // Ref chip in tables / panel
   const ref=e.target.closest('.ref[data-ref-id]');
-  if(ref) { e.stopPropagation(); openPan(ref.dataset.refId, idKind(ref.dataset.refId)); return; }
+  if(ref) {
+    e.stopPropagation();
+    const rid=ref.dataset.refId, kind=idKind(rid);
+    if(kind==='claim') goToClaim(rid);
+    else openPan(rid, kind);
+    return;
+  }
   // Status dropdown
   const ce=e.target.closest('.cell-edit[data-dd]');
   if(ce) { e.stopPropagation(); ddDispatch(e,ce); return; }
@@ -1614,77 +1648,514 @@ eid('existing-sources').addEventListener('click',e=>{
 });
 
 // ═══════════════════════════════════════════════════════════
-// MAIN RENDER DISPATCHER
+// MAIN RENDER DISPATCHER (unified layout)
 // ═══════════════════════════════════════════════════════════
 function render() {
-  if (STATE.view==='empty')      { renderEmpty();  updateTabCounts(); updateStats(); return; }
-  if (STATE.view==='processing') { renderProc();   return; }
-  if (STATE.tab==='claims')           renderClaims();
-  else if (STATE.tab==='evidence')    renderEvidence();
-  else if (STATE.tab==='tensions')    renderTensions();
-  else if (STATE.tab==='counterfactuals') renderCounterfactuals();
-  else if (STATE.tab==='experiments') renderExperiments();
-  else if (STATE.tab==='canvas')      renderCanvas();
-  updateTabCounts(); updateStats();
+  if (STATE.view==='dashboard') return;
+  updateTabCounts();
+  const tabbar=eid('unified-tabbar');
+  if (STATE.view==='empty') {
+    if(tabbar) tabbar.hidden=true;
+    renderUnifiedEmpty();
+    renderClaimEditor(null);
+    return;
+  }
+  if (STATE.view==='processing') {
+    if(tabbar) tabbar.hidden=true;
+    renderUnifiedProcessing();
+    renderClaimEditor(null);
+    return;
+  }
+  if(tabbar) tabbar.hidden=false;
+  ensureClaimSelected();
+  renderUnifiedWorkspace();
+}
+
+function switchUnifiedTab(tab) {
+  STATE.unifiedTab=tab;
+  STATE.artifactSelId=null;
+  document.querySelectorAll('[data-utab]').forEach(el=>el.classList.toggle('on',el.dataset.utab===tab));
+  render();
+}
+function goToClaim(claimId) {
+  STATE.unifiedTab='claims';
+  STATE.selId=claimId;
+  STATE.artifactSelId=null;
+  document.querySelectorAll('[data-utab]').forEach(el=>el.classList.toggle('on',el.dataset.utab==='claims'));
+  render();
+}
+function renderUnifiedWorkspace() {
+  ensureArtifactSelected();
+  const tab=STATE.unifiedTab||'claims';
+  if(tab==='claims'){
+    renderUnifiedAnalysis();
+    renderClaimEditor(STATE.selId);
+  } else if(tab==='evidence'){
+    renderEvidence();
+    renderArtifactEditor(STATE.artifactSelId);
+  } else if(tab==='counterfactuals'){
+    renderCounterfactuals();
+    renderArtifactEditor(STATE.artifactSelId);
+  } else if(tab==='tensions'){
+    renderTensions();
+    renderArtifactEditor(STATE.artifactSelId);
+  }
 }
 
 function updateTabCounts() {
-  const ids=['claims','evidence','tensions','counterfactuals','experiments'];
-  ids.forEach(k=>{ const e=eid('cnt-'+k); if(e) e.textContent=ds[k].length; });
+  const ex=eid('cnt-experiments'), exo=eid('cnt-experiments-ov');
+  const m=ds.experiments.length;
+  if(ex) ex.textContent=m;
+  if(exo) exo.textContent=m;
+  const c1=eid('cnt-claims-tab'), c2=eid('cnt-evidence-tab'), c3=eid('cnt-cf-tab'), c4=eid('cnt-tensions-tab');
+  if(c1) c1.textContent=ds.claims.length;
+  if(c2) c2.textContent=ds.evidence.length;
+  if(c3) c3.textContent=ds.counterfactuals.length;
+  if(c4) c4.textContent=ds.tensions.length;
 }
-function updateStats() {
-  const el=eid('stats-strip'); if(!el)return;
-  const total=ds.claims.length;
-  const validated=ds.claims.filter(c=>c.status==='validated').length;
-  const disputed=ds.claims.filter(c=>c.status==='disputed').length;
-  const assumed=ds.claims.filter(c=>c.status==='assumed').length;
-  const gaps=ds.claims.filter(c=>c.status==='gap').length;
-  el.innerHTML=`
-    <div class="stat"><div class="stat-n">${total}</div><div class="stat-l">Claims</div></div>
-    <div class="stat stat-good"><div class="stat-n">${validated}</div><div class="stat-l">Validated</div></div>
-    <div class="stat stat-warn"><div class="stat-n">${disputed}</div><div class="stat-l">Disputed</div></div>
-    <div class="stat stat-warn"><div class="stat-n">${gaps}</div><div class="stat-l">Critical gaps</div></div>
-    <div class="stat"><div class="stat-n">${assumed}</div><div class="stat-l">Assumed</div></div>
-    <div class="stat"><div class="stat-n">${ds.evidence.length}</div><div class="stat-l">Evidence</div></div>
-    <div class="stat"><div class="stat-n">${ds.tensions.length}</div><div class="stat-l">Tensions</div></div>
-    <div class="stat"><div class="stat-n">${ds.experiments.length}</div><div class="stat-l">Experiments</div></div>`;
+function updateStats() { /* retired — unified layout has no stats strip */ }
+
+function ensureClaimSelected() {
+  if (!ds.claims.length) { STATE.selId=null; return; }
+  if (!STATE.selId || !ds.claims.find(c=>c.id===STATE.selId)) STATE.selId=ds.claims[0].id;
+}
+function claimIsAnalyzed(c) {
+  if (!c || !c.crit) return false;
+  return !/not yet been critiqued/i.test(c.crit);
+}
+function filterClaimsForSearch() {
+  const q=(STATE.unifiedSearch||'').trim().toLowerCase();
+  if (!q) return ds.claims;
+  return ds.claims.filter(c=>{
+    const text=(c.text||'').toLowerCase();
+    return c.id.toLowerCase().includes(q) || text.includes(q) || (c.status||'').includes(q) || bLbl(c.status).toLowerCase().includes(q);
+  });
+}
+function searchQuery() { return (STATE.unifiedSearch||'').trim().toLowerCase(); }
+function filterEvidenceForSearch() {
+  const q=searchQuery();
+  if(!q) return ds.evidence;
+  return ds.evidence.filter(e=>
+    e.id.toLowerCase().includes(q) || (e.text||'').toLowerCase().includes(q) ||
+    (e.type||'').includes(q) || (e.cls||'').includes(q) || (e.src||'').toLowerCase().includes(q) ||
+    (e.claims||[]).some(c=>c.toLowerCase().includes(q))
+  );
+}
+function filterCounterfactualsForSearch() {
+  const q=searchQuery();
+  if(!q) return ds.counterfactuals;
+  return ds.counterfactuals.filter(c=>
+    c.id.toLowerCase().includes(q) || (c.statement||'').toLowerCase().includes(q) ||
+    (c.severity||'').includes(q) || (c.status||'').includes(q) ||
+    (c.claims||[]).some(cl=>cl.toLowerCase().includes(q))
+  );
+}
+function filterTensionsForSearch() {
+  const q=searchQuery();
+  if(!q) return ds.tensions;
+  return ds.tensions.filter(t=>
+    t.id.toLowerCase().includes(q) || (t.title||'').toLowerCase().includes(q) ||
+    (t.desc||'').toLowerCase().includes(q) || (t.type||'').includes(q) ||
+    (t.pri||'').includes(q) || (t.status||'').includes(q) ||
+    (t.claims||[]).some(c=>c.toLowerCase().includes(q))
+  );
+}
+function ensureArtifactSelected() {
+  if(!STATE.artifactSelId) return;
+  const ent=findEntity(STATE.artifactSelId);
+  if(!ent) STATE.artifactSelId=null;
+}
+function lastTrailEntry(entity) {
+  const trail=(entity&&entity.prov&&entity.prov.trail)||[];
+  return trail.length ? trail[trail.length-1] : null;
 }
 
-function renderEmpty() {
-  eid('main-area').innerHTML=`
-    <div class="empty"><div class="empty-card">
+function renderUnifiedEmpty() {
+  const pane=eid('unified-claims-pane'); if(!pane) return;
+  pane.innerHTML=`
+    <div class="empty"><div class="empty-card" style="max-width:520px;padding:36px 32px">
       <div class="empty-icon">⊕</div>
       <div class="empty-title">Start your validation</div>
-      <div class="empty-sub">Upload your pitch deck, lean canvas, or business plan and AI will extract claims automatically. Or add your first claim manually.</div>
+      <div class="empty-sub">Upload a document or add your first claim to begin.</div>
       <div class="empty-actions">
         <button class="btn btn-p" id="btn-empty-upload">📎 Upload document</button>
-        <button class="btn" id="btn-empty-add-claim">+ Add claim manually</button>
+        <button class="btn" id="btn-empty-add-claim">+ Add claim</button>
       </div>
-      <div class="empty-formats">Accepted formats: PDF, DOCX, MD, TXT · max 10MB</div>
     </div></div>`;
-  eid('btn-empty-upload').onclick=()=>openUploadModal();
-  eid('btn-empty-add-claim').onclick=()=>openAddModal('claim');
+  const u=eid('btn-empty-upload'); if(u) u.onclick=()=>openUploadModal();
+  const a=eid('btn-empty-add-claim'); if(a) a.onclick=()=>openAddModal('claim');
 }
-function renderProc() {
-  eid('main-area').innerHTML=`
+function renderUnifiedProcessing() {
+  const pane=eid('unified-claims-pane'); if(!pane) return;
+  pane.innerHTML=`
     <div class="proc">
       <div style="font-size:13px;color:var(--ink-2);margin-bottom:6px;">Analysing uploaded documents…</div>
       <div class="proc-bar"><div class="proc-fill" id="proc-fill"></div></div>
       <div class="proc-step done"><div class="proc-tick">✓</div>Reading document structure</div>
-      <div class="proc-step done"><div class="proc-tick">✓</div>Identifying implicit assumptions and claims</div>
-      <div class="proc-step cur"><div class="proc-tick"></div>Mapping claims to BLAC / 4U / VPD / Lean Canvas frameworks</div>
-      <div class="proc-step"><div class="proc-tick"></div>Auto-detecting cross-claim tensions</div>
-      <div class="proc-step"><div class="proc-tick"></div>Generating AI critiques for each claim</div>
+      <div class="proc-step cur"><div class="proc-tick"></div>Extracting claims and evidence</div>
     </div>`;
 }
-function renderCanvas() {
-  eid('main-area').innerHTML=`
-    <div class="canvas-soon"><div class="canvas-soon-inner">
-      <div class="canvas-illust">⊙—⊙<br>&nbsp;&nbsp;|&nbsp;&nbsp;<br>⊙</div>
-      <div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:8px;">Connection Canvas</div>
-      <div style="font-size:12.5px;color:var(--ink-3);margin-bottom:12px;line-height:1.6;">Visualise claims and tensions as nodes, with evidence as connecting edges.</div>
-      <div style="font-size:11px;color:var(--ink-4);font-family:monospace;letter-spacing:.06em;">PLANNED · v0.5</div>
-    </div></div>`;
+
+function claimRowLinkedPreview(claim) {
+  const evList=(claim.ev||[]).map(id=>ds.evidence.find(x=>x.id===id)).filter(Boolean);
+  const cfList=(claim.cf||[]).map(id=>ds.counterfactuals.find(x=>x.id===id)).filter(Boolean);
+  const trunc=(s,n=100)=>{ const t=(s||'').trim(); return t.length>n?t.slice(0,n)+'…':t; };
+  let html=`<div class="unified-row-block"><div class="unified-row-block-l">Evidence <span class="unified-count">${evList.length}</span></div>`;
+  if(evList.length){
+    evList.forEach(ev=>{ html+=`<div class="unified-row-mini">${escapeHtml(trunc(ev.text))}</div>`; });
+  } else {
+    html+=`<div class="unified-row-empty-inline">None linked</div>`;
+  }
+  html+=`</div><div class="unified-row-block"><div class="unified-row-block-l">Counterfactuals <span class="unified-count">${cfList.length}</span></div>`;
+  if(cfList.length){
+    cfList.forEach(cf=>{ html+=`<div class="unified-row-mini">${escapeHtml(trunc(cf.statement))}</div>`; });
+  } else {
+    html+=`<div class="unified-row-empty-inline">None linked</div>`;
+  }
+  html+='</div>';
+  return html;
+}
+
+function renderUnifiedAnalysis() {
+  const pane=eid('unified-claims-pane'); if(!pane) return;
+  const claims=filterClaimsForSearch();
+  const analyzed=ds.claims.filter(claimIsAnalyzed).length;
+  let html=`<div class="unified-section-l">CLAIMS</div>
+    <table><colgroup><col style="width:72px"><col><col style="width:88px"></colgroup>
+    <thead><tr><th>ID</th><th>Claim</th><th>Status</th></tr></thead><tbody>`;
+  if (!claims.length) {
+    html+=`<tr><td colspan="3" style="padding:16px;color:var(--ink-4);font-style:italic">No claims match your search.</td></tr>`;
+  } else {
+    claims.forEach(c=>{
+      const sel=STATE.selId===c.id?' unified-row sel':' unified-row';
+      const label=bLbl(c.status);
+      const text=c.text.replace(/^"|"$/g,'');
+      html+=`<tr class="${sel.trim()}" data-unified-claim="${escapeHtml(c.id)}">
+        <td class="id-cell">${escapeHtml(c.id)}</td>
+        <td>
+          <div class="unified-row-claim">${escapeHtml(text)}</div>
+          ${claimRowLinkedPreview(c)}
+        </td>
+        <td><span class="bdg ${bCls(c.status)}">${escapeHtml(label)}</span></td>
+      </tr>`;
+    });
+  }
+  html+=`</tbody></table>
+    <div class="unified-footer">${ds.claims.length} claim${ds.claims.length===1?'':'s'} · ${analyzed} analyzed</div>`;
+  pane.innerHTML=html;
+  pane.querySelectorAll('[data-unified-claim]').forEach(row=>{
+    row.addEventListener('click',()=>{ STATE.selId=row.dataset.unifiedClaim; renderUnifiedWorkspace(); });
+  });
+}
+
+function renderClaimEditor(claimId) {
+  const pane=eid('unified-editor-pane'); if(!pane) return;
+  const claim=claimId ? ds.claims.find(c=>c.id===claimId) : null;
+  if (!claim) {
+    pane.innerHTML='<div class="unified-placeholder">Select a claim to edit</div>';
+    return;
+  }
+  const evList=(claim.ev||[]).map(id=>ds.evidence.find(x=>x.id===id)).filter(Boolean);
+  const cfList=(claim.cf||[]).map(id=>ds.counterfactuals.find(x=>x.id===id)).filter(Boolean);
+  const last=lastTrailEntry(claim);
+  const lastChange=last ? `${escapeHtml(last.who)} · ${escapeHtml(last.what)} · ${escapeHtml(last.when)}` : '';
+  pane.innerHTML=`
+    <div class="unified-editor-hdr">
+      <div class="unified-section-l">CLAIM ${escapeHtml(claim.id)}</div>
+      <button class="prov-mini" type="button" data-prov="${escapeHtml(claim.id)}" title="Provenance">📎</button>
+    </div>
+    <div class="unified-claim-box"><textarea id="ue-claim-text" rows="3"${readonlyMode?' readonly':''}>${escapeHtml(claim.text.replace(/^"|"$/g,''))}</textarea></div>
+    ${lastChange?`<div class="unified-last-change">Last change: ${lastChange}</div>`:''}
+    ${(!readonlyMode && claim.recommendedStatus && claim.recommendedStatus!==claim.status)?`
+    <div class="ai-suggest" data-ue-action="apply-status" role="button" tabindex="0">
+      <span>✦ AI suggests: <strong>${bLbl(claim.recommendedStatus)}</strong>${claim.statusRationale?' — '+escapeHtml(claim.statusRationale):''}</span>
+      <span class="ai-suggest-apply">Apply →</span>
+    </div>`:''}
+    <div class="unified-section-l">LINKED EVIDENCE <span class="unified-count">${evList.length}</span></div>
+    ${evList.map(ev=>`<div class="unified-linked-item">
+      <span class="unified-linked-text">${escapeHtml(ev.text)}</span>
+      <span class="unified-linked-actions">
+        <button class="prov-mini" type="button" data-prov="${escapeHtml(ev.id)}" title="Provenance">📎</button>
+        <button class="unified-unlink" type="button" data-ue-unlink-ev="${escapeHtml(ev.id)}" title="Remove">×</button>
+      </span></div>`).join('')}
+    ${readonlyMode?'':`<input class="unified-inline-input" id="ue-ev-input" placeholder="Add evidence..." />
+    <button class="btn btn-sm" type="button" id="ue-add-ev" style="width:100%;margin-bottom:14px;border-radius:0">+ Add</button>`}
+    <div class="unified-section-l">LINKED COUNTERFACTUALS <span class="unified-count">${cfList.length}</span></div>
+    ${cfList.map(cf=>`<div class="unified-linked-item">
+      <span class="unified-linked-text">${escapeHtml(cf.statement)}</span>
+      <span class="unified-linked-actions">
+        <button class="prov-mini" type="button" data-prov="${escapeHtml(cf.id)}" title="Provenance">📎</button>
+        <button class="unified-unlink" type="button" data-ue-unlink-cf="${escapeHtml(cf.id)}" title="Remove">×</button>
+      </span></div>`).join('')}
+    ${readonlyMode?'':`<input class="unified-inline-input" id="ue-cf-input" placeholder="Add a counterfactual..." />
+    <button class="btn btn-sm" type="button" id="ue-add-cf" style="width:100%;margin-bottom:14px;border-radius:0">+ Add</button>`}
+    <div class="sec" style="margin-bottom:12px"><div class="ai-l">AI critique</div>
+      <div class="ai-block">${claim.critiquing?'<span style="display:flex;align-items:center;gap:8px;color:var(--ink-3)"><span class="spinner"></span>Analyzing…</span>':(safe(claim.crit)||'Run Analyze to critique this claim.')}</div></div>
+    ${(claim.evidenceGaps||[]).length?`<div class="sec" style="margin-bottom:12px"><div class="sec-l">Evidence gaps</div><ul style="padding-left:16px;margin:0;font-size:11.5px;color:var(--ink-3)">${claim.evidenceGaps.map(g=>`<li>${escapeHtml(g)}</li>`).join('')}</ul></div>`:''}
+    ${readonlyMode?'':`<div class="unified-editor-foot">
+      <button class="btn btn-sm" type="button" id="ue-save">Save</button>
+      <button class="btn btn-sm btn-p" type="button" id="ue-analyze"${claim.critiquing?' disabled':''}>${claim.critiquing?'Analyzing…':'Analyze'}</button>
+    </div>`}`;
+  wireClaimEditorEvents(claim);
+}
+
+function wireClaimEditorEvents(claim) {
+  const pane=eid('unified-editor-pane'); if(!pane) return;
+  pane.querySelectorAll('[data-prov]').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); openProvDrawer(b.dataset.prov); }));
+  const applyBtn=pane.querySelector('[data-ue-action="apply-status"]');
+  if(applyBtn){
+    const handler=()=>applyRecommendedStatus(claim);
+    applyBtn.addEventListener('click',handler);
+    applyBtn.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); } });
+  }
+  const addEv=eid('ue-add-ev'); if(addEv) addEv.onclick=()=>inlineAddEvidence(claim.id);
+  const addCf=eid('ue-add-cf'); if(addCf) addCf.onclick=()=>inlineAddCounterfactual(claim.id);
+  pane.querySelectorAll('[data-ue-unlink-ev]').forEach(b=>b.addEventListener('click',()=>unlinkEvidence(claim.id,b.dataset.ueUnlinkEv)));
+  pane.querySelectorAll('[data-ue-unlink-cf]').forEach(b=>b.addEventListener('click',()=>unlinkCounterfactual(claim.id,b.dataset.ueUnlinkCf)));
+  const saveBtn=eid('ue-save'); if(saveBtn) saveBtn.onclick=()=>saveClaimFromEditor(claim.id);
+  const analyzeBtn=eid('ue-analyze'); if(analyzeBtn) analyzeBtn.onclick=()=>analyzeClaimFromEditor(claim.id);
+  const evIn=eid('ue-ev-input'); if(evIn) evIn.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); inlineAddEvidence(claim.id); } });
+  const cfIn=eid('ue-cf-input'); if(cfIn) cfIn.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); inlineAddCounterfactual(claim.id); } });
+}
+
+async function inlineAddEvidence(claimId) {
+  if(readonlyMode) return;
+  const input=eid('ue-ev-input'); const text=(input&&input.value||'').trim();
+  if(!text) return;
+  const claim=ds.claims.find(c=>c.id===claimId); if(!claim) return;
+  const id=newId('E'), ts=nowISOStr();
+  let cls='supports', etype='attitudinal';
+  try { const r=await AI.classifyEvidence({text}); cls=r.cls; etype=r.type; } catch(_) {}
+  const ev={ id, claims:[claimId], text, src:'Manual entry', type:etype, cls, str:1,
+    prov:{ src:'Manual entry', extracted:'Inline add', creator:'User', confidence:1,
+      srcQuote:text, trail:appendTrail([],{when:ts,who:'User',what:'Added and linked to claim '+claimId}) } };
+  ds.evidence.push(ev);
+  claim.ev=claim.ev||[]; if(!claim.ev.includes(id)) claim.ev.push(id);
+  logProv(claim,'Linked evidence '+id);
+  if(input) input.value='';
+  renderUnifiedWorkspace(); scheduleSave();
+}
+function unlinkEvidence(claimId, evId) {
+  if(readonlyMode) return;
+  const claim=ds.claims.find(c=>c.id===claimId);
+  const ev=ds.evidence.find(x=>x.id===evId);
+  if(claim){ claim.ev=(claim.ev||[]).filter(id=>id!==evId); logProv(claim,'Unlinked evidence '+evId); }
+  if(ev) logProv(ev,'Unlinked from claim '+claimId);
+  if(ev && (ev.claims||[]).length<=1) ds.evidence=ds.evidence.filter(x=>x.id!==evId);
+  else if(ev) ev.claims=(ev.claims||[]).filter(c=>c!==claimId);
+  render(); scheduleSave();
+}
+async function inlineAddCounterfactual(claimId) {
+  if(readonlyMode) return;
+  const input=eid('ue-cf-input'); const text=(input&&input.value||'').trim();
+  if(!text) return;
+  const claim=ds.claims.find(c=>c.id===claimId); if(!claim) return;
+  const id=newId('CF'), ts=nowISOStr();
+  const cf={ id, claims:[claimId], statement:text, severity:'weaken', status:'proposed',
+    prov:{ src:'Manual entry', extracted:'Inline add', creator:'User', confidence:1,
+      srcQuote:text, trail:appendTrail([],{when:ts,who:'User',what:'Added and linked to claim '+claimId}) } };
+  ds.counterfactuals.push(cf);
+  claim.cf=claim.cf||[]; if(!claim.cf.includes(id)) claim.cf.push(id);
+  logProv(claim,'Linked counterfactual '+id);
+  if(input) input.value='';
+  render(); scheduleSave();
+}
+function unlinkCounterfactual(claimId, cfId) {
+  if(readonlyMode) return;
+  const claim=ds.claims.find(c=>c.id===claimId);
+  const cf=ds.counterfactuals.find(x=>x.id===cfId);
+  if(claim){ claim.cf=(claim.cf||[]).filter(id=>id!==cfId); logProv(claim,'Unlinked counterfactual '+cfId); }
+  if(cf) logProv(cf,'Unlinked from claim '+claimId);
+  if(cf && (cf.claims||[]).length<=1) ds.counterfactuals=ds.counterfactuals.filter(x=>x.id!==cfId);
+  else if(cf) cf.claims=(cf.claims||[]).filter(c=>c!==claimId);
+  render(); scheduleSave();
+}
+function saveClaimFromEditor(claimId) {
+  if(readonlyMode) return;
+  const claim=ds.claims.find(c=>c.id===claimId); if(!claim) return;
+  const ta=eid('ue-claim-text'); if(!ta) return;
+  const raw=ta.value.trim(); if(!raw) return;
+  claim.text='"'+raw.replace(/^"|"$/g,'')+'"';
+  logProv(claim,'Claim text edited');
+  render(); scheduleSave();
+  toast('Claim saved.');
+}
+async function analyzeClaimFromEditor(claimId) {
+  if(readonlyMode) return;
+  const claim=ds.claims.find(c=>c.id===claimId); if(!claim||claim.critiquing) return;
+  if(!currentUser){ toast('Sign in to use AI features.'); return; }
+  claim.critiquing=true; renderClaimEditor(claimId);
+  try {
+    const idToken=await currentUser.getIdToken();
+    await critiqueOneClaim(claim, idToken);
+    claim.critiquing=false;
+    render(); scheduleSave();
+    toast('Analysis complete.');
+  } catch(err) {
+    claim.critiquing=false;
+    renderClaimEditor(claimId);
+    toast('Analyze failed: '+err.message);
+  }
+}
+function applyRecommendedStatus(claim) {
+  if(readonlyMode) return;
+  if(!claim.recommendedStatus) return;
+  claim.status=claim.recommendedStatus;
+  logProv(claim,'Applied AI-recommended status: '+bLbl(claim.recommendedStatus));
+  claim.recommendedStatus=null; claim.statusRationale='';
+  render(); scheduleSave();
+}
+
+function wireArtifactTableEvents() {
+  const pane=eid('unified-claims-pane'); if(!pane) return;
+  pane.querySelectorAll('tr[data-row-id]').forEach(row=>{
+    row.addEventListener('click',e=>{
+      if(e.target.closest('.del-btn')||e.target.closest('[data-prov]')||e.target.closest('.cell-edit')||e.target.closest('.ref')) return;
+      STATE.artifactSelId=row.dataset.rowId;
+      renderUnifiedWorkspace();
+    });
+  });
+}
+
+function renderArtifactEditor(entityId) {
+  const pane=eid('unified-editor-pane'); if(!pane) return;
+  if(!entityId){ pane.innerHTML='<div class="unified-placeholder">Select an item to view details</div>'; return; }
+  const ent=findEntity(entityId); if(!ent){ pane.innerHTML='<div class="unified-placeholder">Select an item to view details</div>'; return; }
+  const kind=idKind(entityId);
+  const claimRefs=(ids)=> (ids||[]).map(c=>`<span class="ref" data-art-ref="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join(' ') || '<span style="font-size:11px;color:var(--ink-4);font-style:italic">none</span>';
+  let body='', foot='';
+  if(kind==='evidence'){
+    body=`
+      <div class="unified-editor-hdr"><div class="unified-section-l">EVIDENCE ${escapeHtml(ent.id)}</div>
+        <button class="prov-mini" type="button" data-prov="${escapeHtml(ent.id)}" title="Provenance">📎</button></div>
+      <div class="sec"><div class="sec-l">Evidence text</div>
+        <textarea id="ae-ev-text" rows="4"${readonlyMode?' readonly':''}>${escapeHtml(ent.text)}</textarea></div>
+      <div class="sec"><div class="sec-l">Classification</div>
+        <div class="kv"><div class="kv-k">Type</div><div class="kv-v"><span class="chip ${evTypeCls(ent.type)}">${escapeHtml(ent.type)}</span></div></div>
+        <div class="kv"><div class="kv-k">Classification</div><div class="kv-v"><span class="bdg ${evCls(ent.cls)}">${evLbl(ent.cls)}</span></div></div>
+        <div class="kv"><div class="kv-k">Strength</div><div class="kv-v">${strDots(ent.str)}</div></div>
+      </div>
+      <div class="sec"><div class="sec-l">Linked claims</div>${claimRefs(ent.claims)}</div>
+      <div class="sec"><div class="sec-l">Source</div><div style="font-size:11.5px;color:var(--ink-3)">${escapeHtml(ent.src)}</div></div>`;
+    foot=readonlyMode?'':`<button class="btn btn-sm btn-p" type="button" id="ae-save-ev">Save</button>`;
+  } else if(kind==='counterfactual'){
+    const svLbl=ent.severity==='invalidate'?'Would invalidate claim':'Would weaken claim';
+    const svCls=ent.severity==='invalidate'?'sev-inv':'sev-weak';
+    body=`
+      <div class="unified-editor-hdr"><div class="unified-section-l">COUNTERFACTUAL ${escapeHtml(ent.id)}</div>
+        <button class="prov-mini" type="button" data-prov="${escapeHtml(ent.id)}" title="Provenance">📎</button></div>
+      <div class="sec"><div class="sec-l">Statement</div><div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">${escapeHtml(ent.statement)}</div></div>
+      <div class="sec"><div class="sec-l">Linked claims</div>${claimRefs(ent.claims)}</div>
+      <div class="sec"><div class="sec-l">Classification</div>
+        <div class="kv"><div class="kv-k">Severity</div><div class="kv-v"><span class="${svCls}">${svLbl}</span></div></div>
+        <div class="kv"><div class="kv-k">Status</div><div class="kv-v"><span class="bdg ${cfStatusCls(ent.status)}">${cfStatusLbl(ent.status)}</span></div></div>
+      </div>`;
+    foot=readonlyMode?'':`<button class="btn btn-warn btn-sm" type="button" id="ae-confirm-cf">Mark confirmed</button>
+      <button class="btn btn-sm" type="button" id="ae-ruleout-cf">Rule out</button>`;
+  } else if(kind==='tension'){
+    body=`
+      <div class="unified-editor-hdr"><div class="unified-section-l">TENSION ${escapeHtml(ent.id)}</div>
+        <button class="prov-mini" type="button" data-prov="${escapeHtml(ent.id)}" title="Provenance">📎</button></div>
+      <div class="sec"><div class="sec-l">Title</div><div style="font-weight:600;font-size:13px">${escapeHtml(ent.title)}</div></div>
+      <div class="sec"><div class="sec-l">Description</div><div style="font-size:11.5px;color:var(--ink-2);line-height:1.5">${escapeHtml(ent.desc)}</div></div>
+      <div class="sec"><div class="sec-l">Involved claims</div>${claimRefs(ent.claims)}</div>
+      <div class="sec"><div class="sec-l">Classification</div>
+        <div class="kv"><div class="kv-k">Type</div><div class="kv-v"><span class="t-type ${tnTypeCls(ent.type)}">${tnTypeLbl(ent.type)}</span></div></div>
+        <div class="kv"><div class="kv-k">Priority</div><div class="kv-v"><span class="pri pri-${ent.pri}">${(ent.pri||'').toUpperCase()}</span></div></div>
+        <div class="kv"><div class="kv-k">Status</div><div class="kv-v"><span class="bdg ${bCls(ent.status==='partial'?'revised':ent.status==='resolvable'?'asm':ent.status)}">${bLbl(ent.status)||ent.status}</span></div></div>
+      </div>
+      <div class="sec"><div class="sec-l">Decision path</div><div class="ai-block" style="border-left-color:var(--warn)">${escapeHtml(ent.path||'—')}</div></div>`;
+    foot=readonlyMode?'':`<button class="btn btn-warn btn-sm" type="button" id="ae-confirm-tension">Confirm tension</button>`;
+  } else {
+    pane.innerHTML='<div class="unified-placeholder">Select an item to view details</div>';
+    return;
+  }
+  pane.innerHTML=body+(foot?`<div class="unified-editor-foot">${foot}</div>`:'');
+  wireArtifactEditorEvents(ent);
+}
+function wireArtifactEditorEvents(ent) {
+  const pane=eid('unified-editor-pane'); if(!pane) return;
+  pane.querySelectorAll('[data-prov]').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); openProvDrawer(b.dataset.prov); }));
+  pane.querySelectorAll('[data-art-ref]').forEach(r=>r.addEventListener('click',e=>{ e.stopPropagation(); goToClaim(r.dataset.artRef); }));
+  const saveEv=eid('ae-save-ev');
+  if(saveEv) saveEv.onclick=()=>{
+    if(readonlyMode) return;
+    const ta=eid('ae-ev-text'); if(!ta||!ta.value.trim()) return;
+    ent.text=ta.value.trim();
+    logProv(ent,'Evidence text edited');
+    render(); scheduleSave();
+    toast('Evidence saved.');
+  };
+  const confirmCf=eid('ae-confirm-cf');
+  if(confirmCf) confirmCf.onclick=()=>{ if(readonlyMode) return; ent.status='confirmed'; logProv(ent,'Status changed to: confirmed'); render(); scheduleSave(); toast('Counterfactual confirmed.'); };
+  const ruleoutCf=eid('ae-ruleout-cf');
+  if(ruleoutCf) ruleoutCf.onclick=()=>{ if(readonlyMode) return; ent.status='ruled-out'; logProv(ent,'Status changed to: ruled-out'); render(); scheduleSave(); toast('Counterfactual ruled out.'); };
+  const confirmTn=eid('ae-confirm-tension');
+  if(confirmTn) confirmTn.onclick=()=>{ if(readonlyMode) return; ent.status='confirmed'; logProv(ent,'Status changed to: confirmed'); render(); scheduleSave(); toast('Tension confirmed.'); };
+}
+
+function openProvDrawer(id) {
+  const entity=findEntity(id); if(!entity) return;
+  const body=eid('prov-drawer-body'), title=eid('prov-drawer-title');
+  if(title) title.textContent='Provenance · '+id;
+  renderProvenance(entity, body);
+  openModal('prov-drawer');
+}
+function closeProvDrawer(){ closeModal('prov-drawer'); }
+
+function openExperimentsOverlay() {
+  STATE.analysisOverlay='experiments';
+  renderExperimentsToOverlay();
+  openModal('overlay-experiments');
+}
+function closeAnalysisOverlay() {
+  STATE.analysisOverlay=null;
+  hideOverlayDetails();
+  closeModal('overlay-experiments');
+}
+function getRenderTarget() {
+  if (STATE.analysisOverlay==='experiments') return eid('overlay-experiments-body');
+  return eid('unified-claims-pane');
+}
+function renderExperimentsToOverlay() { STATE.analysisOverlay='experiments'; renderExperiments(); wireOverlayTable('overlay-experiments-body'); }
+function wireOverlayTable(overlayId) {
+  const target=eid(overlayId); if(!target) return;
+  target.querySelectorAll('tr[data-row-id]').forEach(row=>{
+    row.addEventListener('click',e=>{
+      if(e.target.closest('.del-btn')||e.target.closest('[data-prov]')||e.target.closest('.cell-edit')||e.target.closest('.ref')) return;
+      openOverlayEntityDetail(row.dataset.rowId);
+    });
+  });
+  target.querySelectorAll('[data-prov]').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); openProvDrawer(b.dataset.prov); }));
+  target.querySelectorAll('.del-btn[data-del-type]').forEach(b=>b.addEventListener('click',e=>askDeleteItem(e,b.dataset.delType,b.dataset.delId)));
+}
+function openOverlayEntityDetail(id) {
+  const kind=idKind(id), ent=findEntity(id);
+  if(!ent) return;
+  const detailEl=eid('overlay-experiments-detail');
+  if(!detailEl || kind!=='experiment') { openProvDrawer(id); return; }
+  detailEl.hidden=false;
+  detailEl.innerHTML=`
+    <div class="overlay-detail-hdr"><h4>${escapeHtml(ent.id)} · ${escapeHtml(ent.title)}</h4>
+      <button class="prov-mini" type="button" data-od-prov="${escapeHtml(id)}" title="Provenance">📎</button></div>
+    <div style="font-size:12px;color:var(--ink-2);line-height:1.5;margin-bottom:8px">${escapeHtml(ent.hypothesis||'')}</div>
+    <div class="overlay-detail-actions">
+      ${readonlyMode?'':`<button class="btn btn-sm" data-od-action="mark-running">Mark running</button>
+      <button class="btn btn-sm" data-od-action="mark-complete">Mark complete</button>`}
+      <button class="btn btn-sm" data-od-action="close-detail">Close</button>
+    </div>`;
+  detailEl.querySelector('[data-od-prov]')?.addEventListener('click',e=>{ e.stopPropagation(); openProvDrawer(id); });
+  detailEl.querySelectorAll('[data-od-action]').forEach(btn=>btn.addEventListener('click',()=>{
+    const action=btn.dataset.odAction;
+    if(action==='close-detail'){ detailEl.hidden=true; return; }
+    if(readonlyMode) return;
+    if(action==='mark-running'){ ent.status='running'; logProv(ent,'Status changed to: running'); renderExperimentsToOverlay(); scheduleSave(); }
+    else if(action==='mark-complete'){ ent.status='complete'; logProv(ent,'Status changed to: complete'); renderExperimentsToOverlay(); scheduleSave(); }
+    openOverlayEntityDetail(id);
+  }));
+}
+function hideOverlayDetails() {
+  const el=eid('overlay-experiments-detail'); if(el) el.hidden=true;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1716,104 +2187,133 @@ function renderClaims() {
     </tr>`;
   });
   html+=`</tbody></table>`;
-  eid('main-area').innerHTML=html;
-}
-
-// Row click handler for entity tables
-function tableRowClickHandler(e) {
-  const row=e.target.closest('tr[data-row-id]');
-  if(!row) return;
-  if(e.target.closest('.cell-edit')||e.target.closest('.del-btn')||e.target.closest('.ref')||e.target.closest('[data-prov]')) return;
-  openPan(row.dataset.rowId, row.dataset.rowType||idKind(row.dataset.rowId));
+  const target=getRenderTarget(); if(target) target.innerHTML=html;
 }
 
 // ═══════════════════════════════════════════════════════════
 // EVIDENCE TABLE
 // ═══════════════════════════════════════════════════════════
 function renderEvidence() {
+  const target=getRenderTarget(); if(!target) return;
+  const items=filterEvidenceForSearch();
+  if(!ds.evidence.length){
+    target.innerHTML=`<div class="empty"><div class="empty-card" style="max-width:460px;padding:36px 32px">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title" style="font-size:15px">No evidence yet</div>
+      <div class="empty-sub" style="font-size:12px;margin-bottom:18px">Add evidence inline on a claim, or via document extraction.</div>
+    </div></div>`;
+    return;
+  }
   let html=`<table><thead><tr><th>ID</th><th>Claims</th><th>Evidence</th><th>Source · Date</th><th>Type</th><th>Classification</th><th>Strength</th><th>Source</th><th></th></tr></thead><tbody>`;
-  ds.evidence.forEach(e=>{
-    const sel=STATE.selId===e.id?' sel':'';
-    html+=`<tr class="${sel}" data-row-id="${escapeHtml(e.id)}" data-row-type="evidence">
-      <td class="id-cell">${escapeHtml(e.id)}</td>
-      <td>${e.claims.map(c=>`<span class="ref" data-ref-id="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join('')}</td>
-      <td><div class="txt-cell">${escapeHtml(e.text)}</div></td>
-      <td style="font-size:10.5px;color:var(--ink-3);max-width:170px">${escapeHtml(e.src)}</td>
-      <td><span class="cell-edit" data-dd="evtype" data-dd-id="${escapeHtml(e.id)}"><span class="chip ${evTypeCls(e.type)}">${escapeHtml(e.type)}</span></span></td>
-      <td><span class="cell-edit" data-dd="evcls" data-dd-id="${escapeHtml(e.id)}"><span class="bdg ${evCls(e.cls)}">${evLbl(e.cls)}</span></span></td>
-      <td>${strDots(e.str)}</td>
-      <td>${provMini(e.id)}</td>
-      <td><button class="del-btn" title="Delete evidence" data-del-type="evidence" data-del-id="${escapeHtml(e.id)}">🗑</button></td>
-    </tr>`;
-  });
-  html+=`</tbody></table>`;
-  eid('main-area').innerHTML=html;
+  if(!items.length){
+    html+=`<tr><td colspan="9" style="padding:16px;color:var(--ink-4);font-style:italic">No evidence matches your search.</td></tr>`;
+  } else {
+    items.forEach(e=>{
+      const sel=STATE.artifactSelId===e.id?' sel':'';
+      html+=`<tr class="${sel.trim()}" data-row-id="${escapeHtml(e.id)}" data-row-type="evidence">
+        <td class="id-cell">${escapeHtml(e.id)}</td>
+        <td>${(e.claims||[]).map(c=>`<span class="ref" data-ref-id="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join('')}</td>
+        <td><div class="txt-cell">${escapeHtml(e.text)}</div></td>
+        <td style="font-size:10.5px;color:var(--ink-3);max-width:170px">${escapeHtml(e.src)}</td>
+        <td><span class="cell-edit" data-dd="evtype" data-dd-id="${escapeHtml(e.id)}"><span class="chip ${evTypeCls(e.type)}">${escapeHtml(e.type)}</span></span></td>
+        <td><span class="cell-edit" data-dd="evcls" data-dd-id="${escapeHtml(e.id)}"><span class="bdg ${evCls(e.cls)}">${evLbl(e.cls)}</span></span></td>
+        <td>${strDots(e.str)}</td>
+        <td>${provMini(e.id)}</td>
+        <td><button class="del-btn" title="Delete evidence" data-del-type="evidence" data-del-id="${escapeHtml(e.id)}">🗑</button></td>
+      </tr>`;
+    });
+  }
+  html+=`</tbody></table>
+    <div class="unified-footer">${ds.evidence.length} evidence item${ds.evidence.length===1?'':'s'}</div>`;
+  target.innerHTML=html;
+  wireArtifactTableEvents();
 }
-
-// ═══════════════════════════════════════════════════════════
-// TENSIONS TABLE
-// ═══════════════════════════════════════════════════════════
 function renderTensions() {
+  const target=getRenderTarget(); if(!target) return;
+  const items=filterTensionsForSearch();
+  if(!ds.tensions.length){
+    target.innerHTML=`<div class="empty"><div class="empty-card" style="max-width:460px;padding:36px 32px">
+      <div class="empty-icon">⚡</div>
+      <div class="empty-title" style="font-size:15px">No tensions yet</div>
+      <div class="empty-sub" style="font-size:12px;margin-bottom:18px">Tensions are discovered when claim critiques find contradictions between claims.</div>
+    </div></div>`;
+    return;
+  }
   let html=`<table><thead><tr><th>ID</th><th>Title</th><th>Claims</th><th>Description</th><th>Type</th><th>Priority</th><th>Status</th><th>Source</th><th></th></tr></thead><tbody>`;
-  ds.tensions.forEach(t=>{
-    const sel=STATE.selId===t.id?' sel':'';
-    const ts=t.status; const tsBdg=ts==='partial'?'b-rev':ts==='resolvable'?'b-asm':bCls(ts);
-    const tsLbl=ts==='partial'?'Partial':ts==='resolvable'?'Resolvable':bLbl(ts);
-    html+=`<tr class="${sel}" data-row-id="${escapeHtml(t.id)}" data-row-type="tension">
-      <td class="id-cell">${escapeHtml(t.id)}</td>
-      <td style="font-weight:600;font-size:12px;max-width:140px">${escapeHtml(t.title)}</td>
-      <td>${t.claims.map(c=>`<span class="ref" data-ref-id="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join('')}</td>
-      <td><div class="txt-cell" style="font-style:normal;font-size:11.5px;color:var(--ink-2);max-width:380px">${escapeHtml((t.desc||'').substring(0,180))}…</div></td>
-      <td><span class="t-type ${tnTypeCls(t.type)}">${tnTypeLbl(t.type)}</span></td>
-      <td><span class="pri pri-${t.pri}">${(t.pri||'').toUpperCase()}</span></td>
-      <td><span class="bdg ${tsBdg}">${tsLbl}</span></td>
-      <td>${provMini(t.id)}</td>
-      <td><button class="del-btn" title="Delete tension" data-del-type="tension" data-del-id="${escapeHtml(t.id)}">🗑</button></td>
-    </tr>`;
-  });
-  html+=`</tbody></table>`;
-  eid('main-area').innerHTML=html;
+  if(!items.length){
+    html+=`<tr><td colspan="9" style="padding:16px;color:var(--ink-4);font-style:italic">No tensions match your search.</td></tr>`;
+  } else {
+    items.forEach(t=>{
+      const sel=STATE.artifactSelId===t.id?' sel':'';
+      const ts=t.status; const tsBdg=ts==='partial'?'b-rev':ts==='resolvable'?'b-asm':bCls(ts);
+      const tsLbl=ts==='partial'?'Partial':ts==='resolvable'?'Resolvable':bLbl(ts);
+      html+=`<tr class="${sel.trim()}" data-row-id="${escapeHtml(t.id)}" data-row-type="tension">
+        <td class="id-cell">${escapeHtml(t.id)}</td>
+        <td style="font-weight:600;font-size:12px;max-width:140px">${escapeHtml(t.title)}</td>
+        <td>${(t.claims||[]).map(c=>`<span class="ref" data-ref-id="${escapeHtml(c)}">${escapeHtml(c)}</span>`).join('')}</td>
+        <td><div class="txt-cell" style="font-style:normal;font-size:11.5px;color:var(--ink-2);max-width:380px">${escapeHtml((t.desc||'').substring(0,180))}${(t.desc||'').length>180?'…':''}</div></td>
+        <td><span class="t-type ${tnTypeCls(t.type)}">${tnTypeLbl(t.type)}</span></td>
+        <td><span class="pri pri-${t.pri}">${(t.pri||'').toUpperCase()}</span></td>
+        <td><span class="bdg ${tsBdg}">${tsLbl}</span></td>
+        <td>${provMini(t.id)}</td>
+        <td><button class="del-btn" title="Delete tension" data-del-type="tension" data-del-id="${escapeHtml(t.id)}">🗑</button></td>
+      </tr>`;
+    });
+  }
+  html+=`</tbody></table>
+    <div class="unified-footer">${ds.tensions.length} tension${ds.tensions.length===1?'':'s'}</div>`;
+  target.innerHTML=html;
+  wireArtifactTableEvents();
 }
 
 // ═══════════════════════════════════════════════════════════
 // COUNTERFACTUALS TABLE
 // ═══════════════════════════════════════════════════════════
 function renderCounterfactuals() {
+  const target=getRenderTarget(); if(!target) return;
+  const items=filterCounterfactualsForSearch();
   if (!ds.counterfactuals.length) {
-    eid('main-area').innerHTML=`<div class="empty"><div class="empty-card" style="max-width:460px;padding:36px 32px">
+    target.innerHTML=`<div class="empty"><div class="empty-card" style="max-width:460px;padding:36px 32px">
       <div class="empty-icon">⟲</div>
       <div class="empty-title" style="font-size:15px">No counterfactuals yet</div>
       <div class="empty-sub" style="font-size:12px;margin-bottom:18px">Counterfactuals are discovered automatically from claim critiques, or you can add one yourself.</div>
-      <button class="btn btn-p btn-sm" id="btn-add-cf-empty">+ Add counterfactual</button>
+      ${readonlyMode?'':`<button class="btn btn-p btn-sm" id="btn-add-cf-empty">+ Add counterfactual</button>`}
     </div></div>`;
-    eid('btn-add-cf-empty').onclick=()=>openAddModal('counterfactual');
+    const b=eid('btn-add-cf-empty'); if(b) b.onclick=()=>openAddModal('counterfactual');
     return;
   }
   let html=`<table><thead><tr><th>ID</th><th>Claims</th><th>Statement</th><th>Severity</th><th>Status</th><th>Source</th><th></th></tr></thead><tbody>`;
-  ds.counterfactuals.forEach(c=>{
-    const sel=STATE.selId===c.id?' sel':'';
-    const sevLbl=c.severity==='invalidate'?'Invalidates':'Weakens';
-    const sevCls=c.severity==='invalidate'?'sev-inv':'sev-weak';
-    html+=`<tr class="${sel}" data-row-id="${escapeHtml(c.id)}" data-row-type="counterfactual">
-      <td class="id-cell">${escapeHtml(c.id)}</td>
-      <td>${c.claims.map(cl=>`<span class="ref" data-ref-id="${escapeHtml(cl)}">${escapeHtml(cl)}</span>`).join('')}</td>
-      <td><div class="txt-cell" style="font-style:normal;color:var(--ink-2)">${escapeHtml(c.statement)}</div></td>
-      <td><span class="${sevCls}">${sevLbl}</span></td>
-      <td><span class="bdg ${cfStatusCls(c.status)}">${cfStatusLbl(c.status)}</span></td>
-      <td>${provMini(c.id)}</td>
-      <td><button class="del-btn" title="Delete counterfactual" data-del-type="counterfactual" data-del-id="${escapeHtml(c.id)}">🗑</button></td>
-    </tr>`;
-  });
-  html+=`</tbody></table>`;
-  eid('main-area').innerHTML=html;
+  if(!items.length){
+    html+=`<tr><td colspan="7" style="padding:16px;color:var(--ink-4);font-style:italic">No counterfactuals match your search.</td></tr>`;
+  } else {
+    items.forEach(c=>{
+      const sel=STATE.artifactSelId===c.id?' sel':'';
+      const sevLbl=c.severity==='invalidate'?'Invalidates':'Weakens';
+      const sevCls=c.severity==='invalidate'?'sev-inv':'sev-weak';
+      html+=`<tr class="${sel.trim()}" data-row-id="${escapeHtml(c.id)}" data-row-type="counterfactual">
+        <td class="id-cell">${escapeHtml(c.id)}</td>
+        <td>${(c.claims||[]).map(cl=>`<span class="ref" data-ref-id="${escapeHtml(cl)}">${escapeHtml(cl)}</span>`).join('')}</td>
+        <td><div class="txt-cell" style="font-style:normal;color:var(--ink-2)">${escapeHtml(c.statement)}</div></td>
+        <td><span class="${sevCls}">${sevLbl}</span></td>
+        <td><span class="bdg ${cfStatusCls(c.status)}">${cfStatusLbl(c.status)}</span></td>
+        <td>${provMini(c.id)}</td>
+        <td><button class="del-btn" title="Delete counterfactual" data-del-type="counterfactual" data-del-id="${escapeHtml(c.id)}">🗑</button></td>
+      </tr>`;
+    });
+  }
+  html+=`</tbody></table>
+    <div class="unified-footer">${ds.counterfactuals.length} counterfactual${ds.counterfactuals.length===1?'':'s'}</div>`;
+  target.innerHTML=html;
+  wireArtifactTableEvents();
 }
 
 // ═══════════════════════════════════════════════════════════
 // EXPERIMENTS TABLE
 // ═══════════════════════════════════════════════════════════
 function renderExperiments() {
+  const target=getRenderTarget(); if(!target) return;
   if (!ds.experiments.length) {
-    eid('main-area').innerHTML=`<div class="empty"><div class="empty-card" style="max-width:480px;padding:36px 32px">
+    target.innerHTML=`<div class="empty"><div class="empty-card" style="max-width:480px;padding:36px 32px">
       <div class="empty-icon">✦</div>
       <div class="empty-title" style="font-size:15px">No experiments yet</div>
       <div class="empty-sub" style="font-size:12px;margin-bottom:18px">AI can review your P0/P1 tensions, confirmed counterfactuals, and disputed claims to propose experiments — or add one yourself.</div>
@@ -1845,7 +2345,7 @@ function renderExperiments() {
     </tr>`;
   });
   html+=`</tbody></table>`;
-  eid('main-area').innerHTML=html;
+  target.innerHTML=html;
   const gb=eid('btn-gen-exp-top'); if(gb) gb.onclick=doGenerateExperiments;
 }
 
@@ -1886,20 +2386,25 @@ function updateFiltbarActions(t) {
 // SIDE PANEL
 // ═══════════════════════════════════════════════════════════
 function openPan(id, type) {
-  const entity=findEntity(id); if(!entity)return;
-  STATE.selId=id; STATE.panEntity=entity; STATE.panType=type||idKind(id);
-  const pi=eid('pan-id'), pt=eid('pan-title');
-  if(pi) pi.textContent=id;
-  if(pt) pt.textContent=({claim:'Claim detail',evidence:'Evidence detail',tension:'Tension detail',counterfactual:'Counterfactual detail',experiment:'Experiment detail'})[STATE.panType]||'Detail';
-  eid('panel').classList.add('on');
-  STATE.panTab='detail';
-  document.querySelectorAll('.pan-tab').forEach(el=>el.classList.remove('on'));
-  const pd=eid('ptab-detail'); if(pd) pd.classList.add('on');
-  renderPan();
-  render();
+  const entity=findEntity(id); if(!entity) return;
+  const kind=type||idKind(id);
+  if(kind==='claim'){ goToClaim(id); return; }
+  const tabMap={evidence:'evidence',counterfactual:'counterfactuals',tension:'tensions'};
+  const tab=tabMap[kind];
+  if(tab){
+    STATE.unifiedTab=tab;
+    STATE.artifactSelId=id;
+    document.querySelectorAll('[data-utab]').forEach(el=>el.classList.toggle('on',el.dataset.utab===tab));
+    render();
+    return;
+  }
+  if(kind==='experiment') openExperimentsOverlay();
 }
-function openProv(id) { const k=idKind(id); if(k) openPan(id,k); swPanTab('prov'); }
-function closePan() { eid('panel').classList.remove('on'); STATE.selId=null; render(); }
+function openProv(id) { openProvDrawer(id); }
+function closePan() {
+  const panel=eid('panel');
+  if(panel) panel.classList.remove('on');
+}
 function swPanTab(t) {
   STATE.panTab=t;
   document.querySelectorAll('.pan-tab').forEach(el=>el.classList.remove('on'));
@@ -2068,7 +2573,7 @@ async function critiqueOneClaim(claim, idToken) {
       prov:{src:'AI critique · claim '+claim.id, extracted:'AI critique', creator:'AI auto-discovery', confidence:0.6,
             srcQuote:cf.statement||'', trail:appendTrail([],{when:ts,who:'AI critique',what:'Proposed during claim critique'})}
     });
-    claim.cf=claim.cf||[]; if(!claim.cf.includes(id)){ claim.cf.push(id); cfsAdded++; }
+    claim.cf=claim.cf||[]; if(!claim.cf.includes(id)){ claim.cf.push(id); cfsAdded++; logProv(claim,'Linked counterfactual '+id); }
   });
   (result.tensions||[]).forEach(tn=>{
     const otherId=tn.withClaimId;
@@ -2087,11 +2592,13 @@ async function critiqueOneClaim(claim, idToken) {
     });
     claim.tn=claim.tn||[]; if(!claim.tn.includes(id)) claim.tn.push(id);
     other.tn=other.tn||[]; if(!other.tn.includes(id)) other.tn.push(id);
+    logProv(claim,'Linked tension '+id);
+    logProv(other,'Linked tension '+id);
     tensionsAdded++;
   });
-  claim.prov.trail=appendTrail(claim.prov.trail,{when:ts,who:'AI critique',what:'Critique regenerated'});
+  logProv(claim,'Critique regenerated');
   if(claim.recommendedStatus && claim.recommendedStatus!==claim.status){
-    claim.prov.trail=appendTrail(claim.prov.trail,{when:ts,who:'AI critique',what:'Recommended status: '+bLbl(claim.recommendedStatus)+(claim.statusRationale?' — '+claim.statusRationale:'')});
+    logProv(claim,'Recommended status: '+bLbl(claim.recommendedStatus)+(claim.statusRationale?' — '+claim.statusRationale:''));
   }
   return {cfsAdded, tensionsAdded};
 }
@@ -2114,9 +2621,9 @@ async function analyzeEverything() {
     const idToken=await currentUser.getIdToken();
     for(let i=0;i<claims.length;i++){
       const claim=claims[i];
-      if(btn) btn.textContent=`✦ Analyzing ${i+1}/${claims.length}…`;
+      if(btn) btn.textContent=`Analyzing ${i+1}/${claims.length}…`;
       claim.critiquing=true;
-      if(STATE.selId===claim.id) renderPan();
+      if(STATE.selId===claim.id) renderClaimEditor(claim.id);
       try {
         const {cfsAdded,tensionsAdded}=await critiqueOneClaim(claim, idToken);
         totalCf+=cfsAdded; totalTn+=tensionsAdded;
@@ -2131,10 +2638,9 @@ async function analyzeEverything() {
     toast('Analyze everything failed: '+err.message);
   } finally {
     analyzingAll=false;
-    if(btn){ btn.disabled=false; btn.textContent='✦ Analyze everything'; }
+    if(btn){ btn.disabled=false; btn.textContent='Analyze all'; }
   }
   render();
-  if(STATE.selId){ const k=idKind(STATE.selId); if(k) openPan(STATE.selId,k); }
   scheduleSave();
   const parts=[];
   if(totalTn) parts.push(totalTn+' tension'+(totalTn===1?'':'s'));
@@ -2142,7 +2648,7 @@ async function analyzeEverything() {
   let msg = parts.length ? 'Analysis complete — found '+parts.join(' and ')+'.' : 'Analysis complete — no new tensions or counterfactuals found.';
   if(failed) msg += ' ('+failed+' claim'+(failed===1?'':'s')+' failed — see console.)';
   toast(msg);
-  if(totalTn) switchToTab('tensions');
+  if(totalTn) switchUnifiedTab('tensions');
 }
 
 async function panFootAction(e) {
@@ -2212,9 +2718,11 @@ async function panFootAction(e) {
   }
 }
 
-function renderProvenance(e) {
+function renderProvenance(e, container) {
+  const body=container||eid('pan-body');
+  if(!body) return;
   const p=e.prov||{src:'—',creator:'—',extracted:'—',confidence:0,srcQuote:'—',trail:[]};
-  eid('pan-body').innerHTML=`
+  body.innerHTML=`
     <div class="sec"><div class="sec-l">Origin</div>
       <div class="kv"><div class="kv-k">Source</div><div class="kv-v" style="font-family:monospace;font-size:11px">${escapeHtml(p.src)}</div></div>
       <div class="kv"><div class="kv-k">Extracted by</div><div class="kv-v">${escapeHtml(p.creator)}</div></div>
@@ -2237,9 +2745,9 @@ function ddDispatch(ev, ceEl) {
   else if(dd2==='evtype') ddType(ev,id);
   else if(dd2==='evcls') ddClass(ev,id);
 }
-function ddStatus(ev,id){ ddPop(ev,['Assumed','Supported','Disputed','Validated','Revised','Critical gap'],v=>{const c=ds.claims.find(x=>x.id===id);if(c){c.status=v.toLowerCase().replace('critical gap','gap');c.prov.trail=appendTrail(c.prov.trail,{when:nowISOStr(),who:'User',what:'Status changed to: '+v});render();scheduleSave();}})}
-function ddType(ev,id){ ddPop(ev,['behavioral','attitudinal','document','analytical'],v=>{const e=ds.evidence.find(x=>x.id===id);if(e){e.type=v;render();scheduleSave();}})}
-function ddClass(ev,id){ ddPop(ev,['supports','contradicts','qualifies'],v=>{const e=ds.evidence.find(x=>x.id===id);if(e){e.cls=v;render();scheduleSave();}})}
+function ddStatus(ev,id){ ddPop(ev,['Assumed','Supported','Disputed','Validated','Revised','Critical gap'],v=>{const c=ds.claims.find(x=>x.id===id);if(c){c.status=v.toLowerCase().replace('critical gap','gap');logProv(c,'Status changed to: '+v);render();scheduleSave();}})}
+function ddType(ev,id){ ddPop(ev,['behavioral','attitudinal','document','analytical'],v=>{const e=ds.evidence.find(x=>x.id===id);if(e){e.type=v;logProv(e,'Type changed to: '+v);render();scheduleSave();}})}
+function ddClass(ev,id){ ddPop(ev,['supports','contradicts','qualifies'],v=>{const e=ds.evidence.find(x=>x.id===id);if(e){e.cls=v;logProv(e,'Classification changed to: '+v);render();scheduleSave();}})}
 function ddPop(ev,opts,cb) {
   ev.preventDefault(); ev.stopPropagation();
   const dd=eid('dd');
@@ -2279,6 +2787,8 @@ function closeDelItemPop(){ eid('del-item-pop').style.display='none'; pendingDel
 function confirmDeleteItem() {
   if(!pendingDeleteItem)return;
   const{type,id}=pendingDeleteItem;
+  const ent=findEntity(id);
+  if(ent) logProv(ent,'Deleted');
   if(type==='claim'){
     ds.claims=ds.claims.filter(x=>x.id!==id);
     ds.evidence.forEach(e=>{e.claims=(e.claims||[]).filter(c=>c!==id);});
@@ -2300,7 +2810,8 @@ function confirmDeleteItem() {
     ds.experiments=ds.experiments.filter(x=>x.id!==id);
     ds.claims.forEach(c=>{c.exp=(c.exp||[]).filter(x=>x!==id);});
   }
-  if(STATE.selId===id) closePan();
+  if(STATE.selId===id) STATE.selId=null;
+  if(STATE.artifactSelId===id) STATE.artifactSelId=null;
   closeDelItemPop();
   render();
   scheduleSave();
@@ -2420,7 +2931,8 @@ function finalizeNewClaim(sourceType) {
   newClaim.prov.trail=appendTrail(newClaim.prov.trail,{when:ts,who:'AI auto-discovery',what:'Source type classified as: '+sourceType});
   ds.claims.push(newClaim);
   STATE.view='populated';
-  closeAIReview(); switchToTab('claims'); render(); openPan(id,'claim');
+  STATE.selId=id;
+  closeAIReview(); render();
   pendingAdd=null; scheduleSave();
 }
 
@@ -2442,8 +2954,9 @@ function finalizeNewEvidence() {
           srcQuote:text,trail:appendTrail([{when:ts,who:'User (manual)',what:'Added manually'}],{when:ts,who:'AI auto-classification',what:'Classified as '+cls+' / '+etype})}};
   ds.evidence.push(newEv);
   const cl=ds.claims.find(c=>c.id===claimId);
-  if(cl){cl.ev=cl.ev||[];if(!cl.ev.includes(id))cl.ev.push(id);}
-  closeAIReview(); switchToTab('evidence'); render(); openPan(id,'evidence');
+  if(cl){cl.ev=cl.ev||[];if(!cl.ev.includes(id))cl.ev.push(id); logProv(cl,'Linked evidence '+id);}
+  closeAIReview(); render();
+  if(STATE.selId===claimId) renderClaimEditor(claimId);
   pendingAdd=null; scheduleSave();
 }
 
@@ -2466,8 +2979,12 @@ function finalizeNewTension() {
     prov:{src:'Manual entry',extracted:'Manual entry, AI-classified',creator:'User',confidence:1.0,
           srcQuote:text,trail:appendTrail([{when:ts,who:'User (manual)',what:'Added manually'}],{when:ts,who:'AI auto-classification',what:'Typed as '+ttype+', priority '+pri})}};
   ds.tensions.push(newT);
-  claimsArr.forEach(cid=>{const cl=ds.claims.find(c=>c.id===cid);if(cl){cl.tn=cl.tn||[];if(!cl.tn.includes(id))cl.tn.push(id);}});
-  closeAIReview(); switchToTab('tensions'); render(); openPan(id,'tension');
+  claimsArr.forEach(cid=>{const cl=ds.claims.find(c=>c.id===cid);if(cl){cl.tn=cl.tn||[];if(!cl.tn.includes(id)){cl.tn.push(id);logProv(cl,'Linked tension '+id);}}});
+  closeAIReview();
+  STATE.unifiedTab='tensions';
+  STATE.artifactSelId=id;
+  document.querySelectorAll('[data-utab]').forEach(el=>el.classList.toggle('on',el.dataset.utab==='tensions'));
+  render();
   pendingAdd=null; scheduleSave();
 }
 
@@ -2488,8 +3005,9 @@ function finalizeNewCF(severity) {
           srcQuote:text,trail:appendTrail([{when:ts,who:'User (manual)',what:'Added manually'}],{when:ts,who:'AI auto-discovery',what:'Severity classified as: '+severity})}};
   ds.counterfactuals.push(newCF);
   const cl=ds.claims.find(c=>c.id===claimId);
-  if(cl){cl.cf=cl.cf||[];if(!cl.cf.includes(id))cl.cf.push(id);}
-  closeAIReview(); switchToTab('counterfactuals'); render(); openPan(id,'counterfactual');
+  if(cl){cl.cf=cl.cf||[];if(!cl.cf.includes(id)){cl.cf.push(id);logProv(cl,'Linked counterfactual '+id);}}
+  closeAIReview(); render();
+  if(STATE.selId===claimId) renderClaimEditor(claimId);
   pendingAdd=null; scheduleSave();
 }
 
@@ -2561,9 +3079,9 @@ function addExpCandidate(idx){
   ds.experiments.push(exp);
   claimsArr.forEach(cid=>{const cl=ds.claims.find(x=>x.id===cid);if(cl){cl.exp=cl.exp||[];if(!cl.exp.includes(id))cl.exp.push(id);}});
   expCandidates.splice(idx,1);
-  switchToTab('experiments'); render(); scheduleSave();
+  render(); scheduleSave();
   if(expCandidates.length){ renderExpCandidates(); toast('Experiment added.'); }
-  else { closeAIReview(); openPan(id,'experiment'); }
+  else { closeAIReview(); openExperimentsOverlay(); }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2684,11 +3202,7 @@ async function createAnalysisFromModal(){
     ds.sources=naState.pendingFiles.map(f=>({name:f.name,added:todayStr(),size:f.size}));
   }
   closeNewAnalysisModal();
-  STATE.tab='claims';
-  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('on'));
-  const tc=eid('tab-claims'); if(tc) tc.classList.add('on');
-  updateFiltbarActions('claims');
-  closePan();
+  if(ds.claims.length) STATE.selId=ds.claims[0].id;
   showAnalysisView();
   onDocLoaded();
   scheduleSave();
@@ -2721,50 +3235,49 @@ async function createAnalysisFromModal(){
 // MISC HELPERS + WIRING
 // ═══════════════════════════════════════════════════════════
 function dismissBanner(){ const eb=eid('extract-banner'); if(eb) eb.classList.remove('on'); }
-
-// Single delegated listener for entity table row clicks (main-area never replaced, innerHTML is)
-eid('main-area').addEventListener('click', tableRowClickHandler);
+function safeOn(id, evt, fn) { const el=eid(id); if(el) el.addEventListener(evt, fn); }
 
 // ── Button wiring ──
-eid('brand-link').addEventListener('click',()=>{if(currentUser||readonlyMode)goDash();});
-eid('btn-guide').addEventListener('click',()=>openModal('modal-guide'));
-eid('btn-new-analysis').addEventListener('click',openNewAnalysisModal);
-eid('user-menu-btn').addEventListener('click',toggleMenu);
-eid('btn-copy-share').addEventListener('click',()=>{closeMenu();copyShareLink();});
-eid('btn-sign-out').addEventListener('click',()=>{closeMenu();signOut();});
-eid('btn-google').addEventListener('click',signInGoogle);
-eid('btn-email-in').addEventListener('click',signInEmail);
-eid('btn-email-reg').addEventListener('click',registerEmail);
-eid('btn-google-empty').addEventListener('click',signInGoogle);
-eid('btn-close-pan').addEventListener('click',closePan);
-eid('btn-close-add').addEventListener('click',closeAdd);
-eid('add-modal-submit').addEventListener('click',submitAddModal);
-eid('btn-close-guide').addEventListener('click',()=>closeModal('modal-guide'));
-eid('btn-guide-ok').addEventListener('click',()=>closeModal('modal-guide'));
-eid('btn-close-na').addEventListener('click',closeNewAnalysisModal);
-eid('na-submit').addEventListener('click',createAnalysisFromModal);
-eid('na-tab-upload').addEventListener('click',()=>naSwitchTab('upload'));
-eid('na-tab-claim').addEventListener('click',()=>naSwitchTab('claim'));
-eid('na-name').addEventListener('input',naCheckReady);
-eid('an-title').addEventListener('input',e=>onTitleEdit(e.target.value));
-eid('btn-analyze-all').addEventListener('click',analyzeEverything);
-eid('btn-summarise').addEventListener('click',refreshAnalysisSummary);
-eid('btn-refresh-summary').addEventListener('click',refreshAnalysisSummary);
-eid('btn-dismiss-summary').addEventListener('click',()=>{const b=eid('asum-banner');if(b)b.classList.remove('on');});
-eid('btn-upload-doc').addEventListener('click',openUploadModal);
-eid('btn-close-upload').addEventListener('click',closeUploadModal);
-eid('btn-save-upload').addEventListener('click',saveUploadModal);
-eid('btn-workflow').addEventListener('click',()=>openModal('modal-workflow'));
-eid('btn-close-workflow').addEventListener('click',()=>closeModal('modal-workflow'));
-eid('btn-close-delconfirm').addEventListener('click',closeDelConfirm);
-eid('btn-confirm-delete').addEventListener('click',confirmDelete);
-eid('btn-dismiss-banner').addEventListener('click',dismissBanner);
-eid('btn-ro-copy').addEventListener('click',copyShareLink);
+safeOn('brand-link','click',()=>{if(currentUser||readonlyMode)goDash();});
+safeOn('btn-guide','click',()=>openModal('modal-guide'));
+safeOn('btn-new-analysis','click',openNewAnalysisModal);
+safeOn('user-menu-btn','click',toggleMenu);
+safeOn('btn-copy-share','click',()=>{closeMenu();copyShareLink();});
+safeOn('btn-sign-out','click',()=>{closeMenu();signOut();});
+safeOn('btn-google','click',signInGoogle);
+safeOn('btn-email-in','click',signInEmail);
+safeOn('btn-email-reg','click',registerEmail);
+safeOn('btn-google-empty','click',signInGoogle);
+safeOn('btn-close-add','click',closeAdd);
+safeOn('add-modal-submit','click',submitAddModal);
+safeOn('btn-close-guide','click',()=>closeModal('modal-guide'));
+safeOn('btn-guide-ok','click',()=>closeModal('modal-guide'));
+safeOn('btn-close-na','click',closeNewAnalysisModal);
+safeOn('na-submit','click',createAnalysisFromModal);
+safeOn('na-tab-upload','click',()=>naSwitchTab('upload'));
+safeOn('na-tab-claim','click',()=>naSwitchTab('claim'));
+safeOn('na-name','input',naCheckReady);
+safeOn('btn-analyze-all','click',analyzeEverything);
+safeOn('btn-add-claim','click',()=>openAddModal('claim'));
+safeOn('unified-search','input',e=>{ STATE.unifiedSearch=e.target.value; if(STATE.view==='populated') render(); });
+safeOn('btn-experiments-overlay','click',openExperimentsOverlay);
+safeOn('btn-close-experiments-ov','click',closeAnalysisOverlay);
+safeOn('btn-close-experiments-ov2','click',closeAnalysisOverlay);
+safeOn('btn-gen-exp-overlay','click',doGenerateExperiments);
+safeOn('btn-close-prov','click',closeProvDrawer);
+safeOn('btn-refresh-summary','click',refreshAnalysisSummary);
+safeOn('btn-dismiss-summary','click',()=>{const b=eid('asum-banner');if(b)b.classList.remove('on');});
+safeOn('btn-close-upload','click',closeUploadModal);
+safeOn('btn-save-upload','click',saveUploadModal);
+safeOn('btn-close-delconfirm','click',closeDelConfirm);
+safeOn('btn-confirm-delete','click',confirmDelete);
+safeOn('btn-dismiss-banner','click',dismissBanner);
+safeOn('btn-ro-copy','click',copyShareLink);
 // Dismiss banner2 (dynamically added)
 document.addEventListener('click',e=>{if(e.target.id==='btn-dismiss-banner2')dismissBanner();});
 
 // Close modals on bg click
-['modal-add','modal-guide','modal-newanalysis','modal-upload','modal-workflow','modal-delconfirm'].forEach(id=>{
+['modal-add','modal-guide','modal-newanalysis','modal-upload','modal-workflow','modal-delconfirm','overlay-experiments','prov-drawer','modal-airev'].forEach(id=>{
   const el=eid(id); if(!el) return;
   el.addEventListener('click',e=>{if(e.target===el&&id!=='modal-newanalysis')closeModal(id);});
 });
