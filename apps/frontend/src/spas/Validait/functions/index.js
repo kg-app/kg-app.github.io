@@ -14,12 +14,17 @@
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const logger = require('firebase-functions/logger');
-const admin = require('firebase-admin');
+const { initializeApp, applicationDefault } = require('firebase-admin/app');
+const { getAuth } = require('firebase-admin/auth');
 
 // Gen 2 Cloud Functions don't always auto-populate projectId on the default Admin app,
 // which makes verifyIdToken() throw a TypeError instead of a proper auth error.
 const PROJECT_ID = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || 'validait-ideas';
-admin.initializeApp({ projectId: PROJECT_ID });
+initializeApp({
+  credential: applicationDefault(),
+  projectId: PROJECT_ID
+});
+logger.info('aiProxy initialized', { projectId: PROJECT_ID });
 
 const ANTHROPIC_API_KEY = defineSecret('ANTHROPIC_API_KEY');
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-5-20250929';
@@ -35,10 +40,14 @@ async function requireUser(req) {
     throw err;
   }
   try {
-    return await admin.auth().verifyIdToken(m[1]);
+    return await getAuth().verifyIdToken(m[1], false);
   } catch (e) {
-    logger.error('requireUser: ID token verification failed', { code: e.code, message: e.message });
-    const err = new Error('Invalid or expired ID token' + (e.code ? ' (' + e.code + ')' : '') + '.');
+    logger.error('requireUser: ID token verification failed', {
+      code: e.code,
+      message: e.message,
+      projectId: PROJECT_ID
+    });
+    const err = new Error('Invalid or expired ID token' + (e.code ? ' (' + e.code + ')' : '') + '. Sign out and sign in again.');
     err.statusCode = 401;
     throw err;
   }

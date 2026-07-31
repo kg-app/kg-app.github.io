@@ -23,15 +23,24 @@ async function callAiProxy(action, payload, idToken) {
   if (!AI_CONFIG || !AI_CONFIG.endpoint || /YOUR_PROJECT_ID/.test(AI_CONFIG.endpoint)) {
     throw new Error('AI backend not configured — set AI_CONFIG.endpoint in ai-config.js (see functions/README).');
   }
-  let res;
-  try {
-    res = await fetch(AI_CONFIG.endpoint, {
+  async function doFetch(token) {
+    return fetch(AI_CONFIG.endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ action, payload })
     });
+  }
+  let res;
+  try {
+    res = await doFetch(idToken);
   } catch (e) {
     throw new Error('Could not reach AI backend: ' + e.message);
+  }
+  if (res.status === 401 && window.currentUser) {
+    try {
+      const fresh = await window.currentUser.getIdToken(true);
+      if (fresh) res = await doFetch(fresh);
+    } catch (_) {}
   }
   if (!res.ok) {
     let msg = 'AI request failed (' + res.status + ')';

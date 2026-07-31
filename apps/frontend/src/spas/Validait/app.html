@@ -1291,6 +1291,7 @@ function setReadonly(on) {
   const rb = eid('ro-banner'); if(rb) rb.hidden=!on;
 }
 function setAuthUi(user) {
+  window.currentUser = user;
   document.body.classList.remove('auth-pending');
   if (readonlyMode) { showState('app'); return; }
   showState(user ? 'app' : 'signin');
@@ -1299,6 +1300,10 @@ function setAuthUi(user) {
   const av = eid('user-menu-btn');
   if (av) av.textContent = user ? (user.displayName||user.email||'?').charAt(0).toUpperCase() : '?';
   if (!user) closeMenu();
+}
+async function getAiIdToken() {
+  if (!currentUser) throw new Error('You must be signed in to use AI features.');
+  return currentUser.getIdToken(true);
 }
 function syncStatus(txt,type) {
   const s=eid('sync-status'); if(!s)return;
@@ -1397,7 +1402,7 @@ async function refreshAnalysisSummary() {
   summarising=true;
   const btn=eid('btn-summarise'); if(btn){btn.disabled=true; btn.textContent='Summarising…';}
   try {
-    const idToken=await currentUser.getIdToken();
+    const idToken=await getAiIdToken();
     const result=await AI.summariseAnalysis({claims:ds.claims,evidence:ds.evidence,tensions:ds.tensions,counterfactuals:ds.counterfactuals,experiments:ds.experiments,idToken});
     ds.summary={overallConfidence:result.overallConfidence,overallSummary:result.overallSummary,generatedAt:nowISOStr()};
     renderAnalysisSummary();
@@ -1608,7 +1613,7 @@ async function saveUploadModal() {
     setTimeout(()=>{const b=eid('proc-fill');if(b)b.style.width='100%';},80);
     try {
       const text=await readTextFromFiles(filesForText);
-      const idToken=await currentUser.getIdToken();
+      const idToken=await getAiIdToken();
       const result=await AI.extractClaims({text,fileNames,idToken});
       ds.claims=result.claims||[]; ds.evidence=result.evidence||[];
       ds.tensions=result.tensions||[]; ds.counterfactuals=result.counterfactuals||[];
@@ -1986,7 +1991,7 @@ async function analyzeClaimFromEditor(claimId) {
   if(!currentUser){ toast('Sign in to use AI features.'); return; }
   claim.critiquing=true; renderClaimEditor(claimId);
   try {
-    const idToken=await currentUser.getIdToken();
+    const idToken=await getAiIdToken();
     await critiqueOneClaim(claim, idToken);
     claim.critiquing=false;
     render(); scheduleSave();
@@ -2618,7 +2623,7 @@ async function analyzeEverything() {
   let totalCf=0, totalTn=0, failed=0;
   const claims=ds.claims.slice();
   try {
-    const idToken=await currentUser.getIdToken();
+    const idToken=await getAiIdToken();
     for(let i=0;i<claims.length;i++){
       const claim=claims[i];
       if(btn) btn.textContent=`Analyzing ${i+1}/${claims.length}…`;
@@ -2659,7 +2664,7 @@ async function panFootAction(e) {
     if(ent.critiquing) return;
     ent.critiquing=true; renderPan();
     try {
-      const idToken=await currentUser.getIdToken();
+      const idToken=await getAiIdToken();
       await critiqueOneClaim(ent, idToken);
       ent.critiquing=false;
       render(); openPan(ent.id,'claim'); scheduleSave();
@@ -3020,7 +3025,7 @@ async function doGenerateExperiments() {
   eid('airev-foot').innerHTML='';
   openModal('modal-airev');
   try {
-    const idToken=await currentUser.getIdToken();
+    const idToken=await getAiIdToken();
     const result=await AI.generateExperiments({claims:ds.claims,tensions:ds.tensions,counterfactuals:ds.counterfactuals,experiments:ds.experiments,idToken});
     expCandidates=result.experiments||[];
     renderExpCandidates();
@@ -3211,7 +3216,7 @@ async function createAnalysisFromModal(){
     setTimeout(()=>{const b=eid('proc-fill');if(b)b.style.width='100%';},80);
     try {
       const text=await readTextFromFiles(naState.pendingFiles);
-      const idToken=await currentUser.getIdToken();
+      const idToken=await getAiIdToken();
       const result=await AI.extractClaims({text,fileNames:naState.pendingFiles.map(f=>f.name),idToken});
       ds.claims=result.claims||[]; ds.evidence=result.evidence||[];
       ds.tensions=result.tensions||[]; ds.counterfactuals=result.counterfactuals||[];
