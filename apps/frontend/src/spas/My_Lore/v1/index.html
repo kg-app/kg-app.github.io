@@ -48,13 +48,13 @@
   button, input, textarea, select { font-family: inherit; }
   input, textarea, select {
     border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 9px 11px; font-size: 13.5px; background: var(--bg-surface); color: var(--ink);
+    padding: 9px 11px; font-size: 12.5px; background: var(--bg-surface); color: var(--ink);
   }
   input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); }
 
   .btn {
     font-family: 'Baloo 2', sans-serif;
-    font-size: 13.5px; font-weight: 700;
+    font-size: 12.5px; font-weight: 700;
     padding: 9px 15px; border-radius: var(--radius);
     border: 1.5px solid var(--line); background: var(--bg-surface); color: var(--ink-2);
     cursor: pointer; display: inline-flex; align-items: center; gap: 6px; justify-content: center;
@@ -64,8 +64,8 @@
   .btn:active { transform: scale(0.98); }
   .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   .btn-primary:hover { background: #2e1f4d; }
-  .btn-sm { padding: 6px 11px; font-size: 12.5px; border-radius: 10px; }
-  .btn-icon { padding: 6px 8px; line-height: 1; font-size: 16px; }
+  .btn-sm { padding: 6px 11px; font-size: 11.5px; border-radius: 10px; }
+  .btn-icon { padding: 6px 8px; line-height: 1; font-size: 14.5px; }
   .btn-block { width: 100%; }
   .btn-danger { color: #b8203f; }
 
@@ -77,18 +77,18 @@
     backdrop-filter: blur(6px);
     position: sticky; top: 0; z-index: 20;
   }
-  #topbar .brand { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 18px; white-space: nowrap; display: flex; align-items: center; gap: 9px; color: var(--ink); }
+  #topbar .brand { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 16.5px; white-space: nowrap; display: flex; align-items: center; gap: 9px; color: var(--ink); }
   #topbar .brand svg { flex-shrink: 0; border-radius: 10px; }
-  #context-switch { font-size: 12px; max-width: 150px; }
+  #context-switch { font-size: 11px; max-width: 150px; }
   #topbar .spacer { flex: 1; }
   #auth-area { display: flex; align-items: center; gap: 8px; position: relative; }
   #user-menu-wrap { position: relative; }
-  #user-avatar { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; background: var(--accent); color: #fff; font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; padding: 0; }
+  #user-avatar { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; background: var(--accent); color: #fff; font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; padding: 0; }
   #user-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
   #user-popup { display: none; position: absolute; top: 40px; right: 0; background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-md); min-width: 200px; padding: 6px; z-index: 30; }
   #user-popup.open { display: block; }
-  #user-popup .email { font-size: 12.5px; color: var(--ink-2); padding: 8px 10px; border-bottom: 1px solid var(--line); margin-bottom: 4px; word-break: break-all; }
-  #user-popup button { width: 100%; text-align: left; border: none; background: none; padding: 8px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
+  #user-popup .email { font-size: 11.5px; color: var(--ink-2); padding: 8px 10px; border-bottom: 1px solid var(--line); margin-bottom: 4px; word-break: break-all; }
+  #user-popup button { width: 100%; text-align: left; border: none; background: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
   #user-popup button:hover { background: var(--bg-subtle); }
 
   /* ---------- shell ---------- */
@@ -96,17 +96,17 @@
   #controls { padding: 14px 16px 6px; background: var(--bg-page); }
   #search-row { position: relative; margin-bottom: 12px; }
   #search-row input { width: 100%; padding-left: 32px; padding-right: 30px; border-radius: 12px; background: var(--bg-surface); }
-  #search-row .ic { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--ink-mute); }
-  .search-clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 50%; border: none; background: var(--bg-subtle); color: var(--ink-3); font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+  #search-row .ic { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--ink-mute); }
+  .search-clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 50%; border: none; background: var(--bg-subtle); color: var(--ink-3); font-size: 9.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
   .search-clear:hover { background: var(--line-strong); color: var(--ink); }
 
   #child-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
-  #child-toggle .seg { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 9px 6px; border-radius: 12px; font-family: 'Baloo 2', sans-serif; font-size: 13.5px; font-weight: 600; color: var(--ink-3); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1.5px solid var(--line); background: var(--bg-surface); }
+  #child-toggle .seg { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 9px 6px; border-radius: 12px; font-family: 'Baloo 2', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--ink-3); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1.5px solid var(--line); background: var(--bg-surface); }
   #child-toggle .seg.active { border-color: transparent; font-weight: 700; }
   #child-toggle .seg.active[data-cat="all"] { background: var(--ink); color: #fff; }
 
   #category-chips { display: flex; flex-wrap: wrap; gap: 7px; }
-  .cat-chip { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 20px; white-space: nowrap; cursor: pointer; border: 1.5px solid var(--line); background: var(--bg-surface); color: var(--ink-3); flex-shrink: 0; }
+  .cat-chip { font-size: 11px; font-weight: 600; padding: 6px 12px; border-radius: 20px; white-space: nowrap; cursor: pointer; border: 1.5px solid var(--line); background: var(--bg-surface); color: var(--ink-3); flex-shrink: 0; }
   .cat-chip.active[data-cat="all"] { background: var(--ink); border-color: var(--ink); color: #fff; }
   .cat-chip.active[data-cat="achievement"] { background: var(--c-achievement-bg); color: var(--c-achievement); border-color: transparent; }
   .cat-chip.active[data-cat="milestone"]   { background: var(--c-milestone-bg); color: var(--c-milestone); border-color: transparent; }
@@ -115,7 +115,7 @@
 
   /* ---------- timeline ---------- */
   #timeline { padding: 6px 16px 16px; }
-  .year-label { font-family: 'Baloo 2', sans-serif; font-size: 15px; color: var(--ink-2); font-weight: 700; margin: 18px 2px 10px; }
+  .year-label { font-family: 'Baloo 2', sans-serif; font-size: 14px; color: var(--ink-2); font-weight: 700; margin: 18px 2px 10px; }
   .year-label:first-child { margin-top: 0; }
   .entry-row { display: flex; gap: 10px; margin-bottom: 10px; }
   .entry-rail { width: 2px; background: var(--line); border-radius: 2px; flex-shrink: 0; margin-left: 5px; }
@@ -125,21 +125,21 @@
   .entry-icon .dot { width: 11px; height: 11px; border-radius: 50%; }
   .entry-body { flex: 1; min-width: 0; }
   .entry-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .entry-title { font-family: 'Baloo 2', sans-serif; font-weight: 600; font-size: 15.5px; color: var(--ink); }
-  .entry-date { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
-  .entry-desc { font-size: 13.5px; color: var(--ink-3); margin: 3px 0 9px; line-height: 1.45; }
+  .entry-title { font-family: 'Baloo 2', sans-serif; font-weight: 600; font-size: 14.5px; color: var(--ink); }
+  .entry-date { font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+  .entry-desc { font-size: 12.5px; color: var(--ink-3); margin: 3px 0 9px; line-height: 1.45; }
   .entry-media { display: flex; gap: 6px; margin-bottom: 8px; overflow-x: auto; }
   .entry-media img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
   .pill-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .pill { font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 100px; background: var(--bg-subtle); color: var(--ink-3); }
+  .pill { font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 100px; background: var(--bg-subtle); color: var(--ink-3); }
   .pill.cat-achievement { background: var(--c-achievement-bg); color: var(--c-achievement); }
   .pill.cat-milestone   { background: var(--c-milestone-bg); color: var(--c-milestone); }
   .pill.cat-learning    { background: var(--c-learning-bg); color: var(--c-learning); }
   .pill.cat-health      { background: var(--c-health-bg); color: var(--c-health); }
-  #empty-state { text-align: center; color: var(--ink-mute); font-size: 13px; padding: 60px 20px; }
+  #empty-state { text-align: center; color: var(--ink-mute); font-size: 12px; padding: 60px 20px; }
 
   /* ---------- FAB ---------- */
-  #fab { position: fixed; right: 20px; bottom: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #fff; border: none; font-size: 26px; cursor: pointer; box-shadow: 0 8px 20px rgba(61, 42, 99, 0.4); z-index: 25; animation: fabPulse 3s ease-in-out infinite; }
+  #fab { position: fixed; right: 20px; bottom: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #fff; border: none; font-size: 23px; cursor: pointer; box-shadow: 0 8px 20px rgba(61, 42, 99, 0.4); z-index: 25; animation: fabPulse 3s ease-in-out infinite; }
   #fab:hover { background: #2e1f4d; }
   @keyframes fabPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
 
@@ -150,15 +150,15 @@
   @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
   .sheet-grab { width: 36px; height: 4px; background: var(--line-strong); border-radius: 2px; margin: 0 auto 14px; }
   .sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-  .sheet-head h2 { font-family: 'Baloo 2', sans-serif; font-size: 17px; }
-  .sheet-close { border: none; background: none; font-size: 18px; cursor: pointer; color: var(--ink-3); }
-  .field-label { font-size: 12.5px; color: var(--ink-2); display: block; margin-bottom: 5px; font-weight: 600; }
+  .sheet-head h2 { font-family: 'Baloo 2', sans-serif; font-size: 15.5px; }
+  .sheet-close { border: none; background: none; font-size: 16.5px; cursor: pointer; color: var(--ink-3); }
+  .field-label { font-size: 11.5px; color: var(--ink-2); display: block; margin-bottom: 5px; font-weight: 600; }
   .field { margin-bottom: 12px; }
   .field input, .field textarea, .field select { width: 100%; }
   .field-row { display: flex; gap: 8px; }
   .field-row .field { flex: 1; }
   .pick-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-  .pick-chip { font-size: 12.5px; font-weight: 700; padding: 6px 13px; border-radius: 100px; border: 1.5px solid var(--line); background: var(--bg-surface); color: var(--ink-3); cursor: pointer; }
+  .pick-chip { font-size: 11.5px; font-weight: 700; padding: 6px 13px; border-radius: 100px; border: 1.5px solid var(--line); background: var(--bg-surface); color: var(--ink-3); cursor: pointer; }
   .pick-chip.selected[data-cat="achievement"] { background: var(--c-achievement-bg); color: var(--c-achievement); border-color: transparent; }
   .pick-chip.selected[data-cat="milestone"]   { background: var(--c-milestone-bg); color: var(--c-milestone); border-color: transparent; }
   .pick-chip.selected[data-cat="learning"]    { background: var(--c-learning-bg); color: var(--c-learning); border-color: transparent; }
@@ -166,34 +166,34 @@
   #image-preview-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
   .img-thumb { position: relative; width: 60px; height: 60px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
   .img-thumb img { width: 100%; height: 100%; object-fit: cover; }
-  .img-thumb button { position: absolute; top: 1px; right: 1px; background: rgba(46,38,32,.7); color: #fff; border: none; font-size: 10px; width: 16px; height: 16px; border-radius: 50%; cursor: pointer; }
+  .img-thumb button { position: absolute; top: 1px; right: 1px; background: rgba(46,38,32,.7); color: #fff; border: none; font-size: 9.5px; width: 16px; height: 16px; border-radius: 50%; cursor: pointer; }
 
   /* ---------- admin ---------- */
   #admin-view { display: none; position: fixed; inset: 0; background: var(--bg-page); z-index: 40; overflow-y: auto; }
   #admin-view.open { display: block; }
   .admin-head { display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 56px; border-bottom: 1px solid var(--line); background: rgba(253, 251, 246, 0.92); backdrop-filter: blur(6px); position: sticky; top: 0; }
-  .admin-head button { border: none; background: none; font-size: 18px; cursor: pointer; color: var(--ink-2); }
+  .admin-head button { border: none; background: none; font-size: 16.5px; cursor: pointer; color: var(--ink-2); }
   .admin-head > div { font-family: 'Baloo 2', sans-serif; }
   .admin-body { max-width: 480px; margin: 0 auto; padding: 18px; }
-  .section-label { font-size: 12.5px; color: var(--ink-mute); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 10px; }
+  .section-label { font-size: 11.5px; color: var(--ink-mute); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 10px; }
   .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
   .stat-box { background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
-  .stat-box .n { font-family: 'Baloo 2', sans-serif; font-size: 24px; font-weight: 700; color: var(--accent); }
-  .stat-box .l { font-size: 12.5px; color: var(--ink-3); margin-top: 2px; }
+  .stat-box .n { font-family: 'Baloo 2', sans-serif; font-size: 22px; font-weight: 700; color: var(--accent); }
+  .stat-box .l { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
   .child-row, .share-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--line); }
   .child-row:last-child { border-bottom: none; }
   .child-left { display: flex; align-items: center; gap: 10px; }
-  .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Baloo 2', sans-serif; font-size: 13px; font-weight: 700; flex-shrink: 0; border: 1.5px solid rgba(46, 38, 32, 0.22); }
-  .avatar-sm { width: 18px; height: 18px; font-size: 10px; }
-  .child-name { font-family: 'Baloo 2', sans-serif; font-size: 14.5px; font-weight: 600; }
-  .child-meta { font-size: 12px; color: var(--ink-mute); }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Baloo 2', sans-serif; font-size: 12px; font-weight: 700; flex-shrink: 0; border: 1.5px solid rgba(46, 38, 32, 0.22); }
+  .avatar-sm { width: 18px; height: 18px; font-size: 9.5px; }
+  .child-name { font-family: 'Baloo 2', sans-serif; font-size: 13.5px; font-weight: 600; }
+  .child-meta { font-size: 11px; color: var(--ink-mute); }
   .list-card { background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 10px; }
-  .icon-btn { border: none; background: none; cursor: pointer; color: var(--ink-mute); font-size: 15px; }
+  .icon-btn { border: none; background: none; cursor: pointer; color: var(--ink-mute); font-size: 14px; }
   .toggle { width: 40px; height: 24px; border-radius: 100px; background: var(--line-strong); position: relative; cursor: pointer; flex-shrink: 0; }
   .toggle.on { background: #23a893; }
   .toggle .knob { width: 18px; height: 18px; border-radius: 50%; background: #fff; position: absolute; top: 3px; left: 3px; transition: left .15s; }
   .toggle.on .knob { left: 19px; }
-  .share-badge { font-size: 11px; padding: 2px 8px; border-radius: 100px; background: var(--bg-subtle); color: var(--ink-3); }
+  .share-badge { font-size: 10px; padding: 2px 8px; border-radius: 100px; background: var(--bg-subtle); color: var(--ink-3); }
   .share-badge.editor { background: var(--c-achievement-bg); color: var(--c-achievement); }
   .btn-block[onclick*="openBulkImport"] { background: #e8f5f1; color: #1a7a68; border-color: transparent; font-weight: 700; }
   .btn-block[onclick*="openAddChild"] { border-style: dashed; }
@@ -202,26 +202,26 @@
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(46, 38, 32, .4); align-items: center; justify-content: center; z-index: 60; }
   .modal-overlay.open { display: flex; }
   .modal { width: min(340px, 92vw); background: var(--bg-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 22px; text-align: center; }
-  .modal h2 { font-family: 'Baloo 2', sans-serif; font-size: 17px; margin-bottom: 6px; }
-  .modal p { font-size: 12.5px; color: var(--ink-3); margin-bottom: 16px; }
+  .modal h2 { font-family: 'Baloo 2', sans-serif; font-size: 15.5px; margin-bottom: 6px; }
+  .modal p { font-size: 11.5px; color: var(--ink-3); margin-bottom: 16px; }
   .modal input { width: 100%; margin-bottom: 12px; text-align: center; }
   .modal .challenge-code { font-weight: 700; letter-spacing: 1px; color: var(--ink); }
 
   /* ---------- multi-select ---------- */
   #select-toggle { flex-shrink: 0; }
   .entry-row.select-mode .entry-card { cursor: pointer; }
-  .entry-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line-strong); background: var(--bg-surface); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: transparent; cursor: pointer; user-select: none; }
+  .entry-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line-strong); background: var(--bg-surface); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: transparent; cursor: pointer; user-select: none; }
   .entry-row.selected .entry-check { background: var(--accent); border-color: var(--accent); color: #fff; }
   .entry-row.selected .entry-card { border-color: var(--accent); }
   #select-bar { display: none; position: sticky; top: 56px; left: 0; right: 0; z-index: 19; background: var(--bg-surface); border-bottom: 1px solid var(--line); padding: 10px 14px; align-items: center; gap: 10px; box-shadow: var(--shadow-md); }
   #select-bar.open { display: flex; }
-  #select-bar .count { flex: 1; font-size: 13.5px; font-weight: 700; font-family: 'Baloo 2', sans-serif; }
+  #select-bar .count { flex: 1; font-size: 12.5px; font-weight: 700; font-family: 'Baloo 2', sans-serif; }
 
   /* ---------- toast ---------- */
-  #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(0); background: var(--ink); color: #fff; font-size: 13px; padding: 9px 16px; border-radius: 20px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 70; }
+  #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(0); background: var(--ink); color: #fff; font-size: 12px; padding: 9px 16px; border-radius: 20px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 70; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
 
-  #signed-out-msg { text-align: center; color: var(--ink-mute); font-size: 13px; padding: 60px 20px; }
+  #signed-out-msg { text-align: center; color: var(--ink-mute); font-size: 12px; padding: 60px 20px; }
 </style>
 </head>
 <body>
@@ -360,14 +360,14 @@
 
     <div class="field">
       <label class="field-label">Events (one per line)</label>
-      <div style="font-size:11px; color:var(--ink-3); margin-bottom:6px; line-height:1.5;">
+      <div style="font-size:10px; color:var(--ink-3); margin-bottom:6px; line-height:1.5;">
         Format: <code>date, title, category, description, tags</code><br>
         Category is one of achievement / milestone / learning / health (optional, defaults to achievement). Separate tags with <code>;</code>. Wrap a field in quotes if it contains a comma. Sample rows are pre-filled below &mdash; replace them with your own.
       </div>
-      <textarea id="bulk-rows" style="min-height:180px; font-family: ui-monospace, monospace; font-size:12px;"></textarea>
+      <textarea id="bulk-rows" style="min-height:180px; font-family: ui-monospace, monospace; font-size:11px;"></textarea>
     </div>
 
-    <div style="font-size:11px; color:var(--ink-mute); margin-bottom:10px;">Photos aren't included in bulk import &mdash; add those afterward on each entry.</div>
+    <div style="font-size:10px; color:var(--ink-mute); margin-bottom:10px;">Photos aren't included in bulk import &mdash; add those afterward on each entry.</div>
 
     <button class="btn btn-primary btn-block" onclick="runBulkImport()" id="bulk-import-btn">Import entries</button>
   </div>
@@ -400,7 +400,7 @@
 <div id="admin-view">
   <div class="admin-head">
     <button onclick="closeAdmin()">&#8592;</button>
-    <div style="font-weight:600; font-size:15px;">Admin</div>
+    <div style="font-weight:600; font-size:14px;">Admin</div>
   </div>
   <div class="admin-body">
     <div class="section-label">Overview</div>
@@ -425,8 +425,8 @@
       </div>
       <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid var(--line); margin-bottom:10px;">
         <div>
-          <div style="font-size:13px;">Can edit</div>
-          <div style="font-size:11px; color:var(--ink-mute);">Lets them add their own entries.</div>
+          <div style="font-size:12px;">Can edit</div>
+          <div style="font-size:10px; color:var(--ink-mute);">Lets them add their own entries.</div>
         </div>
         <div class="toggle" id="share-canedit-toggle" onclick="this.classList.toggle('on')"><div class="knob"></div></div>
       </div>
@@ -1120,7 +1120,7 @@ function renderAdminChildren() {
   const el = document.getElementById('admin-children');
   el.innerHTML = '';
   if (!children.length) {
-    el.innerHTML = '<div style="padding:14px; font-size:12px; color:var(--ink-mute);">No children added yet.</div>';
+    el.innerHTML = '<div style="padding:14px; font-size:11px; color:var(--ink-mute);">No children added yet.</div>';
     return;
   }
   children.forEach(c => {
@@ -1198,26 +1198,56 @@ function renderAdminShares() {
   const el = document.getElementById('admin-shares');
   el.innerHTML = '';
   if (!shares.length) {
-    el.innerHTML = '<div style="padding:14px; font-size:12px; color:var(--ink-mute);">No one else has access yet.</div>';
+    el.innerHTML = '<div style="padding:14px; font-size:11px; color:var(--ink-mute);">No one else has access yet.</div>';
     return;
   }
   shares.forEach(s => {
     const row = document.createElement('div');
     row.className = 'share-row';
+    row.style.flexDirection = 'column';
+    row.style.alignItems = 'stretch';
+    row.style.gap = '8px';
     const scopeLabel = s.scope === 'all' ? 'all children' : (childName(s.scope) || 'one child');
     row.innerHTML = `
-      <div>
-        <div style="font-size:13px;">${escapeHtml(s.email)}</div>
-        <div style="font-size:11px; color:var(--ink-mute);">${escapeHtml(scopeLabel)}</div>
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div style="font-size:12px;">${escapeHtml(s.email)}</div>
+          <div style="font-size:10px; color:var(--ink-mute);">${escapeHtml(scopeLabel)}</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="share-badge${s.canEdit ? ' editor' : ''}">${s.canEdit ? 'Can edit' : 'View only'}</span>
+          <button class="icon-btn" title="Revoke access">&#10005;</button>
+        </div>
       </div>
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span class="share-badge${s.canEdit ? ' editor' : ''}">${s.canEdit ? 'Can edit' : 'View only'}</span>
-        <button class="icon-btn" title="Revoke access">&#10005;</button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-sm" style="flex:1;">&#128279; Copy link</button>
+        <button class="btn btn-sm" style="flex:1;">&#9993; Email invite</button>
       </div>
+      <div style="font-size:10px; color:var(--ink-mute);">No email is sent automatically &mdash; share this link with them yourself. They must sign in with <b>${escapeHtml(s.email)}</b> to unlock access.</div>
     `;
-    row.querySelector('button').onclick = () => revokeShare(s.id, s.email);
+    const [copyBtn, emailBtn] = row.querySelectorAll('.btn');
+    copyBtn.onclick = () => copyInviteLink(s.email);
+    emailBtn.onclick = () => emailInviteLink(s.email, s.canEdit);
+    row.querySelector('.icon-btn').onclick = () => revokeShare(s.id, s.email);
     el.appendChild(row);
   });
+}
+
+function inviteLinkUrl() { return location.origin + location.pathname; }
+
+function copyInviteLink(email) {
+  navigator.clipboard.writeText(inviteLinkUrl())
+    .then(() => toast(`Link copied — send it to ${email}`))
+    .catch(() => toast('Could not copy link — copy it from the address bar instead.'));
+}
+
+function emailInviteLink(email, canEdit) {
+  const subject = encodeURIComponent("You've been invited to My Lore");
+  const body = encodeURIComponent(
+    `Hi!\n\nI'd like to share our My Lore journal with you (${canEdit ? 'you can add entries' : 'view only'}).\n\n` +
+    `Open this link and sign in with Google using ${email}:\n${inviteLinkUrl()}\n`
+  );
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
 }
 
 async function sendShareInvite() {
@@ -1229,15 +1259,12 @@ async function sendShareInvite() {
       email, scope: shareScope, canEdit, status: 'active',
       invitedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
-    toast(`Invite ready for ${email}`);
-    // No email-sending backend here — Apps Script or a Cloud Function could send
-    // the actual email. For now, prompt to share the app link manually.
-    if (confirm(`Access granted for ${email}. Copy the app link to send them now?`)) {
-      navigator.clipboard.writeText(location.origin + location.pathname).then(() => toast('Link copied'));
-    }
     document.getElementById('share-email').value = '';
     await loadShares();
     renderAdminShares();
+    // No backend here to actually send an email — copy the link now and leave
+    // "Copy link" / "Email invite" buttons on the row below for later too.
+    copyInviteLink(email);
   } catch (err) {
     console.error('sendShareInvite failed:', err.code, err.message);
     toast(`Couldn't send invite: ${err.code || err.message}`);
