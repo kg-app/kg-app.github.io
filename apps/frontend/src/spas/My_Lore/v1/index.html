@@ -742,6 +742,7 @@ function renderTimeline() {
     row.className = 'entry-row' + (selectMode ? ' select-mode' : '') + (selectedIds.has(e.id) ? ' selected' : '');
     const card = document.createElement('div');
     card.className = 'entry-card';
+    card.style.background = childAvatarColor(e.childId).bg;
     card.onclick = selectMode ? () => toggleEntrySelected(e.id) : () => openEntrySheet(e.id);
 
     const media = (e.mediaUrls || []).slice(0, 4).map(u => `<img src="${u}" alt="">`).join('');
