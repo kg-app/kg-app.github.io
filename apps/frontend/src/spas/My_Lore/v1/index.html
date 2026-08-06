@@ -100,8 +100,8 @@
   .search-clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 50%; border: none; background: var(--bg-subtle); color: var(--ink-3); font-size: 9.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
   .search-clear:hover { background: var(--line-strong); color: var(--ink); }
 
-  #child-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
-  #child-toggle .seg { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 9px 6px; border-radius: 12px; font-family: 'Baloo 2', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--ink-3); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1.5px solid var(--line); background: var(--bg-surface); }
+  #child-toggle { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  #child-toggle .seg { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 9px 14px; border-radius: 12px; font-family: 'Baloo 2', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--ink-3); cursor: pointer; white-space: nowrap; border: 1.5px solid var(--line); background: var(--bg-surface); }
   #child-toggle .seg.active { border-color: transparent; font-weight: 700; }
   #child-toggle .seg.active[data-cat="all"] { background: var(--ink); color: #fff; }
 
@@ -447,6 +447,18 @@
   </div>
 </div>
 
+<!-- GENERIC CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <h2 id="confirm-title">Are you sure?</h2>
+    <p id="confirm-message"></p>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-block" id="confirm-cancel-btn">Cancel</button>
+      <button class="btn btn-block btn-primary" id="confirm-ok-btn">OK</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <input type="file" id="image-input" accept="image/*" hidden onchange="onImageFileChosen(event)">
 
@@ -470,7 +482,8 @@ let contexts = [];        // [{id: ownerUid, label, role: 'owner'|'editor'|'view
 let ownerId = null;       // uid of the journal currently being viewed
 let isOwnerView = false;  // true if currentUser is the owner of ownerId's journal
 
-let children = [];        // cached children docs for ownerId
+let children = [];        // cached children docs for ownerId (active only)
+let childrenAll = [];     // same, but includes hidden children (for admin)
 let entries = [];         // cached entry docs for ownerId
 let shares = [];          // cached share docs (owner only)
 
@@ -504,6 +517,26 @@ function toast(msg) {
 }
 function openOverlay(id) { document.getElementById(id).classList.add('open'); }
 function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
+
+let confirmResolve = null;
+function confirmDialog(message, { title = 'Are you sure?', confirmLabel = 'OK', danger = false } = {}) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-message').textContent = message;
+  const okBtn = document.getElementById('confirm-ok-btn');
+  okBtn.textContent = confirmLabel;
+  okBtn.className = 'btn btn-block' + (danger ? ' btn-danger' : ' btn-primary');
+  openOverlay('confirm-modal');
+  return new Promise(resolve => { confirmResolve = resolve; });
+}
+function settleConfirm(result) {
+  closeOverlay('confirm-modal');
+  if (confirmResolve) { confirmResolve(result); confirmResolve = null; }
+}
+document.getElementById('confirm-ok-btn').onclick = () => settleConfirm(true);
+document.getElementById('confirm-cancel-btn').onclick = () => settleConfirm(false);
+document.getElementById('confirm-modal').addEventListener('click', e => {
+  if (e.target.id === 'confirm-modal') settleConfirm(false);
+});
 function escapeHtml(s) {
   return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -638,11 +671,12 @@ function sharesCol() { return db.collection('users').doc(ownerId).collection('sh
 async function loadChildren() {
   try {
     const snap = await childrenCol().get();
-    children = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(c => c.status !== 'removed');
+    childrenAll = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    children = childrenAll.filter(c => c.status !== 'removed');
   } catch (err) {
     console.error('loadChildren failed:', err.code, err.message);
     toast(`Couldn't load children: ${err.code || err.message}`);
-    children = [];
+    children = []; childrenAll = [];
   }
 }
 
@@ -672,7 +706,7 @@ async function loadShares() {
 function renderChildToggle() {
   const el = document.getElementById('child-toggle');
   el.innerHTML = '';
-  const segs = [{ id: 'all', name: 'Both' }, ...children];
+  const segs = [{ id: 'all', name: 'All' }, ...children];
   segs.forEach(s => {
     const d = document.createElement('div');
     const active = activeChildFilter === s.id;
@@ -1076,7 +1110,8 @@ async function runBulkImport() {
 
 async function deleteEntry() {
   if (!editingEntryId || !isOwnerView) return;
-  if (!confirm("Delete this entry and its photos? This can't be undone.")) return;
+  const ok = await confirmDialog("This permanently removes the entry and its photos. This can't be undone.", { title: 'Delete this entry?', confirmLabel: 'Delete', danger: true });
+  if (!ok) return;
   try {
     const entry = entries.find(e => e.id === editingEntryId);
     if (entry && entry.mediaPaths) {
@@ -1120,25 +1155,27 @@ function renderAdminOverview() {
 function renderAdminChildren() {
   const el = document.getElementById('admin-children');
   el.innerHTML = '';
-  if (!children.length) {
+  if (!childrenAll.length) {
     el.innerHTML = '<div style="padding:14px; font-size:11px; color:var(--ink-mute);">No children added yet.</div>';
     return;
   }
-  children.forEach(c => {
+  childrenAll.forEach(c => {
+    const hidden = c.status === 'removed';
     const row = document.createElement('div');
     row.className = 'child-row';
+    if (hidden) row.style.opacity = '0.55';
     const count = entries.filter(e => e.childId === c.id).length;
     row.innerHTML = `
       <div class="child-left">
         ${avatarHtml(c)}
         <div>
-          <div class="child-name">${escapeHtml(c.name)}</div>
+          <div class="child-name">${escapeHtml(c.name)}${hidden ? ' <span class="share-badge" style="margin-left:4px;">Hidden</span>' : ''}</div>
           <div class="child-meta">${count} ${count === 1 ? 'entry' : 'entries'}</div>
         </div>
       </div>
-      <button class="icon-btn" title="Remove">&#128465;</button>
+      <div class="toggle${hidden ? '' : ' on'}" title="${hidden ? 'Unhide' : 'Hide'} ${escapeHtml(c.name)}"><div class="knob"></div></div>
     `;
-    row.querySelector('button').onclick = () => removeChild(c.id, c.name);
+    row.querySelector('.toggle').onclick = () => hidden ? unhideChild(c.id, c.name) : removeChild(c.id, c.name);
     el.appendChild(row);
   });
 }
@@ -1172,8 +1209,9 @@ async function saveChild() {
 
 async function removeChild(childId, name) {
   const count = entries.filter(e => e.childId === childId).length;
-  const warn = `Hide ${name} from the app? Their ${count} ${count === 1 ? 'entry stays' : 'entries stay'} saved, but ${name} won't show in the toggle or add-entry form until re-added.`;
-  if (!confirm(warn)) return;
+  const warn = `Their ${count} ${count === 1 ? 'entry stays' : 'entries stay'} saved, but ${name} won't show in the toggle or add-entry form until re-added.`;
+  const ok = await confirmDialog(warn, { title: `Hide ${name} from the app?`, confirmLabel: 'Hide', danger: true });
+  if (!ok) return;
   try {
     await childrenCol().doc(childId).update({ status: 'removed' });
     toast(`${name} hidden`);
@@ -1183,6 +1221,18 @@ async function removeChild(childId, name) {
   } catch (err) {
     console.error('removeChild failed:', err.code, err.message);
     toast(`Couldn't remove: ${err.code || err.message}`);
+  }
+}
+
+async function unhideChild(childId, name) {
+  try {
+    await childrenCol().doc(childId).update({ status: 'active' });
+    toast(`${name} unhidden`);
+    await loadChildren();
+    renderAdminChildren(); renderChildToggle(); renderAdminOverview();
+  } catch (err) {
+    console.error('unhideChild failed:', err.code, err.message);
+    toast(`Couldn't unhide: ${err.code || err.message}`);
   }
 }
 
@@ -1273,7 +1323,8 @@ async function sendShareInvite() {
 }
 
 async function revokeShare(shareId, email) {
-  if (!confirm(`Revoke access for ${email}?`)) return;
+  const ok = await confirmDialog(`They'll immediately lose access to this journal.`, { title: `Revoke access for ${email}?`, confirmLabel: 'Revoke', danger: true });
+  if (!ok) return;
   try {
     await sharesCol().doc(shareId).update({ status: 'revoked' });
     toast('Access revoked');
