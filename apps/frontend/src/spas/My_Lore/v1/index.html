@@ -565,6 +565,7 @@
       font-size: 12px;
       padding: 60px 20px;
     }
+
     .empty-card {
       max-width: 380px;
       margin: 36px auto;
@@ -575,6 +576,7 @@
       padding: 22px 20px;
       text-align: left;
     }
+
     .empty-card .empty-icon {
       width: 42px;
       height: 42px;
@@ -586,23 +588,27 @@
       font-size: 20px;
       margin-bottom: 12px;
     }
+
     .empty-card h3 {
       font-family: 'Baloo 2', sans-serif;
       font-size: 15px;
       color: var(--ink);
       margin-bottom: 4px;
     }
+
     .empty-card p {
       font-size: 12px;
       color: var(--ink-3);
       margin-bottom: 16px;
       line-height: 1.5;
     }
+
     .empty-steps {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
+
     .empty-step {
       display: flex;
       gap: 10px;
@@ -611,6 +617,7 @@
       color: var(--ink-2);
       line-height: 1.45;
     }
+
     .empty-step .num {
       flex-shrink: 0;
       width: 21px;
@@ -625,6 +632,22 @@
       align-items: center;
       justify-content: center;
       margin-top: 1px;
+    }
+    .sample-label {
+      max-width: 380px;
+      margin: 26px auto 10px;
+      font-size: 11.5px;
+      color: var(--ink-mute);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .sample-card {
+      cursor: default;
+      opacity: .92;
+    }
+    .sample-card:hover {
+      border-color: var(--line);
     }
 
     /* ---------- FAB ---------- */
@@ -1558,6 +1581,18 @@
     const CATEGORIES = ['achievement', 'milestone', 'learning', 'health'];
     const CATEGORY_LABEL = { achievement: 'Achievement', milestone: 'Milestone', learning: 'Learning', health: 'Health' };
 
+    // Shown to signed-out visitors so they can see what a logged event looks like.
+    const SAMPLE_ENTRIES = [
+      { childName: 'Mia', category: 'milestone', title: 'First steps!', date: '2026-03-02',
+        description: "Mia took her first wobbly steps across the living room — straight into Dad's arms." },
+      { childName: 'Leo', category: 'achievement', title: 'Won the school spelling bee', date: '2025-11-14',
+        description: 'Took first place spelling "chrysanthemum" without a hitch. So proud!' },
+      { childName: 'Rex', category: 'health', title: 'Vet check-up: all clear', date: '2025-09-08',
+        description: 'Annual check-up — weight, teeth, and vitals all normal.' },
+      { childName: 'Mia', category: 'learning', title: 'Finished her first chapter book', date: '2025-06-21',
+        description: 'Read "Junie B. Jones" cover to cover, all by herself.' },
+    ];
+
     let currentUser = null;
     let contexts = [];        // [{id: ownerUid, label, role: 'owner'|'editor'|'viewer'}]
     let ownerId = null;       // uid of the journal currently being viewed
@@ -1695,8 +1730,10 @@
         await discoverContexts();
       } else {
         contexts = []; ownerId = null; children = []; entries = []; shares = [];
+        entriesCursor = null; entriesHasMore = false; entriesAllLoaded = false;
         document.getElementById('btn-admin').hidden = true;
-        document.getElementById('timeline').innerHTML = '';
+        document.getElementById('timeline').innerHTML = renderEmptyState('');
+        document.getElementById('load-more-row').hidden = true;
       }
     });
 
@@ -1832,7 +1869,7 @@
     function updateLoadMoreUI() {
       const row = document.getElementById('load-more-row');
       const btn = document.getElementById('btn-load-more');
-      const showRow = entriesHasMore && !isFilterActive();
+      const showRow = !!currentUser && entriesHasMore && !isFilterActive();
       row.hidden = !showRow;
       if (showRow) { btn.disabled = entriesLoadingMore; btn.textContent = entriesLoadingMore ? 'Loading…' : 'Load more'; }
     }
@@ -1840,7 +1877,7 @@
       if (entriesScrollObserver) return;
       const sentinel = document.getElementById('scroll-sentinel');
       entriesScrollObserver = new IntersectionObserver((observed) => {
-        if (observed[0].isIntersecting && entriesHasMore && !entriesLoadingMore && !isFilterActive()) {
+        if (observed[0].isIntersecting && currentUser && entriesHasMore && !entriesLoadingMore && !isFilterActive()) {
           loadMoreEntries();
         }
       }, { rootMargin: '400px' });
@@ -1897,7 +1934,42 @@
 
     function childName(id) { const c = children.find(c => c.id === id); return c ? c.name : ''; }
 
+    function renderSampleEntries() {
+      return SAMPLE_ENTRIES.map(e => {
+        const { bg } = childAvatarColor(e.childName);
+        const catSoft = `var(--c-${e.category}-bg, var(--bg-subtle))`;
+        const catColor = `var(--c-${e.category}, var(--ink-3))`;
+        return `
+      <div class="entry-row">
+        <div class="entry-card sample-card" style="background:${bg};">
+          <div class="entry-icon" style="background:${catSoft}; color:${catColor};">${escapeHtml(e.childName.charAt(0).toUpperCase())}</div>
+          <div class="entry-body">
+            <div class="entry-top">
+              <div class="entry-title">${escapeHtml(e.title)}</div>
+              <div class="entry-date">${fmtDate(e.date)}</div>
+            </div>
+            <div class="entry-desc">${escapeHtml(e.description)}</div>
+            <div class="pill-row">
+              <span class="pill cat-${e.category}">${CATEGORY_LABEL[e.category]}</span>
+              <span class="pill">${escapeHtml(e.childName)}</span>
+            </div>
+          </div>
+        </div>
+      </div>`;
+      }).join('');
+    }
+
     function renderEmptyState(searchQuery) {
+      if (!currentUser) {
+        return `
+      <div class="empty-card">
+        <div class="empty-icon">&#10024;</div>
+        <h3>What is My Lore?</h3>
+        <p>Ten seconds now, a lifetime of detail later. Log events, achievements, and milestones as they happen — then reminisce, or turn the timeline into a resume, a college essay, or a story worth telling.</p>
+      </div>
+      <div class="sample-label">What an event stream looks like..</div>
+      ${renderSampleEntries()}`;
+      }
       if (!children.length) {
         return `
       <div class="empty-card">
