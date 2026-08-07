@@ -633,6 +633,7 @@
       justify-content: center;
       margin-top: 1px;
     }
+
     .sample-label {
       max-width: 380px;
       margin: 26px auto 10px;
@@ -642,10 +643,12 @@
       text-transform: uppercase;
       letter-spacing: .04em;
     }
+
     .sample-card {
       cursor: default;
       opacity: .92;
     }
+
     .sample-card:hover {
       border-color: var(--line);
     }
@@ -814,6 +817,91 @@
       background: var(--c-health-bg);
       color: var(--c-health);
       border-color: transparent;
+    }
+
+    .tag-combo {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      padding: 7px 8px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+    .tag-combo:focus-within {
+      border-color: var(--accent);
+    }
+    .tag-chip-row {
+      display: contents;
+    }
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 6px 4px 10px;
+      border-radius: 100px;
+      background: var(--bg-subtle);
+      color: var(--ink-2);
+      white-space: nowrap;
+    }
+    .tag-chip button {
+      border: none;
+      background: rgba(46, 38, 32, .12);
+      color: inherit;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      font-size: 9px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .tag-combo input {
+      flex: 1;
+      min-width: 90px;
+      border: none;
+      padding: 4px 2px;
+      background: transparent;
+    }
+    .tag-combo input:focus {
+      outline: none;
+    }
+    .tag-dropdown {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 4px);
+      background: var(--bg-surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      max-height: 180px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      z-index: 5;
+      padding: 4px;
+    }
+    .tag-option {
+      font-size: 12px;
+      padding: 7px 9px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--ink-2);
+    }
+    .tag-option:hover, .tag-option.active {
+      background: var(--bg-subtle);
+    }
+    .tag-option .new-hint {
+      color: var(--ink-mute);
+      font-size: 10.5px;
+      margin-left: 4px;
     }
 
     #image-preview-row {
@@ -1382,7 +1470,7 @@
     <div class="sheet">
       <div class="sheet-grab"></div>
       <div class="sheet-head">
-        <h2 id="entry-sheet-title">New entry</h2>
+        <h2 id="entry-sheet-title">New Life Event</h2>
         <button class="sheet-close" onclick="closeOverlay('entry-overlay')">&#10005;</button>
       </div>
 
@@ -1415,7 +1503,12 @@
 
       <div class="field">
         <label class="field-label">Tags</label>
-        <input id="f-tags" placeholder="school, swimming, funny (comma separated)">
+        <div class="tag-combo" id="tag-combo">
+          <div class="tag-chip-row" id="tag-chip-row"></div>
+          <input id="f-tags" placeholder="Add a tag…" autocomplete="off"
+            oninput="onTagInput()" onkeydown="onTagKeydown(event)" onfocus="onTagInput()">
+          <div class="tag-dropdown" id="tag-dropdown" hidden></div>
+        </div>
       </div>
 
       <div class="field">
@@ -1583,14 +1676,22 @@
 
     // Shown to signed-out visitors so they can see what a logged event looks like.
     const SAMPLE_ENTRIES = [
-      { childName: 'Mia', category: 'milestone', title: 'First steps!', date: '2026-03-02',
-        description: "Mia took her first wobbly steps across the living room — straight into Dad's arms." },
-      { childName: 'Leo', category: 'achievement', title: 'Won the school spelling bee', date: '2025-11-14',
-        description: 'Took first place spelling "chrysanthemum" without a hitch. So proud!' },
-      { childName: 'Rex', category: 'health', title: 'Vet check-up: all clear', date: '2025-09-08',
-        description: 'Annual check-up — weight, teeth, and vitals all normal.' },
-      { childName: 'Mia', category: 'learning', title: 'Finished her first chapter book', date: '2025-06-21',
-        description: 'Read "Junie B. Jones" cover to cover, all by herself.' },
+      {
+        childName: 'Mia', category: 'milestone', title: 'First steps!', date: '2026-03-02',
+        description: "Mia took her first wobbly steps across the living room — straight into Dad's arms."
+      },
+      {
+        childName: 'Leo', category: 'achievement', title: 'Won the school spelling bee', date: '2025-11-14',
+        description: 'Took first place spelling "chrysanthemum" without a hitch. So proud!'
+      },
+      {
+        childName: 'Rex', category: 'health', title: 'Vet check-up: all clear', date: '2025-09-08',
+        description: 'Annual check-up — weight, teeth, and vitals all normal.'
+      },
+      {
+        childName: 'Mia', category: 'learning', title: 'Finished her first chapter book', date: '2025-06-21',
+        description: 'Read "Junie B. Jones" cover to cover, all by herself.'
+      },
     ];
 
     let currentUser = null;
@@ -1614,6 +1715,7 @@
     let entriesScrollObserver = null;
     let pendingImages = [];   // [{file, previewUrl}] queued for the entry being edited
     let editingEntryId = null;
+    let entryTags = [];       // tags picked for the entry sheet currently open
     let shareScope = 'all';
     let selectMode = false;
     let selectedIds = new Set();
@@ -1709,6 +1811,8 @@
     document.addEventListener('click', e => {
       const wrap = document.getElementById('user-menu-wrap');
       if (!wrap.hidden && !wrap.contains(e.target)) document.getElementById('user-popup').classList.remove('open');
+      const tagCombo = document.getElementById('tag-combo');
+      if (tagCombo && !tagCombo.contains(e.target)) hideTagDropdown();
     });
 
     auth.onAuthStateChanged(async user => {
@@ -1965,7 +2069,9 @@
       <div class="empty-card">
         <div class="empty-icon">&#10024;</div>
         <h3>What is My Lore?</h3>
-        <p>Ten seconds now, a lifetime of detail later. Log events, achievements, and milestones as they happen — then reminisce, or turn the timeline into a resume, a college essay, or a story worth telling.</p>
+        <p>A private life stream. Quickly log the events, achievements, and milestones as they happen — then reminisce, or turn the timeline into a resume, a college essay, or a story worth telling.</p>
+        <br>
+        <p>Built by a dad of two kids and a puppy 🐶</p>
       </div>
       <div class="sample-label">What an event stream looks like..</div>
       ${renderSampleEntries()}`;
@@ -2150,6 +2256,9 @@
       editingEntryId = entryId || null;
       pendingImages = [];
       document.getElementById('image-preview-row').innerHTML = '';
+      // Fetch the rest of this journal's entries in the background so the tag
+      // dropdown can suggest every tag used so far, not just what's paged in.
+      ensureAllEntriesLoaded();
 
       const childSelect = document.getElementById('f-child');
       childSelect.innerHTML = children.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
@@ -2159,11 +2268,14 @@
 
       const entry = entryId ? entries.find(e => e.id === entryId) : null;
 
-      document.getElementById('entry-sheet-title').textContent = entry ? 'Edit entry' : 'New entry';
+      document.getElementById('entry-sheet-title').textContent = entry ? 'Edit Life Event' : 'New Life Event';
       document.getElementById('f-title').value = entry ? entry.title || '' : '';
       document.getElementById('f-date').value = entry ? entry.date || todayStr() : todayStr();
       document.getElementById('f-description').value = entry ? entry.description || '' : '';
-      document.getElementById('f-tags').value = entry ? (entry.tags || []).join(', ') : '';
+      entryTags = entry ? [...(entry.tags || [])] : [];
+      document.getElementById('f-tags').value = '';
+      renderTagChips();
+      hideTagDropdown();
       if (entry) childSelect.value = entry.childId;
       pickCategory(entry ? entry.category : CATEGORIES[0]);
 
@@ -2173,6 +2285,80 @@
 
       document.getElementById('f-delete-btn').hidden = !(entry && isOwnerView);
       openOverlay('entry-overlay');
+    }
+
+    /* ---------- tags combo (free text + suggestions from existing tags) ---------- */
+
+    function allKnownTags() {
+      const byLower = new Map(); // lowercase -> first-seen casing
+      entries.forEach(e => (e.tags || []).forEach(t => {
+        const key = t.toLowerCase();
+        if (!byLower.has(key)) byLower.set(key, t);
+      }));
+      return [...byLower.values()].sort((a, b) => a.localeCompare(b));
+    }
+
+    function renderTagChips() {
+      const row = document.getElementById('tag-chip-row');
+      row.innerHTML = entryTags.map(t => `
+        <span class="tag-chip">${escapeHtml(t)}<button type="button" onclick="removeTag('${escapeHtml(t).replace(/'/g, "\\'")}')" title="Remove ${escapeHtml(t)}">&#10005;</button></span>
+      `).join('');
+    }
+
+    function addTag(tag) {
+      tag = (tag || '').trim();
+      if (!tag) return;
+      if (!entryTags.some(t => t.toLowerCase() === tag.toLowerCase())) {
+        entryTags.push(tag);
+        renderTagChips();
+      }
+      document.getElementById('f-tags').value = '';
+      hideTagDropdown();
+    }
+
+    function removeTag(tag) {
+      entryTags = entryTags.filter(t => t !== tag);
+      renderTagChips();
+    }
+
+    function hideTagDropdown() {
+      const dd = document.getElementById('tag-dropdown');
+      if (dd) dd.hidden = true;
+    }
+
+    function onTagInput() {
+      const input = document.getElementById('f-tags');
+      const typed = input.value.trim();
+      const q = typed.toLowerCase();
+      const known = allKnownTags().filter(t => !entryTags.some(sel => sel.toLowerCase() === t.toLowerCase()));
+      const matches = q ? known.filter(t => t.toLowerCase().includes(q)) : known;
+
+      let html = matches.slice(0, 30).map(t => `<div class="tag-option" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</div>`).join('');
+      const exactMatch = known.some(t => t.toLowerCase() === q);
+      if (typed && !exactMatch) {
+        html += `<div class="tag-option" data-tag="${escapeHtml(typed)}">Add "${escapeHtml(typed)}"<span class="new-hint">new tag</span></div>`;
+      }
+
+      const dropdown = document.getElementById('tag-dropdown');
+      if (!html) { hideTagDropdown(); return; }
+      dropdown.innerHTML = html;
+      dropdown.hidden = false;
+      dropdown.querySelectorAll('.tag-option').forEach(opt => {
+        // mousedown (not click) so this fires before the input's blur/outside-click handler closes the dropdown
+        opt.onmousedown = e => { e.preventDefault(); addTag(opt.dataset.tag); input.focus(); };
+      });
+    }
+
+    function onTagKeydown(event) {
+      const input = event.target;
+      if (event.key === 'Enter' || event.key === ',') {
+        event.preventDefault();
+        if (input.value.trim()) addTag(input.value);
+      } else if (event.key === 'Backspace' && !input.value && entryTags.length) {
+        removeTag(entryTags[entryTags.length - 1]);
+      } else if (event.key === 'Escape') {
+        hideTagDropdown();
+      }
     }
 
     function pickCategory(cat) {
@@ -2229,7 +2415,9 @@
       const category = (document.querySelector('#f-category-picks .pick-chip.selected') || {}).dataset ? document.querySelector('#f-category-picks .pick-chip.selected').dataset.cat : CATEGORIES[0];
       const date = document.getElementById('f-date').value || todayStr();
       const description = val('f-description');
-      const tags = val('f-tags').split(',').map(t => t.trim()).filter(Boolean);
+      const pendingTag = val('f-tags');
+      if (pendingTag) addTag(pendingTag); // catch a typed tag the user never hit Enter/comma on
+      const tags = entryTags.slice();
 
       const btn = document.getElementById('f-save-btn');
       btn.disabled = true; btn.textContent = 'Saving...';
