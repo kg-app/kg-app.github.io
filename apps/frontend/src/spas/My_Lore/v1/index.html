@@ -1,802 +1,1971 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Lore</title>
-<link rel="icon" href="favicon.ico" sizes="any">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  [hidden] { display: none !important; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Lore</title>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  :root {
-    --ink: #2e2620;
-    --ink-2: #564c42;
-    --ink-3: #7d7368;
-    --ink-mute: #988f84;
-    --bg-page: #f5f0e6;
-    --bg-surface: #fdfbf6;
-    --bg-subtle: #efe8db;
-    --line: #e6dcc9;
-    --line-strong: #d6c9ac;
-    --radius: 14px;
-    --radius-lg: 20px;
-    --shadow-sm: 0 1px 2px rgba(60, 45, 20, 0.06);
-    --shadow-md: 0 10px 30px rgba(60, 45, 20, 0.16);
-    --accent: #3d2a63;
-    --accent-2: #1e293b;
+    [hidden] {
+      display: none !important;
+    }
 
-    --c-achievement: #b5551f; --c-achievement-bg: #fbe4cf;
-    --c-milestone:   #2a4ba0; --c-milestone-bg:   #dde5fb;
-    --c-learning:    #9c1f4e; --c-learning-bg:    #fbdce7;
-    --c-health:      #1a7a68; --c-health-bg:      #d9f0ea;
-  }
+    :root {
+      --ink: #2e2620;
+      --ink-2: #564c42;
+      --ink-3: #7d7368;
+      --ink-mute: #988f84;
+      --bg-page: #f5f0e6;
+      --bg-surface: #fdfbf6;
+      --bg-subtle: #efe8db;
+      --line: #e6dcc9;
+      --line-strong: #d6c9ac;
+      --radius: 14px;
+      --radius-lg: 20px;
+      --shadow-sm: 0 1px 2px rgba(60, 45, 20, 0.06);
+      --shadow-md: 0 10px 30px rgba(60, 45, 20, 0.16);
+      --accent: #3d2a63;
+      --accent-2: #1e293b;
 
-  html, body { height: 100%; }
-  body {
-    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-    background: var(--bg-page);
-    color: var(--ink);
-    -webkit-font-smoothing: antialiased;
-    text-wrap: pretty;
-  }
-  button, input, textarea, select { font-family: inherit; }
-  input, textarea, select {
-    border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 9px 11px; font-size: 12.5px; background: var(--bg-surface); color: var(--ink);
-  }
-  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); }
+      --c-achievement: #b5551f;
+      --c-achievement-bg: #fbe4cf;
+      --c-milestone: #2a4ba0;
+      --c-milestone-bg: #dde5fb;
+      --c-learning: #9c1f4e;
+      --c-learning-bg: #fbdce7;
+      --c-health: #1a7a68;
+      --c-health-bg: #d9f0ea;
 
-  .btn {
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 12.5px; font-weight: 700;
-    padding: 9px 15px; border-radius: var(--radius);
-    border: 1.5px solid var(--line); background: var(--bg-surface); color: var(--ink-2);
-    cursor: pointer; display: inline-flex; align-items: center; gap: 6px; justify-content: center;
-    transition: background .15s, border-color .15s;
-  }
-  .btn:hover { background: var(--bg-subtle); border-color: var(--line-strong); }
-  .btn:active { transform: scale(0.98); }
-  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .btn-primary:hover { background: #2e1f4d; }
-  .btn-sm { padding: 6px 11px; font-size: 11.5px; border-radius: 10px; }
-  .btn-icon { padding: 6px 8px; line-height: 1; font-size: 14.5px; }
-  .btn-block { width: 100%; }
-  .btn-danger { color: #b8203f; }
+      --bg-texture-color: #fffeea;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg fill='%238fb5f7' fill-opacity='0.08'%3E%3Cpath d='M12 0h18v6h6v6h6v18h-6v6h-6v6H12v-6H6v-6H0V12h6V6h6V0zm12 6h-6v6h-6v6H6v6h6v6h6v6h6v-6h6v-6h6v-6h-6v-6h-6V6zm-6 12h6v6h-6v-6zm24 24h6v6h-6v-6z'%3E%3C/path%3E%3C/g%3E%3C/svg%3E");
+    }
 
-  /* ---------- top bar ---------- */
-  #topbar {
-    display: flex; align-items: center; gap: 10px;
-    height: 56px; padding: 0 16px;
-    border-bottom: 1px solid var(--line); background: rgba(253, 251, 246, 0.92);
-    backdrop-filter: blur(6px);
-    position: sticky; top: 0; z-index: 20;
-  }
-  #topbar .brand { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 16.5px; white-space: nowrap; display: flex; align-items: center; gap: 9px; color: var(--ink); }
-  #topbar .brand svg { flex-shrink: 0; border-radius: 10px; }
-  #context-switch { font-size: 11px; max-width: 150px; }
-  #topbar .spacer { flex: 1; }
-  #auth-area { display: flex; align-items: center; gap: 8px; position: relative; }
-  #user-menu-wrap { position: relative; }
-  #user-avatar { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; background: var(--accent); color: #fff; font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; padding: 0; }
-  #user-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-  #user-popup { display: none; position: absolute; top: 40px; right: 0; background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-md); min-width: 200px; padding: 6px; z-index: 30; }
-  #user-popup.open { display: block; }
-  #user-popup .email { font-size: 11.5px; color: var(--ink-2); padding: 8px 10px; border-bottom: 1px solid var(--line); margin-bottom: 4px; word-break: break-all; }
-  #user-popup button { width: 100%; text-align: left; border: none; background: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
-  #user-popup button:hover { background: var(--bg-subtle); }
+    html,
+    body {
+      height: 100%;
+    }
 
-  /* ---------- shell ---------- */
-  #shell { max-width: 480px; margin: 0 auto; padding-bottom: 90px; position: relative; }
-  #controls { padding: 14px 16px 6px; background: var(--bg-page); }
-  #search-row { position: relative; margin-bottom: 12px; }
-  #search-row input { width: 100%; padding-left: 32px; padding-right: 30px; border-radius: 12px; background: var(--bg-surface); }
-  #search-row .ic { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--ink-mute); }
-  .search-clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 50%; border: none; background: var(--bg-subtle); color: var(--ink-3); font-size: 9.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
-  .search-clear:hover { background: var(--line-strong); color: var(--ink); }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background-color: var(--bg-texture-color);
+      background-image: var(--bg-texture);
+      background-size: 72px 72px;
+      background-attachment: fixed;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      text-wrap: pretty;
+    }
 
-  #child-toggle { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-  #child-toggle .seg { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 9px 14px; border-radius: 12px; font-family: 'Baloo 2', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--ink-3); cursor: pointer; white-space: nowrap; border: 1.5px solid var(--line); background: var(--bg-surface); }
-  #child-toggle .seg.active { border-color: transparent; font-weight: 700; }
-  #child-toggle .seg.active[data-cat="all"] { background: var(--ink); color: #fff; }
+    button,
+    input,
+    textarea,
+    select {
+      font-family: inherit;
+    }
 
-  #category-chips { display: flex; flex-wrap: wrap; gap: 7px; }
-  .cat-chip { font-size: 11px; font-weight: 600; padding: 6px 12px; border-radius: 20px; white-space: nowrap; cursor: pointer; border: 1.5px solid var(--line); background: var(--bg-surface); color: var(--ink-3); flex-shrink: 0; }
-  .cat-chip.active[data-cat="all"] { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .cat-chip.active[data-cat="achievement"] { background: var(--c-achievement-bg); color: var(--c-achievement); border-color: transparent; }
-  .cat-chip.active[data-cat="milestone"]   { background: var(--c-milestone-bg); color: var(--c-milestone); border-color: transparent; }
-  .cat-chip.active[data-cat="learning"]    { background: var(--c-learning-bg); color: var(--c-learning); border-color: transparent; }
-  .cat-chip.active[data-cat="health"]      { background: var(--c-health-bg); color: var(--c-health); border-color: transparent; }
+    input,
+    textarea,
+    select {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 9px 11px;
+      font-size: 12.5px;
+      background: var(--bg-surface);
+      color: var(--ink);
+    }
 
-  /* ---------- timeline ---------- */
-  #timeline { padding: 6px 16px 16px; }
-  .year-label { font-family: 'Baloo 2', sans-serif; font-size: 14px; color: var(--ink-2); font-weight: 700; margin: 18px 2px 10px; }
-  .year-label:first-child { margin-top: 0; }
-  .entry-row { display: flex; gap: 10px; margin-bottom: 10px; }
-  .entry-rail { width: 2px; background: var(--line); border-radius: 2px; flex-shrink: 0; margin-left: 5px; }
-  .entry-card { flex: 1; min-width: 0; background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 14px 12px; cursor: pointer; display: flex; gap: 10px; }
-  .entry-card:hover { border-color: var(--line-strong); }
-  .entry-icon { flex-shrink: 0; width: 34px; height: 34px; border-radius: 11px; display: flex; align-items: center; justify-content: center; }
-  .entry-icon .dot { width: 11px; height: 11px; border-radius: 50%; }
-  .entry-body { flex: 1; min-width: 0; }
-  .entry-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .entry-title { font-family: 'Baloo 2', sans-serif; font-weight: 600; font-size: 14.5px; color: var(--ink); }
-  .entry-date { font-size: 11px; color: var(--ink-3); white-space: nowrap; }
-  .entry-desc { font-size: 12.5px; color: var(--ink-3); margin: 3px 0 9px; line-height: 1.45; }
-  .entry-media { display: flex; gap: 6px; margin-bottom: 8px; overflow-x: auto; }
-  .entry-media img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
-  .pill-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .pill { font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 100px; background: var(--bg-subtle); color: var(--ink-3); }
-  .pill.cat-achievement { background: var(--c-achievement-bg); color: var(--c-achievement); }
-  .pill.cat-milestone   { background: var(--c-milestone-bg); color: var(--c-milestone); }
-  .pill.cat-learning    { background: var(--c-learning-bg); color: var(--c-learning); }
-  .pill.cat-health      { background: var(--c-health-bg); color: var(--c-health); }
-  #empty-state { text-align: center; color: var(--ink-mute); font-size: 12px; padding: 60px 20px; }
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
 
-  /* ---------- FAB ---------- */
-  #fab { position: fixed; right: 20px; bottom: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #fff; border: none; font-size: 23px; cursor: pointer; box-shadow: 0 8px 20px rgba(61, 42, 99, 0.4); z-index: 25; animation: fabPulse 3s ease-in-out infinite; }
-  #fab:hover { background: #2e1f4d; }
-  @keyframes fabPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+    .btn {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 9px 15px;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--line);
+      background: var(--bg-surface);
+      color: var(--ink-2);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: center;
+      transition: background .15s, border-color .15s;
+    }
 
-  /* ---------- bottom sheet / overlays ---------- */
-  .overlay { display: none; position: fixed; inset: 0; background: rgba(46, 38, 32, .45); z-index: 50; }
-  .overlay.open { display: flex; }
-  .sheet { width: 100%; max-width: 480px; margin: auto auto 0; background: var(--bg-surface); border-radius: 20px 20px 0 0; padding: 18px 16px 22px; max-height: 90vh; overflow-y: auto; animation: sheetUp .2s ease-out; }
-  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .sheet-grab { width: 36px; height: 4px; background: var(--line-strong); border-radius: 2px; margin: 0 auto 14px; }
-  .sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-  .sheet-head h2 { font-family: 'Baloo 2', sans-serif; font-size: 15.5px; }
-  .sheet-close { border: none; background: none; font-size: 16.5px; cursor: pointer; color: var(--ink-3); }
-  .field-label { font-size: 11.5px; color: var(--ink-2); display: block; margin-bottom: 5px; font-weight: 600; }
-  .field { margin-bottom: 12px; }
-  .field input, .field textarea, .field select { width: 100%; }
-  .field-row { display: flex; gap: 8px; }
-  .field-row .field { flex: 1; }
-  .pick-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-  .pick-chip { font-size: 11.5px; font-weight: 700; padding: 6px 13px; border-radius: 100px; border: 1.5px solid var(--line); background: var(--bg-surface); color: var(--ink-3); cursor: pointer; }
-  .pick-chip.selected[data-cat="achievement"] { background: var(--c-achievement-bg); color: var(--c-achievement); border-color: transparent; }
-  .pick-chip.selected[data-cat="milestone"]   { background: var(--c-milestone-bg); color: var(--c-milestone); border-color: transparent; }
-  .pick-chip.selected[data-cat="learning"]    { background: var(--c-learning-bg); color: var(--c-learning); border-color: transparent; }
-  .pick-chip.selected[data-cat="health"]      { background: var(--c-health-bg); color: var(--c-health); border-color: transparent; }
-  #image-preview-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-  .img-thumb { position: relative; width: 60px; height: 60px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
-  .img-thumb img { width: 100%; height: 100%; object-fit: cover; }
-  .img-thumb button { position: absolute; top: 1px; right: 1px; background: rgba(46,38,32,.7); color: #fff; border: none; font-size: 9.5px; width: 16px; height: 16px; border-radius: 50%; cursor: pointer; }
+    .btn:hover {
+      background: var(--bg-subtle);
+      border-color: var(--line-strong);
+    }
 
-  /* ---------- admin ---------- */
-  #admin-view { display: none; position: fixed; inset: 0; background: var(--bg-page); z-index: 40; overflow-y: auto; }
-  #admin-view.open { display: block; }
-  .admin-head { display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 56px; border-bottom: 1px solid var(--line); background: rgba(253, 251, 246, 0.92); backdrop-filter: blur(6px); position: sticky; top: 0; }
-  .admin-head button { border: none; background: none; font-size: 16.5px; cursor: pointer; color: var(--ink-2); }
-  .admin-head > div { font-family: 'Baloo 2', sans-serif; }
-  .admin-body { max-width: 480px; margin: 0 auto; padding: 18px; }
-  .section-label { font-size: 11.5px; color: var(--ink-mute); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 10px; }
-  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
-  .stat-box { background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
-  .stat-box .n { font-family: 'Baloo 2', sans-serif; font-size: 22px; font-weight: 700; color: var(--accent); }
-  .stat-box .l { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
-  .child-row, .share-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--line); }
-  .child-row:last-child { border-bottom: none; }
-  .child-left { display: flex; align-items: center; gap: 10px; }
-  .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Baloo 2', sans-serif; font-size: 12px; font-weight: 700; flex-shrink: 0; border: 1.5px solid rgba(46, 38, 32, 0.22); }
-  .avatar-sm { width: 18px; height: 18px; font-size: 9.5px; }
-  .child-name { font-family: 'Baloo 2', sans-serif; font-size: 13.5px; font-weight: 600; }
-  .child-meta { font-size: 11px; color: var(--ink-mute); }
-  .list-card { background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 10px; }
-  .icon-btn { border: none; background: none; cursor: pointer; color: var(--ink-mute); font-size: 14px; }
-  .toggle { width: 40px; height: 24px; border-radius: 100px; background: var(--line-strong); position: relative; cursor: pointer; flex-shrink: 0; }
-  .toggle.on { background: #23a893; }
-  .toggle .knob { width: 18px; height: 18px; border-radius: 50%; background: #fff; position: absolute; top: 3px; left: 3px; transition: left .15s; }
-  .toggle.on .knob { left: 19px; }
-  .share-badge { font-size: 10px; padding: 2px 8px; border-radius: 100px; background: var(--bg-subtle); color: var(--ink-3); }
-  .share-badge.editor { background: var(--c-achievement-bg); color: var(--c-achievement); }
-  .btn-block[onclick*="openBulkImport"] { background: #e8f5f1; color: #1a7a68; border-color: transparent; font-weight: 700; }
-  .btn-block[onclick*="openAddChild"] { border-style: dashed; }
+    .btn:active {
+      transform: scale(0.98);
+    }
 
-  /* ---------- auth modal ---------- */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(46, 38, 32, .4); align-items: center; justify-content: center; z-index: 60; }
-  .modal-overlay.open { display: flex; }
-  .modal { width: min(340px, 92vw); background: var(--bg-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 22px; text-align: center; }
-  .modal h2 { font-family: 'Baloo 2', sans-serif; font-size: 15.5px; margin-bottom: 6px; }
-  .modal p { font-size: 11.5px; color: var(--ink-3); margin-bottom: 16px; }
-  .modal input { width: 100%; margin-bottom: 12px; text-align: center; }
-  .modal .challenge-code { font-weight: 700; letter-spacing: 1px; color: var(--ink); }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
 
-  /* ---------- multi-select ---------- */
-  #select-toggle { flex-shrink: 0; }
-  .entry-row.select-mode .entry-card { cursor: pointer; }
-  .entry-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line-strong); background: var(--bg-surface); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: transparent; cursor: pointer; user-select: none; }
-  .entry-row.selected .entry-check { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .entry-row.selected .entry-card { border-color: var(--accent); }
-  #select-bar { display: none; position: sticky; top: 56px; left: 0; right: 0; z-index: 19; background: var(--bg-surface); border-bottom: 1px solid var(--line); padding: 10px 14px; align-items: center; gap: 10px; box-shadow: var(--shadow-md); }
-  #select-bar.open { display: flex; }
-  #select-bar .count { flex: 1; font-size: 12.5px; font-weight: 700; font-family: 'Baloo 2', sans-serif; }
+    .btn-primary:hover {
+      background: #2e1f4d;
+    }
 
-  /* ---------- toast ---------- */
-  #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(0); background: var(--ink); color: #fff; font-size: 12px; padding: 9px 16px; border-radius: 20px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 70; }
-  #toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+    .btn-sm {
+      padding: 6px 11px;
+      font-size: 11.5px;
+      border-radius: 10px;
+    }
 
-  #signed-out-msg { text-align: center; color: var(--ink-mute); font-size: 12px; padding: 60px 20px; }
-</style>
+    .btn-icon {
+      padding: 6px 8px;
+      line-height: 1;
+      font-size: 14.5px;
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .btn-danger {
+      color: #b8203f;
+    }
+
+    /* ---------- top bar ---------- */
+    #topbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 56px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(253, 251, 246, 0.92);
+      backdrop-filter: blur(6px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    #topbar .brand {
+      font-family: 'Baloo 2', sans-serif;
+      font-weight: 700;
+      font-size: 16.5px;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--ink);
+    }
+
+    #topbar .brand svg {
+      flex-shrink: 0;
+      border-radius: 10px;
+    }
+
+    #context-switch {
+      font-size: 11px;
+      max-width: 150px;
+    }
+
+    #topbar .spacer {
+      flex: 1;
+    }
+
+    #auth-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+    }
+
+    #user-menu-wrap {
+      position: relative;
+    }
+
+    #user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      font-family: 'Baloo 2', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    #user-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    #user-popup {
+      display: none;
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: var(--bg-surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      min-width: 200px;
+      padding: 6px;
+      z-index: 30;
+    }
+
+    #user-popup.open {
+      display: block;
+    }
+
+    #user-popup .email {
+      font-size: 11.5px;
+      color: var(--ink-2);
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+
+    #user-popup button {
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: none;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-2);
+      cursor: pointer;
+    }
+
+    #user-popup button:hover {
+      background: var(--bg-subtle);
+    }
+
+    /* ---------- shell ---------- */
+    #shell {
+      max-width: 480px;
+      margin: 0 auto;
+      padding-bottom: 90px;
+      position: relative;
+    }
+
+    #controls {
+      padding: 14px 16px 6px;
+      background: var(--bg-page);
+    }
+
+    #search-row {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    #search-row input {
+      width: 100%;
+      padding-left: 32px;
+      padding-right: 30px;
+      border-radius: 12px;
+      background: var(--bg-surface);
+    }
+
+    #search-row .ic {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      color: var(--ink-mute);
+    }
+
+    .search-clear {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: none;
+      background: var(--bg-subtle);
+      color: var(--ink-3);
+      font-size: 9.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .search-clear:hover {
+      background: var(--line-strong);
+      color: var(--ink);
+    }
+
+    #child-toggle {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    #child-toggle .seg {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-align: center;
+      padding: 9px 14px;
+      border-radius: 12px;
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--ink-3);
+      cursor: pointer;
+      white-space: nowrap;
+      border: 1.5px solid var(--line);
+      background: var(--bg-surface);
+    }
+
+    #child-toggle .seg.active {
+      border-color: transparent;
+      font-weight: 700;
+    }
+
+    #child-toggle .seg.active[data-cat="all"] {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    #category-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .cat-chip {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 20px;
+      white-space: nowrap;
+      cursor: pointer;
+      border: 1.5px solid var(--line);
+      background: var(--bg-surface);
+      color: var(--ink-3);
+      flex-shrink: 0;
+    }
+
+    .cat-chip.active[data-cat="all"] {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+
+    .cat-chip.active[data-cat="achievement"] {
+      background: var(--c-achievement-bg);
+      color: var(--c-achievement);
+      border-color: transparent;
+    }
+
+    .cat-chip.active[data-cat="milestone"] {
+      background: var(--c-milestone-bg);
+      color: var(--c-milestone);
+      border-color: transparent;
+    }
+
+    .cat-chip.active[data-cat="learning"] {
+      background: var(--c-learning-bg);
+      color: var(--c-learning);
+      border-color: transparent;
+    }
+
+    .cat-chip.active[data-cat="health"] {
+      background: var(--c-health-bg);
+      color: var(--c-health);
+      border-color: transparent;
+    }
+
+    /* ---------- timeline ---------- */
+    #timeline {
+      padding: 6px 16px 16px;
+    }
+
+    .year-label {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 14px;
+      color: var(--ink-2);
+      font-weight: 700;
+      margin: 18px 2px 10px;
+    }
+
+    .year-label:first-child {
+      margin-top: 0;
+    }
+
+    .entry-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .entry-rail {
+      width: 2px;
+      background: var(--line);
+      border-radius: 2px;
+      flex-shrink: 0;
+      margin-left: 5px;
+    }
+
+    .entry-card {
+      flex: 1;
+      min-width: 0;
+      background: var(--bg-surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px 14px 12px;
+      cursor: pointer;
+      display: flex;
+      gap: 10px;
+    }
+
+    .entry-card:hover {
+      border-color: var(--line-strong);
+    }
+
+    .entry-icon {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Baloo 2', sans-serif;
+      font-weight: 700;
+      font-size: 13.5px;
+    }
+
+    .entry-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .entry-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .entry-title {
+      font-family: 'Baloo 2', sans-serif;
+      font-weight: 600;
+      font-size: 14.5px;
+      color: var(--ink);
+    }
+
+    .entry-date {
+      font-size: 11px;
+      color: var(--ink-3);
+      white-space: nowrap;
+    }
+
+    .entry-desc {
+      font-size: 12.5px;
+      color: var(--ink-3);
+      margin: 3px 0 9px;
+      line-height: 1.45;
+    }
+
+    .entry-media {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+      overflow-x: auto;
+    }
+
+    .entry-media img {
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .pill {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 100px;
+      background: var(--bg-subtle);
+      color: var(--ink-3);
+    }
+
+    .pill.cat-achievement {
+      background: var(--c-achievement-bg);
+      color: var(--c-achievement);
+    }
+
+    .pill.cat-milestone {
+      background: var(--c-milestone-bg);
+      color: var(--c-milestone);
+    }
+
+    .pill.cat-learning {
+      background: var(--c-learning-bg);
+      color: var(--c-learning);
+    }
+
+    .pill.cat-health {
+      background: var(--c-health-bg);
+      color: var(--c-health);
+    }
+
+    #empty-state {
+      text-align: center;
+      color: var(--ink-mute);
+      font-size: 12px;
+      padding: 60px 20px;
+    }
+    .empty-card {
+      max-width: 380px;
+      margin: 36px auto;
+      background: var(--bg-surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 22px 20px;
+      text-align: left;
+    }
+    .empty-card .empty-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      background: var(--bg-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+    .empty-card h3 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 15px;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .empty-card p {
+      font-size: 12px;
+      color: var(--ink-3);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .empty-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .empty-step {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 12.5px;
+      color: var(--ink-2);
+      line-height: 1.45;
+    }
+    .empty-step .num {
+      flex-shrink: 0;
+      width: 21px;
+      height: 21px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-family: 'Baloo 2', sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    /* ---------- FAB ---------- */
+    #fab {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      font-size: 23px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(61, 42, 99, 0.4);
+      z-index: 25;
+      animation: fabPulse 3s ease-in-out infinite;
+    }
+
+    #fab:hover {
+      background: #2e1f4d;
+    }
+
+    @keyframes fabPulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.06);
+      }
+    }
+
+    /* ---------- bottom sheet / overlays ---------- */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(46, 38, 32, .45);
+      z-index: 50;
+    }
+
+    .overlay.open {
+      display: flex;
+    }
+
+    .sheet {
+      width: 100%;
+      max-width: 480px;
+      margin: auto auto 0;
+      background: var(--bg-surface);
+      border-radius: 20px 20px 0 0;
+      padding: 18px 16px 22px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: sheetUp .2s ease-out;
+    }
+
+    @keyframes sheetUp {
+      from {
+        transform: translateY(100%);
+      }
+
+      to {
+        transform: translateY(0);
+      }
+    }
+
+    .sheet-grab {
+      width: 36px;
+      height: 4px;
+      background: var(--line-strong);
+      border-radius: 2px;
+      margin: 0 auto 14px;
+    }
+
+    .sheet-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .sheet-head h2 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 15.5px;
+    }
+
+    .sheet-close {
+      border: none;
+      background: none;
+      font-size: 16.5px;
+      cursor: pointer;
+      color: var(--ink-3);
+    }
+
+    .field-label {
+      font-size: 11.5px;
+      color: var(--ink-2);
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .field-row .field {
+      flex: 1;
+    }
+
+    .pick-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .pick-chip {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 6px 13px;
+      border-radius: 100px;
+      border: 1.5px solid var(--line);
+      background: var(--bg-surface);
+      color: var(--ink-3);
+      cursor: pointer;
+    }
+
+    .pick-chip.selected[data-cat="achievement"] {
+      background: var(--c-achievement-bg);
+      color: var(--c-achievement);
+      border-color: transparent;
+    }
+
+    .pick-chip.selected[data-cat="milestone"] {
+      background: var(--c-milestone-bg);
+      color: var(--c-milestone);
+      border-color: transparent;
+    }
+
+    .pick-chip.selected[data-cat="learning"] {
+      background: var(--c-learning-bg);
+      color: var(--c-learning);
+      border-color: transparent;
+    }
+
+    .pick-chip.selected[data-cat="health"] {
+      background: var(--c-health-bg);
+      color: var(--c-health);
+      border-color: transparent;
+    }
+
+    #image-preview-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .img-thumb {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .img-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .img-thumb button {
+      position: absolute;
+      top: 1px;
+      right: 1px;
+      background: rgba(46, 38, 32, .7);
+      color: #fff;
+      border: none;
+      font-size: 9.5px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    /* ---------- admin ---------- */
+    #admin-view {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background-color: var(--bg-texture-color);
+      background-image: var(--bg-texture);
+      background-size: 72px 72px;
+      z-index: 40;
+      overflow-y: auto;
+    }
+
+    #admin-view.open {
+      display: block;
+    }
+
+    .admin-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      height: 56px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(253, 251, 246, 0.92);
+      backdrop-filter: blur(6px);
+      position: sticky;
+      top: 0;
+    }
+
+    .admin-head button {
+      border: none;
+      background: none;
+      font-size: 16.5px;
+      cursor: pointer;
+      color: var(--ink-2);
+    }
+
+    .admin-head>div {
+      font-family: 'Baloo 2', sans-serif;
+    }
+
+    .admin-body {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .section-label {
+      font-size: 11.5px;
+      color: var(--ink-mute);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin: 0 0 10px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .stat-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+
+    .stat-box .n {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-box .l {
+      font-size: 11.5px;
+      color: var(--ink-3);
+      margin-top: 2px;
+    }
+
+    .child-row,
+    .share-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .child-row:last-child {
+      border-bottom: none;
+    }
+
+    .child-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+      border: 1.5px solid rgba(46, 38, 32, 0.22);
+    }
+
+    .avatar-sm {
+      width: 18px;
+      height: 18px;
+      font-size: 9.5px;
+    }
+
+    .child-name {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 13.5px;
+      font-weight: 600;
+    }
+
+    .child-meta {
+      font-size: 11px;
+      color: var(--ink-mute);
+    }
+
+    .list-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+    }
+
+    .icon-btn {
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--ink-mute);
+      font-size: 14px;
+    }
+
+    .toggle {
+      width: 40px;
+      height: 24px;
+      border-radius: 100px;
+      background: var(--line-strong);
+      position: relative;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .toggle.on {
+      background: #23a893;
+    }
+
+    .toggle .knob {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: left .15s;
+    }
+
+    .toggle.on .knob {
+      left: 19px;
+    }
+
+    .share-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 100px;
+      background: var(--bg-subtle);
+      color: var(--ink-3);
+    }
+
+    .share-badge.editor {
+      background: var(--c-achievement-bg);
+      color: var(--c-achievement);
+    }
+
+    .btn-block[onclick*="openBulkImport"] {
+      background: #e8f5f1;
+      color: #1a7a68;
+      border-color: transparent;
+      font-weight: 700;
+    }
+
+    .btn-block[onclick*="openAddChild"] {
+      border-style: dashed;
+    }
+
+    /* ---------- auth modal ---------- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(46, 38, 32, .4);
+      align-items: center;
+      justify-content: center;
+      z-index: 60;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(340px, 92vw);
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 22px;
+      text-align: center;
+    }
+
+    .modal h2 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 15.5px;
+      margin-bottom: 6px;
+    }
+
+    .modal p {
+      font-size: 11.5px;
+      color: var(--ink-3);
+      margin-bottom: 16px;
+    }
+
+    .modal input {
+      width: 100%;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .modal .challenge-code {
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--ink);
+    }
+
+    /* ---------- multi-select ---------- */
+    #select-toggle {
+      flex-shrink: 0;
+    }
+
+    .entry-row.select-mode .entry-card {
+      cursor: pointer;
+    }
+
+    .entry-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--line-strong);
+      background: var(--bg-surface);
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: transparent;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .entry-row.selected .entry-check {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .entry-row.selected .entry-card {
+      border-color: var(--accent);
+    }
+
+    #select-bar {
+      display: none;
+      position: sticky;
+      top: 56px;
+      left: 0;
+      right: 0;
+      z-index: 19;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--line);
+      padding: 10px 14px;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--shadow-md);
+    }
+
+    #select-bar.open {
+      display: flex;
+    }
+
+    #select-bar .count {
+      flex: 1;
+      font-size: 12.5px;
+      font-weight: 700;
+      font-family: 'Baloo 2', sans-serif;
+    }
+
+    /* ---------- toast ---------- */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(0);
+      background: var(--ink);
+      color: #fff;
+      font-size: 12px;
+      padding: 9px 16px;
+      border-radius: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s, transform .2s;
+      z-index: 70;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-6px);
+    }
+
+    #signed-out-msg {
+      text-align: center;
+      color: var(--ink-mute);
+      font-size: 12px;
+      padding: 60px 20px;
+    }
+
+    /* ---------- mobile ---------- */
+    @media (max-width: 480px) {
+
+      input,
+      textarea,
+      select,
+      .btn {
+        font-size: 11.5px;
+      }
+
+      .btn-sm {
+        font-size: 10.5px;
+      }
+
+      .btn-icon {
+        font-size: 13px;
+      }
+
+      #topbar .brand {
+        font-size: 15px;
+      }
+
+      #context-switch {
+        font-size: 10px;
+      }
+
+      #child-toggle .seg {
+        font-size: 11.5px;
+      }
+
+      .cat-chip {
+        font-size: 10px;
+      }
+
+      .year-label {
+        font-size: 13px;
+      }
+
+      .entry-title {
+        font-size: 13.5px;
+      }
+
+      .entry-date {
+        font-size: 10px;
+      }
+
+      .entry-desc {
+        font-size: 11.5px;
+      }
+
+      .pill {
+        font-size: 10px;
+      }
+
+      .entry-icon {
+        font-size: 12.5px;
+      }
+
+      .sheet-head h2 {
+        font-size: 14.5px;
+      }
+
+      .field-label {
+        font-size: 11px;
+      }
+
+      .pick-chip {
+        font-size: 11px;
+      }
+
+      .admin-head>div {
+        font-size: 13px;
+      }
+
+      .section-label {
+        font-size: 11px;
+      }
+
+      .stat-box .n {
+        font-size: 20px;
+      }
+
+      .stat-box .l {
+        font-size: 11px;
+      }
+
+      .child-name {
+        font-size: 12.5px;
+      }
+
+      .child-meta {
+        font-size: 10.5px;
+      }
+
+      .modal h2 {
+        font-size: 14.5px;
+      }
+
+      .modal p {
+        font-size: 11px;
+      }
+
+      #select-bar .count {
+        font-size: 11.5px;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<div id="topbar">
-  <div class="brand">
-    <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-      <defs>
-        <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stop-color="#23a893"/>
-          <stop offset="1" stop-color="#7c3aed"/>
-        </linearGradient>
-      </defs>
-      <rect width="32" height="32" rx="10" fill="url(#logoGrad)"/>
-      <rect x="12" y="12" width="8" height="8" rx="3" fill="#fff"/>
-    </svg>
-    <span>My Lore</span>
-  </div>
-  <select id="context-switch" hidden onchange="onContextSwitch(this.value)"></select>
-  <div class="spacer"></div>
-  <div id="auth-area">
-    <button class="btn btn-icon btn-sm" id="btn-admin" title="Admin" onclick="openAdmin()" hidden>&#9881;</button>
-    <button class="btn btn-sm" id="btn-signin" onclick="signInWithGoogle()">Sign in</button>
-    <div id="user-menu-wrap" hidden>
-      <button id="user-avatar" onclick="toggleUserMenu()" title="Account"></button>
-      <div id="user-popup">
-        <div class="email" id="user-popup-email"></div>
-        <button onclick="signOut()">Sign out</button>
-      </div>
+  <div id="topbar">
+    <div class="brand">
+      <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+        <defs>
+          <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#23a893" />
+            <stop offset="1" stop-color="#7c3aed" />
+          </linearGradient>
+        </defs>
+        <rect width="32" height="32" rx="10" fill="url(#logoGrad)" />
+        <rect x="12" y="12" width="8" height="8" rx="3" fill="#fff" />
+      </svg>
+      <span>My Lore</span>
     </div>
-  </div>
-</div>
-
-<div id="select-bar">
-  <span class="count" id="select-count">0 selected</span>
-  <button class="btn btn-sm" onclick="toggleSelectMode()">Cancel</button>
-  <button class="btn btn-sm btn-danger" onclick="openDeleteConfirm()">&#128465; Delete</button>
-</div>
-
-<div id="shell">
-  <div id="controls" hidden>
-    <div id="search-row" style="display:flex; gap:8px; align-items:center;">
-      <div style="position:relative; flex:1;">
-        <span class="ic">&#128269;</span>
-        <input id="search" type="text" placeholder="Search entries" oninput="onSearchInput()">
-        <button id="search-clear" class="search-clear" title="Clear search" onclick="clearSearch()" hidden>&#10005;</button>
-      </div>
-      <button class="btn btn-sm" id="select-toggle" onclick="toggleSelectMode()">Select</button>
-    </div>
-    <div id="child-toggle"></div>
-    <div id="category-chips"></div>
-  </div>
-
-  <div id="timeline"></div>
-  <div id="signed-out-msg">Sign in to see your family's story.</div>
-</div>
-
-<button id="fab" onclick="openEntrySheet()" hidden>+</button>
-
-<!-- DELETE CONFIRM MODAL -->
-<div class="modal-overlay" id="delete-modal">
-  <div class="modal">
-    <h2>Delete <span id="delete-count-label">entries</span>?</h2>
-    <p id="delete-modal-warning">This permanently removes the selected entries and their photos. This can't be undone.</p>
-    <p>Type <span class="challenge-code" id="delete-challenge-code">DELETE</span> to confirm.</p>
-    <input id="delete-challenge-input" autocomplete="off" oninput="onDeleteChallengeInput()">
-    <button class="btn btn-block btn-danger" id="delete-confirm-btn" onclick="confirmBulkDelete()" disabled>Delete</button>
-    <button class="btn btn-block" style="margin-top:8px;" onclick="closeOverlay('delete-modal')">Cancel</button>
-  </div>
-</div>
-
-<!-- ADD / EDIT ENTRY SHEET -->
-<div class="overlay" id="entry-overlay">
-  <div class="sheet">
-    <div class="sheet-grab"></div>
-    <div class="sheet-head">
-      <h2 id="entry-sheet-title">New entry</h2>
-      <button class="sheet-close" onclick="closeOverlay('entry-overlay')">&#10005;</button>
-    </div>
-
-    <div class="field">
-      <label class="field-label">Title</label>
-      <input id="f-title" placeholder="Lost her first tooth">
-    </div>
-
-    <div class="field-row">
-      <div class="field">
-        <label class="field-label">Date</label>
-        <input id="f-date" type="date">
-      </div>
-      <div class="field">
-        <label class="field-label">Who</label>
-        <select id="f-child"></select>
-      </div>
-    </div>
-
-    <div class="field">
-      <label class="field-label">Category</label>
-      <div class="pick-row" id="f-category-picks"></div>
-    </div>
-
-    <div class="field">
-      <label class="field-label">Description</label>
-      <textarea id="f-description" placeholder="What happened, and why it mattered" style="min-height:70px;"></textarea>
-    </div>
-
-    <div class="field">
-      <label class="field-label">Tags</label>
-      <input id="f-tags" placeholder="school, swimming, funny (comma separated)">
-    </div>
-
-    <div class="field">
-      <label class="field-label">Photos</label>
-      <div id="image-preview-row"></div>
-      <button class="btn btn-sm" onclick="document.getElementById('image-input').click()">&#128247; Add photo</button>
-    </div>
-
-    <button class="btn btn-primary btn-block" onclick="saveEntry()" id="f-save-btn">Save entry</button>
-    <button class="btn btn-block btn-danger" style="margin-top:8px;" id="f-delete-btn" onclick="deleteEntry()" hidden>Delete entry</button>
-  </div>
-</div>
-
-<!-- BULK IMPORT SHEET -->
-<div class="overlay" id="bulk-overlay">
-  <div class="sheet">
-    <div class="sheet-grab"></div>
-    <div class="sheet-head">
-      <h2>Bulk import entries</h2>
-      <button class="sheet-close" onclick="closeOverlay('bulk-overlay')">&#10005;</button>
-    </div>
-
-    <div class="field">
-      <label class="field-label">Who is this for</label>
-      <select id="bulk-child"></select>
-    </div>
-
-    <div class="field">
-      <label class="field-label">Events (one per line)</label>
-      <div style="font-size:10px; color:var(--ink-3); margin-bottom:6px; line-height:1.5;">
-        Format: <code>date, title, category, description, tags</code><br>
-        Category is one of achievement / milestone / learning / health (optional, defaults to achievement). Separate tags with <code>;</code>. Wrap a field in quotes if it contains a comma. Sample rows are pre-filled below &mdash; replace them with your own.
-      </div>
-      <textarea id="bulk-rows" style="min-height:180px; font-family: ui-monospace, monospace; font-size:11px;"></textarea>
-    </div>
-
-    <div style="font-size:10px; color:var(--ink-mute); margin-bottom:10px;">Photos aren't included in bulk import &mdash; add those afterward on each entry.</div>
-
-    <button class="btn btn-primary btn-block" onclick="runBulkImport()" id="bulk-import-btn">Import entries</button>
-  </div>
-</div>
-
-<!-- ADD CHILD SHEET -->
-<div class="overlay" id="child-overlay">
-  <div class="sheet">
-    <div class="sheet-grab"></div>
-    <div class="sheet-head">
-      <h2>Add child</h2>
-      <button class="sheet-close" onclick="closeOverlay('child-overlay')">&#10005;</button>
-    </div>
-
-    <div class="field">
-      <label class="field-label">Name</label>
-      <input id="c-name" placeholder="Nishka">
-    </div>
-
-    <div class="field">
-      <label class="field-label">Birthdate (optional)</label>
-      <input id="c-birthdate" type="date">
-    </div>
-
-    <button class="btn btn-primary btn-block" onclick="saveChild()" id="c-save-btn">Add child</button>
-  </div>
-</div>
-
-<!-- ADMIN VIEW -->
-<div id="admin-view">
-  <div class="admin-head">
-    <button onclick="closeAdmin()">&#8592;</button>
-    <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
-      <defs>
-        <linearGradient id="logoGradAdmin" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stop-color="#23a893"/>
-          <stop offset="1" stop-color="#7c3aed"/>
-        </linearGradient>
-      </defs>
-      <rect width="32" height="32" rx="10" fill="url(#logoGradAdmin)"/>
-      <rect x="12" y="12" width="8" height="8" rx="3" fill="#fff"/>
-    </svg>
-    <div style="font-weight:600; font-size:14px;">Admin</div>
-  </div>
-  <div class="admin-body">
-    <div class="section-label">Overview</div>
-    <div class="stat-grid" id="admin-stats"></div>
-
-    <div class="section-label">Children</div>
-    <div class="list-card" id="admin-children"></div>
-    <button class="btn btn-block" style="margin-bottom:22px;" onclick="openAddChild()">+ Add child</button>
-
-    <div class="section-label">Bulk import entries</div>
-    <button class="btn btn-block" style="margin-bottom:22px;" onclick="openBulkImport()">&#128228; Bulk import</button>
-
-    <div class="section-label">Share view-only / editable link</div>
-    <div class="list-card" style="padding:12px;">
-      <div class="field">
-        <label class="field-label">Recipient email</label>
-        <input id="share-email" placeholder="spouse@email.com">
-      </div>
-      <div class="field">
-        <label class="field-label">Scope</label>
-        <div class="pick-row" id="share-scope-picks"></div>
-      </div>
-      <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid var(--line); margin-bottom:10px;">
-        <div>
-          <div style="font-size:12px;">Can edit</div>
-          <div style="font-size:10px; color:var(--ink-mute);">Lets them add their own entries.</div>
+    <select id="context-switch" hidden onchange="onContextSwitch(this.value)"></select>
+    <div class="spacer"></div>
+    <div id="auth-area">
+      <button class="btn btn-icon btn-sm" id="btn-admin" title="Admin" onclick="openAdmin()" hidden>&#9881;</button>
+      <button class="btn btn-sm" id="btn-signin" onclick="signInWithGoogle()">Sign in</button>
+      <div id="user-menu-wrap" hidden>
+        <button id="user-avatar" onclick="toggleUserMenu()" title="Account"></button>
+        <div id="user-popup">
+          <div class="email" id="user-popup-email"></div>
+          <button onclick="signOut()">Sign out</button>
         </div>
-        <div class="toggle" id="share-canedit-toggle" onclick="this.classList.toggle('on')"><div class="knob"></div></div>
       </div>
-      <button class="btn btn-primary btn-block" onclick="sendShareInvite()">&#9993; Send invite</button>
-    </div>
-
-    <div class="section-label" style="margin-top:18px;">Active shares</div>
-    <div class="list-card" id="admin-shares"></div>
-  </div>
-</div>
-
-<!-- AUTH MODAL -->
-<div class="modal-overlay" id="auth-modal">
-  <div class="modal">
-    <h2>Sign in</h2>
-    <p>Sign in with Google to view or add to the journal.</p>
-    <button class="btn btn-primary btn-block" onclick="signInWithGoogle()">Continue with Google</button>
-  </div>
-</div>
-
-<!-- GENERIC CONFIRM MODAL -->
-<div class="modal-overlay" id="confirm-modal">
-  <div class="modal">
-    <h2 id="confirm-title">Are you sure?</h2>
-    <p id="confirm-message"></p>
-    <div style="display:flex; gap:8px;">
-      <button class="btn btn-block" id="confirm-cancel-btn">Cancel</button>
-      <button class="btn btn-block btn-primary" id="confirm-ok-btn">OK</button>
     </div>
   </div>
-</div>
 
-<div id="toast"></div>
-<input type="file" id="image-input" accept="image/*" hidden onchange="onImageFileChosen(event)">
+  <div id="select-bar">
+    <span class="count" id="select-count">0 selected</span>
+    <button class="btn btn-sm" onclick="toggleSelectMode()">Cancel</button>
+    <button class="btn btn-sm btn-danger" onclick="openDeleteConfirm()">&#128465; Delete</button>
+  </div>
 
-<script src="firebase-config.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
+  <div id="shell">
+    <div id="controls" hidden>
+      <div id="search-row" style="display:flex; gap:8px; align-items:center;">
+        <div style="position:relative; flex:1;">
+          <span class="ic">&#128269;</span>
+          <input id="search" type="text" placeholder="Search entries" oninput="onSearchInput()">
+          <button id="search-clear" class="search-clear" title="Clear search" onclick="clearSearch()"
+            hidden>&#10005;</button>
+        </div>
+        <button class="btn btn-sm" id="select-toggle" onclick="toggleSelectMode()">Select</button>
+      </div>
+      <div id="child-toggle"></div>
+      <div id="category-chips"></div>
+    </div>
 
-<script>
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-const storage = firebase.storage();
+    <div id="timeline"></div>
+    <div id="load-more-row" hidden style="text-align:center; padding:6px 16px 4px;">
+      <button class="btn btn-sm" id="btn-load-more" onclick="loadMoreEntries()">Load more</button>
+    </div>
+    <div id="scroll-sentinel" style="height:1px;"></div>
+    <div id="signed-out-msg">Sign in to see your family's story.</div>
+  </div>
 
-const CATEGORIES = ['achievement', 'milestone', 'learning', 'health'];
-const CATEGORY_LABEL = { achievement: 'Achievement', milestone: 'Milestone', learning: 'Learning', health: 'Health' };
+  <button id="fab" onclick="openEntrySheet()" hidden>+</button>
 
-let currentUser = null;
-let contexts = [];        // [{id: ownerUid, label, role: 'owner'|'editor'|'viewer'}]
-let ownerId = null;       // uid of the journal currently being viewed
-let isOwnerView = false;  // true if currentUser is the owner of ownerId's journal
+  <!-- DELETE CONFIRM MODAL -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal">
+      <h2>Delete <span id="delete-count-label">entries</span>?</h2>
+      <p id="delete-modal-warning">This permanently removes the selected entries and their photos. This can't be undone.
+      </p>
+      <p>Type <span class="challenge-code" id="delete-challenge-code">DELETE</span> to confirm.</p>
+      <input id="delete-challenge-input" autocomplete="off" oninput="onDeleteChallengeInput()">
+      <button class="btn btn-block btn-danger" id="delete-confirm-btn" onclick="confirmBulkDelete()"
+        disabled>Delete</button>
+      <button class="btn btn-block" style="margin-top:8px;" onclick="closeOverlay('delete-modal')">Cancel</button>
+    </div>
+  </div>
 
-let children = [];        // cached children docs for ownerId (active only)
-let childrenAll = [];     // same, but includes hidden children (for admin)
-let entries = [];         // cached entry docs for ownerId
-let shares = [];          // cached share docs (owner only)
+  <!-- ADD / EDIT ENTRY SHEET -->
+  <div class="overlay" id="entry-overlay">
+    <div class="sheet">
+      <div class="sheet-grab"></div>
+      <div class="sheet-head">
+        <h2 id="entry-sheet-title">New entry</h2>
+        <button class="sheet-close" onclick="closeOverlay('entry-overlay')">&#10005;</button>
+      </div>
 
-let activeChildFilter = 'all';
-let activeCategoryFilter = 'all';
-let pendingImages = [];   // [{file, previewUrl}] queued for the entry being edited
-let editingEntryId = null;
-let shareScope = 'all';
-let selectMode = false;
-let selectedIds = new Set();
+      <div class="field">
+        <label class="field-label">Title</label>
+        <input id="f-title" placeholder="Lost her first tooth">
+      </div>
 
-/* ---------- helpers ---------- */
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Date</label>
+          <input id="f-date" type="date">
+        </div>
+        <div class="field">
+          <label class="field-label">Who</label>
+          <select id="f-child"></select>
+        </div>
+      </div>
 
-function val(id) { return document.getElementById(id).value.trim(); }
-function onSearchInput() {
-  document.getElementById('search-clear').hidden = !document.getElementById('search').value;
-  renderTimeline();
-}
-function clearSearch() {
-  const input = document.getElementById('search');
-  input.value = '';
-  document.getElementById('search-clear').hidden = true;
-  input.focus();
-  renderTimeline();
-}
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2400);
-}
-function openOverlay(id) { document.getElementById(id).classList.add('open'); }
-function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
+      <div class="field">
+        <label class="field-label">Category</label>
+        <div class="pick-row" id="f-category-picks"></div>
+      </div>
 
-let confirmResolve = null;
-function confirmDialog(message, { title = 'Are you sure?', confirmLabel = 'OK', danger = false } = {}) {
-  document.getElementById('confirm-title').textContent = title;
-  document.getElementById('confirm-message').textContent = message;
-  const okBtn = document.getElementById('confirm-ok-btn');
-  okBtn.textContent = confirmLabel;
-  okBtn.className = 'btn btn-block' + (danger ? ' btn-danger' : ' btn-primary');
-  openOverlay('confirm-modal');
-  return new Promise(resolve => { confirmResolve = resolve; });
-}
-function settleConfirm(result) {
-  closeOverlay('confirm-modal');
-  if (confirmResolve) { confirmResolve(result); confirmResolve = null; }
-}
-document.getElementById('confirm-ok-btn').onclick = () => settleConfirm(true);
-document.getElementById('confirm-cancel-btn').onclick = () => settleConfirm(false);
-document.getElementById('confirm-modal').addEventListener('click', e => {
-  if (e.target.id === 'confirm-modal') settleConfirm(false);
-});
-function escapeHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function initials(name) {
-  const parts = (name || '?').trim().split(/\s+/);
-  return ((parts[0]?.[0] || '?') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
-}
+      <div class="field">
+        <label class="field-label">Description</label>
+        <textarea id="f-description" placeholder="What happened, and why it mattered"
+          style="min-height:70px;"></textarea>
+      </div>
 
-const AVATAR_PALETTE = [
-  { bg: '#dcfce7', fg: '#16a34a' }, { bg: '#dbeafe', fg: '#2563eb' },
-  { bg: '#fef3c7', fg: '#d97706' }, { bg: '#fae8ff', fg: '#a21caf' },
-  { bg: '#ffe4e6', fg: '#e11d48' }, { bg: '#e0f2fe', fg: '#0284c7' },
-  { bg: '#ede9fe', fg: '#7c3aed' }, { bg: '#fef9c3', fg: '#a16207' },
-  { bg: '#ffedd5', fg: '#c2410c' }, { bg: '#ccfbf1', fg: '#0f766e' },
-];
-function hashStr(str) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) | 0; }
-  return Math.abs(h);
-}
-function childAvatarColor(childId) { return AVATAR_PALETTE[hashStr(childId || '') % AVATAR_PALETTE.length]; }
-function avatarHtml(child, size) {
-  const { bg, fg } = childAvatarColor(child.id);
-  const cls = size === 'sm' || size === 'chip' ? 'avatar avatar-sm' : 'avatar';
-  const style = size === 'chip'
-    ? `background:${fg}; color:#fff; box-shadow:0 0 0 1.5px rgba(255,255,255,.8);`
-    : `background:${bg}; color:${fg};`;
-  return `<div class="${cls}" style="${style}">${initials(child.name)}</div>`;
-}
-function todayStr() { const d = new Date(); return d.toISOString().slice(0,10); }
-function fmtDate(iso) {
-  if (!iso) return '';
-  const [y,m,d] = iso.split('-').map(Number);
-  return new Date(y, m-1, d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
+      <div class="field">
+        <label class="field-label">Tags</label>
+        <input id="f-tags" placeholder="school, swimming, funny (comma separated)">
+      </div>
 
-/* ---------- auth ---------- */
+      <div class="field">
+        <label class="field-label">Photos</label>
+        <div id="image-preview-row"></div>
+        <button class="btn btn-sm" onclick="document.getElementById('image-input').click()">&#128247; Add photo</button>
+      </div>
 
-function signInWithGoogle() {
-  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
-    .then(() => closeOverlay('auth-modal'))
-    .catch(e => toast(`Sign-in failed: ${e.message}`));
-}
-function signOut() { auth.signOut(); }
+      <button class="btn btn-primary btn-block" onclick="saveEntry()" id="f-save-btn">Save entry</button>
+      <button class="btn btn-block btn-danger" style="margin-top:8px;" id="f-delete-btn" onclick="deleteEntry()"
+        hidden>Delete entry</button>
+    </div>
+  </div>
 
-function toggleUserMenu() { document.getElementById('user-popup').classList.toggle('open'); }
-document.addEventListener('click', e => {
-  const wrap = document.getElementById('user-menu-wrap');
-  if (!wrap.hidden && !wrap.contains(e.target)) document.getElementById('user-popup').classList.remove('open');
-});
+  <!-- BULK IMPORT SHEET -->
+  <div class="overlay" id="bulk-overlay">
+    <div class="sheet">
+      <div class="sheet-grab"></div>
+      <div class="sheet-head">
+        <h2>Bulk import entries</h2>
+        <button class="sheet-close" onclick="closeOverlay('bulk-overlay')">&#10005;</button>
+      </div>
 
-auth.onAuthStateChanged(async user => {
-  currentUser = user;
-  document.getElementById('btn-signin').hidden = !!user;
-  document.getElementById('user-menu-wrap').hidden = !user;
-  document.getElementById('user-popup').classList.remove('open');
-  if (user) {
-    document.getElementById('user-popup-email').textContent = user.email || '';
-    const avatarEl = document.getElementById('user-avatar');
-    avatarEl.innerHTML = user.photoURL ? `<img src="${user.photoURL}" alt="">` : initials(user.displayName || user.email);
-  }
-  document.getElementById('fab').hidden = !user;
-  document.getElementById('controls').hidden = !user;
-  document.getElementById('signed-out-msg').hidden = !!user;
-  document.getElementById('context-switch').hidden = true;
+      <div class="field">
+        <label class="field-label">Who is this for</label>
+        <select id="bulk-child"></select>
+      </div>
 
-  if (user) {
-    await discoverContexts();
-  } else {
-    contexts = []; ownerId = null; children = []; entries = []; shares = [];
-    document.getElementById('btn-admin').hidden = true;
-    document.getElementById('timeline').innerHTML = '';
-  }
-});
+      <div class="field">
+        <label class="field-label">Events (one per line)</label>
+        <div style="font-size:10px; color:var(--ink-3); margin-bottom:6px; line-height:1.5;">
+          Format: <code>date, title, category, description, tags</code><br>
+          Category is one of achievement / milestone / learning / health (optional, defaults to achievement). Separate
+          tags with <code>;</code>. Wrap a field in quotes if it contains a comma. Sample rows are pre-filled below
+          &mdash; replace them with your own.
+        </div>
+        <textarea id="bulk-rows"
+          style="min-height:180px; font-family: ui-monospace, monospace; font-size:11px;"></textarea>
+      </div>
 
-/* ---------- context discovery (own journal + journals shared with me) ---------- */
+      <div style="font-size:10px; color:var(--ink-mute); margin-bottom:10px;">Photos aren't included in bulk import
+        &mdash; add those afterward on each entry.</div>
 
-async function discoverContexts() {
-  contexts = [{ id: currentUser.uid, label: 'My journal', role: 'owner' }];
+      <button class="btn btn-primary btn-block" onclick="runBulkImport()" id="bulk-import-btn">Import entries</button>
+    </div>
+  </div>
 
-  if (currentUser.email) {
-    try {
-      const snap = await db.collectionGroup('shares')
-        .where('email', '==', currentUser.email)
-        .where('status', '==', 'active')
-        .get();
-      snap.forEach(doc => {
-        const sOwnerId = doc.ref.parent.parent.id;
-        if (sOwnerId === currentUser.uid) return; // shouldn't happen, but skip self-shares
-        const role = doc.data().canEdit ? 'editor' : 'viewer';
-        contexts.push({ id: sOwnerId, label: `Shared journal (${role === 'editor' ? 'can edit' : 'view only'})`, role });
+  <!-- ADD CHILD SHEET -->
+  <div class="overlay" id="child-overlay">
+    <div class="sheet">
+      <div class="sheet-grab"></div>
+      <div class="sheet-head">
+        <h2>Add child</h2>
+        <button class="sheet-close" onclick="closeOverlay('child-overlay')">&#10005;</button>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Name</label>
+        <input id="c-name" placeholder="Nishka">
+      </div>
+
+      <div class="field">
+        <label class="field-label">Birthdate (optional)</label>
+        <input id="c-birthdate" type="date">
+      </div>
+
+      <button class="btn btn-primary btn-block" onclick="saveChild()" id="c-save-btn">Add child</button>
+    </div>
+  </div>
+
+  <!-- ADMIN VIEW -->
+  <div id="admin-view">
+    <div class="admin-head">
+      <button onclick="closeAdmin()">&#8592;</button>
+      <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
+        <defs>
+          <linearGradient id="logoGradAdmin" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#23a893" />
+            <stop offset="1" stop-color="#7c3aed" />
+          </linearGradient>
+        </defs>
+        <rect width="32" height="32" rx="10" fill="url(#logoGradAdmin)" />
+        <rect x="12" y="12" width="8" height="8" rx="3" fill="#fff" />
+      </svg>
+      <div style="font-weight:600; font-size:14px;">Admin</div>
+    </div>
+    <div class="admin-body">
+      <div class="section-label">Overview</div>
+      <div class="stat-grid" id="admin-stats"></div>
+
+      <div class="section-label">Children</div>
+      <div class="list-card" id="admin-children"></div>
+      <button class="btn btn-block" style="margin-bottom:22px;" onclick="openAddChild()">+ Add child</button>
+
+      <div class="section-label">Bulk import entries</div>
+      <button class="btn btn-block" style="margin-bottom:22px;" onclick="openBulkImport()">&#128228; Bulk
+        import</button>
+
+      <div class="section-label">Share view-only / editable link</div>
+      <div class="list-card" style="padding:12px;">
+        <div class="field">
+          <label class="field-label">Recipient email</label>
+          <input id="share-email" placeholder="spouse@email.com">
+        </div>
+        <div class="field">
+          <label class="field-label">Scope</label>
+          <div class="pick-row" id="share-scope-picks"></div>
+        </div>
+        <div
+          style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid var(--line); margin-bottom:10px;">
+          <div>
+            <div style="font-size:12px;">Can edit</div>
+            <div style="font-size:10px; color:var(--ink-mute);">Lets them add their own entries.</div>
+          </div>
+          <div class="toggle" id="share-canedit-toggle" onclick="this.classList.toggle('on')">
+            <div class="knob"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="sendShareInvite()">&#9993; Send invite</button>
+      </div>
+
+      <div class="section-label" style="margin-top:18px;">Active shares</div>
+      <div class="list-card" id="admin-shares"></div>
+    </div>
+  </div>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal">
+      <h2>Sign in</h2>
+      <p>Sign in with Google to view or add to the journal.</p>
+      <button class="btn btn-primary btn-block" onclick="signInWithGoogle()">Continue with Google</button>
+    </div>
+  </div>
+
+  <!-- GENERIC CONFIRM MODAL -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal">
+      <h2 id="confirm-title">Are you sure?</h2>
+      <p id="confirm-message"></p>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-block" id="confirm-cancel-btn">Cancel</button>
+        <button class="btn btn-block btn-primary" id="confirm-ok-btn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <input type="file" id="image-input" accept="image/*" hidden onchange="onImageFileChosen(event)">
+
+  <script src="firebase-config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
+
+  <script>
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    const CATEGORIES = ['achievement', 'milestone', 'learning', 'health'];
+    const CATEGORY_LABEL = { achievement: 'Achievement', milestone: 'Milestone', learning: 'Learning', health: 'Health' };
+
+    let currentUser = null;
+    let contexts = [];        // [{id: ownerUid, label, role: 'owner'|'editor'|'viewer'}]
+    let ownerId = null;       // uid of the journal currently being viewed
+    let isOwnerView = false;  // true if currentUser is the owner of ownerId's journal
+
+    let children = [];        // cached children docs for ownerId (active only)
+    let childrenAll = [];     // same, but includes hidden children (for admin)
+    let entries = [];         // cached entry docs for ownerId
+    let shares = [];          // cached share docs (owner only)
+
+    let activeChildFilter = 'all';
+    let activeCategoryFilter = 'all';
+
+    const ENTRIES_PAGE_SIZE = 20;
+    let entriesCursor = null;     // last loaded doc snapshot, for startAfter()
+    let entriesHasMore = true;    // more pages left to fetch on the server
+    let entriesAllLoaded = false; // true once every entry for this context is in `entries`
+    let entriesLoadingMore = false;
+    let entriesScrollObserver = null;
+    let pendingImages = [];   // [{file, previewUrl}] queued for the entry being edited
+    let editingEntryId = null;
+    let shareScope = 'all';
+    let selectMode = false;
+    let selectedIds = new Set();
+
+    /* ---------- helpers ---------- */
+
+    function val(id) { return document.getElementById(id).value.trim(); }
+    async function onSearchInput() {
+      document.getElementById('search-clear').hidden = !document.getElementById('search').value;
+      await onFilterChanged();
+    }
+    async function clearSearch() {
+      const input = document.getElementById('search');
+      input.value = '';
+      document.getElementById('search-clear').hidden = true;
+      input.focus();
+      await onFilterChanged();
+    }
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2400);
+    }
+    function openOverlay(id) { document.getElementById(id).classList.add('open'); }
+    function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
+
+    let confirmResolve = null;
+    function confirmDialog(message, { title = 'Are you sure?', confirmLabel = 'OK', danger = false } = {}) {
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-message').textContent = message;
+      const okBtn = document.getElementById('confirm-ok-btn');
+      okBtn.textContent = confirmLabel;
+      okBtn.className = 'btn btn-block' + (danger ? ' btn-danger' : ' btn-primary');
+      openOverlay('confirm-modal');
+      return new Promise(resolve => { confirmResolve = resolve; });
+    }
+    function settleConfirm(result) {
+      closeOverlay('confirm-modal');
+      if (confirmResolve) { confirmResolve(result); confirmResolve = null; }
+    }
+    document.getElementById('confirm-ok-btn').onclick = () => settleConfirm(true);
+    document.getElementById('confirm-cancel-btn').onclick = () => settleConfirm(false);
+    document.getElementById('confirm-modal').addEventListener('click', e => {
+      if (e.target.id === 'confirm-modal') settleConfirm(false);
+    });
+    function escapeHtml(s) {
+      return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    function initials(name) {
+      const parts = (name || '?').trim().split(/\s+/);
+      return ((parts[0]?.[0] || '?') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+    }
+
+    const AVATAR_PALETTE = [
+      { bg: '#dcfce7', fg: '#16a34a' }, { bg: '#dbeafe', fg: '#2563eb' },
+      { bg: '#fef3c7', fg: '#d97706' }, { bg: '#fae8ff', fg: '#a21caf' },
+      { bg: '#ffe4e6', fg: '#e11d48' }, { bg: '#e0f2fe', fg: '#0284c7' },
+      { bg: '#ede9fe', fg: '#7c3aed' }, { bg: '#fef9c3', fg: '#a16207' },
+      { bg: '#ffedd5', fg: '#c2410c' }, { bg: '#ccfbf1', fg: '#0f766e' },
+    ];
+    function hashStr(str) {
+      let h = 0;
+      for (let i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) | 0; }
+      return Math.abs(h);
+    }
+    function childAvatarColor(childId) { return AVATAR_PALETTE[hashStr(childId || '') % AVATAR_PALETTE.length]; }
+    function avatarHtml(child, size) {
+      const { bg, fg } = childAvatarColor(child.id);
+      const cls = size === 'sm' || size === 'chip' ? 'avatar avatar-sm' : 'avatar';
+      const style = size === 'chip'
+        ? `background:${fg}; color:#fff; box-shadow:0 0 0 1.5px rgba(255,255,255,.8);`
+        : `background:${bg}; color:${fg};`;
+      return `<div class="${cls}" style="${style}">${initials(child.name)}</div>`;
+    }
+    function todayStr() { const d = new Date(); return d.toISOString().slice(0, 10); }
+    function fmtDate(iso) {
+      if (!iso) return '';
+      const [y, m, d] = iso.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    }
+
+    /* ---------- auth ---------- */
+
+    function signInWithGoogle() {
+      auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+        .then(() => closeOverlay('auth-modal'))
+        .catch(e => toast(`Sign-in failed: ${e.message}`));
+    }
+    function signOut() { auth.signOut(); }
+
+    function toggleUserMenu() { document.getElementById('user-popup').classList.toggle('open'); }
+    document.addEventListener('click', e => {
+      const wrap = document.getElementById('user-menu-wrap');
+      if (!wrap.hidden && !wrap.contains(e.target)) document.getElementById('user-popup').classList.remove('open');
+    });
+
+    auth.onAuthStateChanged(async user => {
+      currentUser = user;
+      document.getElementById('btn-signin').hidden = !!user;
+      document.getElementById('user-menu-wrap').hidden = !user;
+      document.getElementById('user-popup').classList.remove('open');
+      if (user) {
+        document.getElementById('user-popup-email').textContent = user.email || '';
+        const avatarEl = document.getElementById('user-avatar');
+        avatarEl.innerHTML = user.photoURL ? `<img src="${user.photoURL}" alt="">` : initials(user.displayName || user.email);
+      }
+      document.getElementById('fab').hidden = !user;
+      document.getElementById('controls').hidden = !user;
+      document.getElementById('signed-out-msg').hidden = !!user;
+      document.getElementById('context-switch').hidden = true;
+
+      if (user) {
+        await discoverContexts();
+      } else {
+        contexts = []; ownerId = null; children = []; entries = []; shares = [];
+        document.getElementById('btn-admin').hidden = true;
+        document.getElementById('timeline').innerHTML = '';
+      }
+    });
+
+    /* ---------- context discovery (own journal + journals shared with me) ---------- */
+
+    async function discoverContexts() {
+      contexts = [{ id: currentUser.uid, label: 'My journal', role: 'owner' }];
+
+      if (currentUser.email) {
+        try {
+          const snap = await db.collectionGroup('shares')
+            .where('email', '==', currentUser.email)
+            .where('status', '==', 'active')
+            .get();
+          snap.forEach(doc => {
+            const sOwnerId = doc.ref.parent.parent.id;
+            if (sOwnerId === currentUser.uid) return; // shouldn't happen, but skip self-shares
+            const role = doc.data().canEdit ? 'editor' : 'viewer';
+            contexts.push({ id: sOwnerId, label: `Shared journal (${role === 'editor' ? 'can edit' : 'view only'})`, role });
+          });
+        } catch (err) {
+          console.warn('Could not look up shared journals:', err.code, err.message);
+        }
+      }
+
+      const select = document.getElementById('context-switch');
+      select.innerHTML = '';
+      contexts.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id; opt.textContent = c.label;
+        select.appendChild(opt);
       });
-    } catch (err) {
-      console.warn('Could not look up shared journals:', err.code, err.message);
-    }
-  }
+      select.hidden = contexts.length <= 1;
 
-  const select = document.getElementById('context-switch');
-  select.innerHTML = '';
-  contexts.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c.id; opt.textContent = c.label;
-    select.appendChild(opt);
-  });
-  select.hidden = contexts.length <= 1;
-
-  await loadJournal(contexts[0].id);
-}
-
-function onContextSwitch(id) { loadJournal(id); }
-
-async function loadJournal(id) {
-  ownerId = id;
-  isOwnerView = (ownerId === currentUser.uid);
-  document.getElementById('btn-admin').hidden = !isOwnerView;
-  selectMode = false; selectedIds = new Set();
-  document.getElementById('select-toggle').hidden = false;
-  updateSelectBar();
-  await Promise.all([loadChildren(), loadEntries()]);
-  if (isOwnerView) await loadShares();
-  renderChildToggle();
-  renderCategoryChips();
-  renderTimeline();
-}
-
-/* ---------- data loading ---------- */
-
-function childrenCol() { return db.collection('users').doc(ownerId).collection('children'); }
-function entriesCol() { return db.collection('users').doc(ownerId).collection('entries'); }
-function sharesCol() { return db.collection('users').doc(ownerId).collection('shares'); }
-
-async function loadChildren() {
-  try {
-    const snap = await childrenCol().get();
-    childrenAll = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    children = childrenAll.filter(c => c.status !== 'removed');
-  } catch (err) {
-    console.error('loadChildren failed:', err.code, err.message);
-    toast(`Couldn't load children: ${err.code || err.message}`);
-    children = []; childrenAll = [];
-  }
-}
-
-async function loadEntries() {
-  try {
-    const snap = await entriesCol().orderBy('date', 'desc').get();
-    entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  } catch (err) {
-    console.error('loadEntries failed:', err.code, err.message);
-    toast(`Couldn't load entries: ${err.code || err.message}. Check firestore.rules is deployed.`);
-    entries = [];
-  }
-}
-
-async function loadShares() {
-  try {
-    const snap = await sharesCol().get();
-    shares = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(s => s.status !== 'revoked');
-  } catch (err) {
-    console.error('loadShares failed:', err.code, err.message);
-    shares = [];
-  }
-}
-
-/* ---------- child toggle + category chips ---------- */
-
-function renderChildToggle() {
-  const el = document.getElementById('child-toggle');
-  el.innerHTML = '';
-  const segs = [{ id: 'all', name: 'All' }, ...children];
-  segs.forEach(s => {
-    const d = document.createElement('div');
-    const active = activeChildFilter === s.id;
-    d.className = 'seg' + (active ? ' active' : '');
-    d.dataset.cat = s.id;
-    if (active && s.id !== 'all') {
-      const { bg, fg } = childAvatarColor(s.id);
-      d.style.background = bg;
-      d.style.color = fg;
-    }
-    d.innerHTML = (s.id === 'all' ? '' : avatarHtml(s, 'sm')) + `<span>${escapeHtml(s.name)}</span>`;
-    d.onclick = () => { activeChildFilter = s.id; renderChildToggle(); renderTimeline(); };
-    el.appendChild(d);
-  });
-}
-
-function renderCategoryChips() {
-  const el = document.getElementById('category-chips');
-  el.innerHTML = '';
-  const cats = [{ id: 'all', label: 'All' }, ...CATEGORIES.map(c => ({ id: c, label: CATEGORY_LABEL[c] }))];
-  cats.forEach(c => {
-    const chip = document.createElement('span');
-    chip.className = 'cat-chip' + (activeCategoryFilter === c.id ? ' active' : '');
-    chip.dataset.cat = c.id;
-    chip.textContent = c.label;
-    chip.onclick = () => { activeCategoryFilter = c.id; renderCategoryChips(); renderTimeline(); };
-    el.appendChild(chip);
-  });
-}
-
-/* ---------- timeline ---------- */
-
-function childName(id) { const c = children.find(c => c.id === id); return c ? c.name : ''; }
-
-function renderTimeline() {
-  const el = document.getElementById('timeline');
-  el.innerHTML = '';
-  const q = (document.getElementById('search') ? val('search') : '').toLowerCase();
-
-  const filtered = entries.filter(e => {
-    if (activeChildFilter !== 'all' && e.childId !== activeChildFilter) return false;
-    if (activeCategoryFilter !== 'all' && e.category !== activeCategoryFilter) return false;
-    if (q) {
-      const hay = [e.title, e.description, ...(e.tags || [])].join(' ').toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    return true;
-  });
-
-  if (!filtered.length) {
-    el.innerHTML = '<div id="empty-state">No entries yet. Tap + to add the first one.</div>';
-    return;
-  }
-
-  let lastYear = null;
-  filtered.forEach(e => {
-    const year = (e.date || '').slice(0, 4) || 'Undated';
-    if (year !== lastYear) {
-      const yl = document.createElement('div');
-      yl.className = 'year-label';
-      yl.textContent = year;
-      el.appendChild(yl);
-      lastYear = year;
+      await loadJournal(contexts[0].id);
     }
 
-    const row = document.createElement('div');
-    row.className = 'entry-row' + (selectMode ? ' select-mode' : '') + (selectedIds.has(e.id) ? ' selected' : '');
-    const card = document.createElement('div');
-    card.className = 'entry-card';
-    card.style.background = childAvatarColor(e.childId).bg;
-    card.onclick = selectMode ? () => toggleEntrySelected(e.id) : () => openEntrySheet(e.id);
+    function onContextSwitch(id) { loadJournal(id); }
 
-    const media = (e.mediaUrls || []).slice(0, 4).map(u => `<img src="${u}" alt="">`).join('');
-    const tags = (e.tags || []).map(t => `<span class="pill">${escapeHtml(t)}</span>`).join('');
-    const catSoft = `var(--c-${e.category}-bg, var(--bg-subtle))`;
-    const catColor = `var(--c-${e.category}, var(--ink-3))`;
+    async function loadJournal(id) {
+      ownerId = id;
+      isOwnerView = (ownerId === currentUser.uid);
+      document.getElementById('btn-admin').hidden = !isOwnerView;
+      selectMode = false; selectedIds = new Set();
+      document.getElementById('select-toggle').hidden = false;
+      updateSelectBar();
+      await Promise.all([loadChildren(), loadEntries()]);
+      if (isOwnerView) await loadShares();
+      renderChildToggle();
+      renderCategoryChips();
+      renderTimeline();
+    }
 
-    card.innerHTML = `
-      <div class="entry-icon" style="background:${catSoft};">
-        <div class="dot" style="background:${catColor};"></div>
+    /* ---------- data loading ---------- */
+
+    function childrenCol() { return db.collection('users').doc(ownerId).collection('children'); }
+    function entriesCol() { return db.collection('users').doc(ownerId).collection('entries'); }
+    function sharesCol() { return db.collection('users').doc(ownerId).collection('shares'); }
+
+    async function loadChildren() {
+      try {
+        const snap = await childrenCol().get();
+        childrenAll = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        children = childrenAll.filter(c => c.status !== 'removed');
+      } catch (err) {
+        console.error('loadChildren failed:', err.code, err.message);
+        toast(`Couldn't load children: ${err.code || err.message}`);
+        children = []; childrenAll = [];
+      }
+    }
+
+    // Fetches the next batch of entries (or, if pageSize is null, every remaining
+    // entry in one go) and appends it to `entries`. Advances the startAfter cursor.
+    async function fetchEntriesPage(pageSize) {
+      let q = entriesCol().orderBy('date', 'desc');
+      if (entriesCursor) q = q.startAfter(entriesCursor);
+      if (pageSize) q = q.limit(pageSize);
+      const snap = await q.get();
+      entries = entries.concat(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      if (snap.docs.length) entriesCursor = snap.docs[snap.docs.length - 1];
+      entriesHasMore = !!pageSize && snap.docs.length === pageSize;
+    }
+
+    // Full reset + first page. Called on context switch and after any add/edit/
+    // delete/import, since those can shift which entries should be loaded.
+    async function loadEntries() {
+      entries = []; entriesCursor = null; entriesHasMore = true; entriesAllLoaded = false;
+      try {
+        await fetchEntriesPage(ENTRIES_PAGE_SIZE);
+        if (isFilterActive()) await ensureAllEntriesLoaded();
+      } catch (err) {
+        console.error('loadEntries failed:', err.code, err.message);
+        toast(`Couldn't load entries: ${err.code || err.message}. Check firestore.rules is deployed.`);
+        entries = []; entriesHasMore = false; entriesAllLoaded = true;
+      }
+    }
+
+    // Search/child/category filters run client-side, so they need to see every
+    // matching entry, not just what's paged in so far. Fetch the rest in one shot.
+    function isFilterActive() {
+      const q = document.getElementById('search') ? val('search') : '';
+      return activeChildFilter !== 'all' || activeCategoryFilter !== 'all' || !!q;
+    }
+    async function ensureAllEntriesLoaded() {
+      if (entriesAllLoaded) return;
+      if (entriesHasMore) {
+        try { await fetchEntriesPage(null); }
+        catch (err) {
+          console.error('ensureAllEntriesLoaded failed:', err.code, err.message);
+          toast(`Couldn't load all entries: ${err.code || err.message}`);
+        }
+      }
+      entriesHasMore = false;
+      entriesAllLoaded = true;
+    }
+    async function onFilterChanged() {
+      if (isFilterActive()) await ensureAllEntriesLoaded();
+      renderTimeline();
+    }
+    async function loadMoreEntries() {
+      if (entriesLoadingMore || !entriesHasMore) return;
+      entriesLoadingMore = true;
+      updateLoadMoreUI();
+      try {
+        await fetchEntriesPage(ENTRIES_PAGE_SIZE);
+      } catch (err) {
+        console.error('loadMoreEntries failed:', err.code, err.message);
+        toast(`Couldn't load more entries: ${err.code || err.message}`);
+      }
+      entriesLoadingMore = false;
+      renderTimeline();
+    }
+    function updateLoadMoreUI() {
+      const row = document.getElementById('load-more-row');
+      const btn = document.getElementById('btn-load-more');
+      const showRow = entriesHasMore && !isFilterActive();
+      row.hidden = !showRow;
+      if (showRow) { btn.disabled = entriesLoadingMore; btn.textContent = entriesLoadingMore ? 'Loading…' : 'Load more'; }
+    }
+    function ensureScrollObserver() {
+      if (entriesScrollObserver) return;
+      const sentinel = document.getElementById('scroll-sentinel');
+      entriesScrollObserver = new IntersectionObserver((observed) => {
+        if (observed[0].isIntersecting && entriesHasMore && !entriesLoadingMore && !isFilterActive()) {
+          loadMoreEntries();
+        }
+      }, { rootMargin: '400px' });
+      entriesScrollObserver.observe(sentinel);
+    }
+
+    async function loadShares() {
+      try {
+        const snap = await sharesCol().get();
+        shares = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(s => s.status !== 'revoked');
+      } catch (err) {
+        console.error('loadShares failed:', err.code, err.message);
+        shares = [];
+      }
+    }
+
+    /* ---------- child toggle + category chips ---------- */
+
+    function renderChildToggle() {
+      const el = document.getElementById('child-toggle');
+      el.innerHTML = '';
+      const segs = [{ id: 'all', name: 'All' }, ...children];
+      segs.forEach(s => {
+        const d = document.createElement('div');
+        const active = activeChildFilter === s.id;
+        d.className = 'seg' + (active ? ' active' : '');
+        d.dataset.cat = s.id;
+        if (active && s.id !== 'all') {
+          const { bg, fg } = childAvatarColor(s.id);
+          d.style.background = bg;
+          d.style.color = fg;
+        }
+        d.innerHTML = (s.id === 'all' ? '' : avatarHtml(s, 'sm')) + `<span>${escapeHtml(s.name)}</span>`;
+        d.onclick = () => { activeChildFilter = s.id; renderChildToggle(); onFilterChanged(); };
+        el.appendChild(d);
+      });
+    }
+
+    function renderCategoryChips() {
+      const el = document.getElementById('category-chips');
+      el.innerHTML = '';
+      const cats = [{ id: 'all', label: 'All' }, ...CATEGORIES.map(c => ({ id: c, label: CATEGORY_LABEL[c] }))];
+      cats.forEach(c => {
+        const chip = document.createElement('span');
+        chip.className = 'cat-chip' + (activeCategoryFilter === c.id ? ' active' : '');
+        chip.dataset.cat = c.id;
+        chip.textContent = c.label;
+        chip.onclick = () => { activeCategoryFilter = c.id; renderCategoryChips(); onFilterChanged(); };
+        el.appendChild(chip);
+      });
+    }
+
+    /* ---------- timeline ---------- */
+
+    function childName(id) { const c = children.find(c => c.id === id); return c ? c.name : ''; }
+
+    function renderEmptyState(searchQuery) {
+      if (!children.length) {
+        return `
+      <div class="empty-card">
+        <div class="empty-icon">&#128075;</div>
+        <h3>Welcome to My Lore!</h3>
+        <p>A few quick steps to start capturing your family's story.</p>
+        <div class="empty-steps">
+          <div class="empty-step"><span class="num">1</span><span>Tap the <strong>&#9881; gear icon</strong> in the top right to open Admin.</span></div>
+          <div class="empty-step"><span class="num">2</span><span>Add a <strong>child or pet</strong> there.</span></div>
+          <div class="empty-step"><span class="num">3</span><span>Come back here and tap the <strong>+ button</strong> to add your first life event.</span></div>
+        </div>
+      </div>`;
+      }
+      if (entries.length && (searchQuery || activeChildFilter !== 'all' || activeCategoryFilter !== 'all')) {
+        return '<div id="empty-state">No entries match your search or filters.</div>';
+      }
+      return '<div id="empty-state">No entries yet. Tap + to add the first one.</div>';
+    }
+
+    function renderTimeline() {
+      const el = document.getElementById('timeline');
+      el.innerHTML = '';
+      const q = (document.getElementById('search') ? val('search') : '').toLowerCase();
+
+      const filtered = entries.filter(e => {
+        if (activeChildFilter !== 'all' && e.childId !== activeChildFilter) return false;
+        if (activeCategoryFilter !== 'all' && e.category !== activeCategoryFilter) return false;
+        if (q) {
+          const hay = [e.title, e.description, ...(e.tags || [])].join(' ').toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      updateLoadMoreUI();
+      ensureScrollObserver();
+
+      if (!filtered.length) {
+        el.innerHTML = renderEmptyState(q);
+        return;
+      }
+
+      let lastYear = null;
+      filtered.forEach(e => {
+        const year = (e.date || '').slice(0, 4) || 'Undated';
+        if (year !== lastYear) {
+          const yl = document.createElement('div');
+          yl.className = 'year-label';
+          yl.textContent = year;
+          el.appendChild(yl);
+          lastYear = year;
+        }
+
+        const row = document.createElement('div');
+        row.className = 'entry-row' + (selectMode ? ' select-mode' : '') + (selectedIds.has(e.id) ? ' selected' : '');
+        const card = document.createElement('div');
+        card.className = 'entry-card';
+        card.style.background = childAvatarColor(e.childId).bg;
+        card.onclick = selectMode ? () => toggleEntrySelected(e.id) : () => openEntrySheet(e.id);
+
+        const media = (e.mediaUrls || []).slice(0, 4).map(u => `<img src="${u}" alt="">`).join('');
+        const tags = (e.tags || []).map(t => `<span class="pill">${escapeHtml(t)}</span>`).join('');
+        const catSoft = `var(--c-${e.category}-bg, var(--bg-subtle))`;
+        const catColor = `var(--c-${e.category}, var(--ink-3))`;
+
+        card.innerHTML = `
+      <div class="entry-icon" style="background:${catSoft}; color:${catColor};">
+        ${escapeHtml((childName(e.childId) || '?').trim().charAt(0).toUpperCase())}
       </div>
       <div class="entry-body">
         <div class="entry-top">
@@ -812,370 +1981,374 @@ function renderTimeline() {
         </div>
       </div>
     `;
-    if (selectMode) {
-      const check = document.createElement('div');
-      check.className = 'entry-check';
-      check.innerHTML = '&#10003;';
-      check.onclick = () => toggleEntrySelected(e.id);
-      row.appendChild(check);
+        if (selectMode) {
+          const check = document.createElement('div');
+          check.className = 'entry-check';
+          check.innerHTML = '&#10003;';
+          check.onclick = () => toggleEntrySelected(e.id);
+          row.appendChild(check);
+        }
+        row.appendChild(card);
+        el.appendChild(row);
+      });
     }
-    row.appendChild(card);
-    el.appendChild(row);
-  });
-}
 
-/* ---------- multi-select delete ---------- */
+    /* ---------- multi-select delete ---------- */
 
-function toggleSelectMode() {
-  if (!selectMode && !isOwnerView) { toast('Only the journal owner can delete entries.'); return; }
-  selectMode = !selectMode;
-  selectedIds = new Set();
-  document.getElementById('select-toggle').hidden = selectMode;
-  document.getElementById('fab').hidden = selectMode || !currentUser;
-  updateSelectBar();
-  renderTimeline();
-}
+    function toggleSelectMode() {
+      if (!selectMode && !isOwnerView) { toast('Only the journal owner can delete entries.'); return; }
+      selectMode = !selectMode;
+      selectedIds = new Set();
+      document.getElementById('select-toggle').hidden = selectMode;
+      document.getElementById('fab').hidden = selectMode || !currentUser;
+      updateSelectBar();
+      renderTimeline();
+    }
 
-function toggleEntrySelected(id) {
-  if (selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id);
-  updateSelectBar();
-  renderTimeline();
-}
+    function toggleEntrySelected(id) {
+      if (selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id);
+      updateSelectBar();
+      renderTimeline();
+    }
 
-function updateSelectBar() {
-  const bar = document.getElementById('select-bar');
-  bar.classList.toggle('open', selectMode);
-  document.getElementById('select-count').textContent = `${selectedIds.size} selected`;
-}
+    function updateSelectBar() {
+      const bar = document.getElementById('select-bar');
+      bar.classList.toggle('open', selectMode);
+      document.getElementById('select-count').textContent = `${selectedIds.size} selected`;
+    }
 
-function openDeleteConfirm() {
-  if (!selectedIds.size) { toast('Select at least one entry.'); return; }
-  const n = selectedIds.size;
-  document.getElementById('delete-count-label').textContent = n === 1 ? 'this entry' : `these ${n} entries`;
-  document.getElementById('delete-modal-warning').textContent =
-    `This permanently removes ${n === 1 ? 'the selected entry' : `all ${n} selected entries`} and their photos. This can't be undone.`;
-  document.getElementById('delete-challenge-code').textContent = 'DELETE';
-  const input = document.getElementById('delete-challenge-input');
-  input.value = '';
-  document.getElementById('delete-confirm-btn').disabled = true;
-  openOverlay('delete-modal');
-}
+    function openDeleteConfirm() {
+      if (!selectedIds.size) { toast('Select at least one entry.'); return; }
+      const n = selectedIds.size;
+      document.getElementById('delete-count-label').textContent = n === 1 ? 'this entry' : `these ${n} entries`;
+      document.getElementById('delete-modal-warning').textContent =
+        `This permanently removes ${n === 1 ? 'the selected entry' : `all ${n} selected entries`} and their photos. This can't be undone.`;
+      document.getElementById('delete-challenge-code').textContent = 'DELETE';
+      const input = document.getElementById('delete-challenge-input');
+      input.value = '';
+      document.getElementById('delete-confirm-btn').disabled = true;
+      openOverlay('delete-modal');
+    }
 
-function onDeleteChallengeInput() {
-  const match = document.getElementById('delete-challenge-input').value === document.getElementById('delete-challenge-code').textContent;
-  document.getElementById('delete-confirm-btn').disabled = !match;
-}
+    function onDeleteChallengeInput() {
+      const match = document.getElementById('delete-challenge-input').value === document.getElementById('delete-challenge-code').textContent;
+      document.getElementById('delete-confirm-btn').disabled = !match;
+    }
 
-async function confirmBulkDelete() {
-  const ids = [...selectedIds];
-  if (!ids.length) return;
-  const btn = document.getElementById('delete-confirm-btn');
-  btn.disabled = true; btn.textContent = 'Deleting...';
-  try {
-    for (const id of ids) {
-      const entry = entries.find(e => e.id === id);
-      if (entry && entry.mediaPaths) {
-        await Promise.all(entry.mediaPaths.map(p => storage.ref(p).delete().catch(e => console.warn('delete failed', p, e.code))));
+    async function confirmBulkDelete() {
+      const ids = [...selectedIds];
+      if (!ids.length) return;
+      const btn = document.getElementById('delete-confirm-btn');
+      btn.disabled = true; btn.textContent = 'Deleting...';
+      try {
+        for (const id of ids) {
+          const entry = entries.find(e => e.id === id);
+          if (entry && entry.mediaPaths) {
+            await Promise.all(entry.mediaPaths.map(p => storage.ref(p).delete().catch(e => console.warn('delete failed', p, e.code))));
+          }
+        }
+        const batch = db.batch();
+        ids.forEach(id => batch.delete(entriesCol().doc(id)));
+        await batch.commit();
+        toast(`Deleted ${ids.length} ${ids.length === 1 ? 'entry' : 'entries'}`);
+        closeOverlay('delete-modal');
+        toggleSelectMode();
+        await loadEntries();
+        renderTimeline();
+      } catch (err) {
+        console.error('confirmBulkDelete failed:', err.code, err.message);
+        toast(`Couldn't delete: ${err.code || err.message}`);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Delete';
       }
     }
-    const batch = db.batch();
-    ids.forEach(id => batch.delete(entriesCol().doc(id)));
-    await batch.commit();
-    toast(`Deleted ${ids.length} ${ids.length === 1 ? 'entry' : 'entries'}`);
-    closeOverlay('delete-modal');
-    toggleSelectMode();
-    await loadEntries();
-    renderTimeline();
-  } catch (err) {
-    console.error('confirmBulkDelete failed:', err.code, err.message);
-    toast(`Couldn't delete: ${err.code || err.message}`);
-  } finally {
-    btn.disabled = false; btn.textContent = 'Delete';
-  }
-}
 
-/* ---------- add / edit entry ---------- */
+    /* ---------- add / edit entry ---------- */
 
-function canWriteEntries() {
-  if (isOwnerView) return true;
-  const ctx = contexts.find(c => c.id === ownerId);
-  return ctx && ctx.role === 'editor';
-}
-
-function openEntrySheet(entryId) {
-  if (!canWriteEntries()) { toast("You have view-only access to this journal."); return; }
-  if (!children.length) { toast('Add a child in Admin before creating entries.'); return; }
-
-  editingEntryId = entryId || null;
-  pendingImages = [];
-  document.getElementById('image-preview-row').innerHTML = '';
-
-  const childSelect = document.getElementById('f-child');
-  childSelect.innerHTML = children.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
-
-  const picks = document.getElementById('f-category-picks');
-  picks.innerHTML = CATEGORIES.map(c => `<span class="pick-chip" data-cat="${c}" onclick="pickCategory('${c}')">${CATEGORY_LABEL[c]}</span>`).join('');
-
-  const entry = entryId ? entries.find(e => e.id === entryId) : null;
-
-  document.getElementById('entry-sheet-title').textContent = entry ? 'Edit entry' : 'New entry';
-  document.getElementById('f-title').value = entry ? entry.title || '' : '';
-  document.getElementById('f-date').value = entry ? entry.date || todayStr() : todayStr();
-  document.getElementById('f-description').value = entry ? entry.description || '' : '';
-  document.getElementById('f-tags').value = entry ? (entry.tags || []).join(', ') : '';
-  if (entry) childSelect.value = entry.childId;
-  pickCategory(entry ? entry.category : CATEGORIES[0]);
-
-  if (entry && entry.mediaUrls) {
-    entry.mediaUrls.forEach(u => addImagePreview(u, null));
-  }
-
-  document.getElementById('f-delete-btn').hidden = !(entry && isOwnerView);
-  openOverlay('entry-overlay');
-}
-
-function pickCategory(cat) {
-  document.querySelectorAll('#f-category-picks .pick-chip').forEach(el => {
-    el.classList.toggle('selected', el.dataset.cat === cat);
-  });
-}
-
-function onImageFileChosen(e) {
-  const file = e.target.files[0];
-  if (file) { pendingImages.push({ file, previewUrl: URL.createObjectURL(file) }); addImagePreview(pendingImages[pendingImages.length-1].previewUrl, pendingImages.length - 1); }
-  e.target.value = '';
-}
-
-function addImagePreview(url, pendingIndex) {
-  const row = document.getElementById('image-preview-row');
-  const thumb = document.createElement('div');
-  thumb.className = 'img-thumb';
-  thumb.innerHTML = `<img src="${url}"><button title="Remove">&#10005;</button>`;
-  thumb.querySelector('button').onclick = () => {
-    if (pendingIndex !== null) pendingImages = pendingImages.filter((_, i) => i !== pendingIndex);
-    thumb.remove();
-  };
-  row.appendChild(thumb);
-}
-
-// Downscale before upload so a phone photo doesn't turn into a multi-MB upload.
-function resizeImage(file, maxDim = 1600, quality = 0.82) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const reader = new FileReader();
-    reader.onload = () => { img.src = reader.result; };
-    reader.onerror = reject;
-    img.onload = () => {
-      let { width, height } = img;
-      if (width > maxDim || height > maxDim) {
-        const scale = maxDim / Math.max(width, height);
-        width = Math.round(width * scale); height = Math.round(height * scale);
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = width; canvas.height = height;
-      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-      canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality);
-    };
-    img.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-async function saveEntry() {
-  const title = val('f-title');
-  if (!title) { toast('Give the entry a title.'); return; }
-  const childId = document.getElementById('f-child').value;
-  const category = (document.querySelector('#f-category-picks .pick-chip.selected') || {}).dataset ? document.querySelector('#f-category-picks .pick-chip.selected').dataset.cat : CATEGORIES[0];
-  const date = document.getElementById('f-date').value || todayStr();
-  const description = val('f-description');
-  const tags = val('f-tags').split(',').map(t => t.trim()).filter(Boolean);
-
-  const btn = document.getElementById('f-save-btn');
-  btn.disabled = true; btn.textContent = 'Saving...';
-
-  try {
-    const ref = editingEntryId ? entriesCol().doc(editingEntryId) : entriesCol().doc();
-    const existing = editingEntryId ? entries.find(e => e.id === editingEntryId) : null;
-    const mediaUrls = existing ? [...(existing.mediaUrls || [])] : [];
-    const mediaPaths = existing ? [...(existing.mediaPaths || [])] : [];
-
-    for (const p of pendingImages) {
-      const blob = await resizeImage(p.file);
-      const path = `users/${ownerId}/entries/${ref.id}/${Date.now()}_${p.file.name}`;
-      const sref = storage.ref(path);
-      await sref.put(blob, { contentType: 'image/jpeg' });
-      const url = await sref.getDownloadURL();
-      mediaUrls.push(url); mediaPaths.push(path);
+    function canWriteEntries() {
+      if (isOwnerView) return true;
+      const ctx = contexts.find(c => c.id === ownerId);
+      return ctx && ctx.role === 'editor';
     }
 
-    const data = {
-      title, date, childId, category, description, tags, mediaUrls, mediaPaths,
-      addedByUid: currentUser.uid, addedByEmail: currentUser.email || '',
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    };
-    if (!editingEntryId) data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+    function openEntrySheet(entryId) {
+      if (!canWriteEntries()) { toast("You have view-only access to this journal."); return; }
+      if (!children.length) { toast('Add a child in Admin before creating entries.'); return; }
 
-    await ref.set(data, { merge: true });
-    toast('Entry saved');
-    closeOverlay('entry-overlay');
-    await loadEntries();
-    renderTimeline();
-  } catch (err) {
-    console.error('saveEntry failed:', err.code, err.message);
-    toast(`Couldn't save: ${err.code || err.message}`);
-  } finally {
-    btn.disabled = false; btn.textContent = 'Save entry';
-  }
-}
+      editingEntryId = entryId || null;
+      pendingImages = [];
+      document.getElementById('image-preview-row').innerHTML = '';
 
-/* ---------- bulk import ---------- */
+      const childSelect = document.getElementById('f-child');
+      childSelect.innerHTML = children.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
 
-const BULK_SAMPLE = `2026-06-11, Graduated from Martin Middle School, achievement, "Achieved grades of 5, 4, and 3 in Math, Science, and ELA", school
+      const picks = document.getElementById('f-category-picks');
+      picks.innerHTML = CATEGORIES.map(c => `<span class="pick-chip" data-cat="${c}" onclick="pickCategory('${c}')">${CATEGORY_LABEL[c]}</span>`).join('');
+
+      const entry = entryId ? entries.find(e => e.id === entryId) : null;
+
+      document.getElementById('entry-sheet-title').textContent = entry ? 'Edit entry' : 'New entry';
+      document.getElementById('f-title').value = entry ? entry.title || '' : '';
+      document.getElementById('f-date').value = entry ? entry.date || todayStr() : todayStr();
+      document.getElementById('f-description').value = entry ? entry.description || '' : '';
+      document.getElementById('f-tags').value = entry ? (entry.tags || []).join(', ') : '';
+      if (entry) childSelect.value = entry.childId;
+      pickCategory(entry ? entry.category : CATEGORIES[0]);
+
+      if (entry && entry.mediaUrls) {
+        entry.mediaUrls.forEach(u => addImagePreview(u, null));
+      }
+
+      document.getElementById('f-delete-btn').hidden = !(entry && isOwnerView);
+      openOverlay('entry-overlay');
+    }
+
+    function pickCategory(cat) {
+      document.querySelectorAll('#f-category-picks .pick-chip').forEach(el => {
+        el.classList.toggle('selected', el.dataset.cat === cat);
+      });
+    }
+
+    function onImageFileChosen(e) {
+      const file = e.target.files[0];
+      if (file) { pendingImages.push({ file, previewUrl: URL.createObjectURL(file) }); addImagePreview(pendingImages[pendingImages.length - 1].previewUrl, pendingImages.length - 1); }
+      e.target.value = '';
+    }
+
+    function addImagePreview(url, pendingIndex) {
+      const row = document.getElementById('image-preview-row');
+      const thumb = document.createElement('div');
+      thumb.className = 'img-thumb';
+      thumb.innerHTML = `<img src="${url}"><button title="Remove">&#10005;</button>`;
+      thumb.querySelector('button').onclick = () => {
+        if (pendingIndex !== null) pendingImages = pendingImages.filter((_, i) => i !== pendingIndex);
+        thumb.remove();
+      };
+      row.appendChild(thumb);
+    }
+
+    // Downscale before upload so a phone photo doesn't turn into a multi-MB upload.
+    function resizeImage(file, maxDim = 1600, quality = 0.82) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const reader = new FileReader();
+        reader.onload = () => { img.src = reader.result; };
+        reader.onerror = reject;
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            const scale = maxDim / Math.max(width, height);
+            width = Math.round(width * scale); height = Math.round(height * scale);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width; canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality);
+        };
+        img.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function saveEntry() {
+      const title = val('f-title');
+      if (!title) { toast('Give the entry a title.'); return; }
+      const childId = document.getElementById('f-child').value;
+      const category = (document.querySelector('#f-category-picks .pick-chip.selected') || {}).dataset ? document.querySelector('#f-category-picks .pick-chip.selected').dataset.cat : CATEGORIES[0];
+      const date = document.getElementById('f-date').value || todayStr();
+      const description = val('f-description');
+      const tags = val('f-tags').split(',').map(t => t.trim()).filter(Boolean);
+
+      const btn = document.getElementById('f-save-btn');
+      btn.disabled = true; btn.textContent = 'Saving...';
+
+      try {
+        const ref = editingEntryId ? entriesCol().doc(editingEntryId) : entriesCol().doc();
+        const existing = editingEntryId ? entries.find(e => e.id === editingEntryId) : null;
+        const mediaUrls = existing ? [...(existing.mediaUrls || [])] : [];
+        const mediaPaths = existing ? [...(existing.mediaPaths || [])] : [];
+
+        for (const p of pendingImages) {
+          const blob = await resizeImage(p.file);
+          const path = `users/${ownerId}/entries/${ref.id}/${Date.now()}_${p.file.name}`;
+          const sref = storage.ref(path);
+          await sref.put(blob, { contentType: 'image/jpeg' });
+          const url = await sref.getDownloadURL();
+          mediaUrls.push(url); mediaPaths.push(path);
+        }
+
+        const data = {
+          title, date, childId, category, description, tags, mediaUrls, mediaPaths,
+          addedByUid: currentUser.uid, addedByEmail: currentUser.email || '',
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        };
+        if (!editingEntryId) data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+
+        await ref.set(data, { merge: true });
+        toast('Entry saved');
+        closeOverlay('entry-overlay');
+        await loadEntries();
+        renderTimeline();
+      } catch (err) {
+        console.error('saveEntry failed:', err.code, err.message);
+        toast(`Couldn't save: ${err.code || err.message}`);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Save entry';
+      }
+    }
+
+    /* ---------- bulk import ---------- */
+
+    const BULK_SAMPLE = `2026-06-11, Graduated from Martin Middle School, achievement, "Achieved grades of 5, 4, and 3 in Math, Science, and ELA", school
 2025-10-01, Accepted to 14 Diamond, milestone, Top volleyball team in NC Academy, volleyball
 2024-07-17, Presented at UNH Conference, achievement, "Abstract of 2023 summer research on violence prevention, presented at UNH/UKY conference", research; conference`;
 
-function openBulkImport() {
-  if (!isOwnerView) { toast('Only the journal owner can bulk import.'); return; }
-  if (!children.length) { toast('Add a child in Admin before importing.'); return; }
-  const sel = document.getElementById('bulk-child');
-  sel.innerHTML = children.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
-  document.getElementById('bulk-rows').value = BULK_SAMPLE;
-  openOverlay('bulk-overlay');
-}
-
-// Splits one line on commas, honoring "quoted, fields" so descriptions can contain commas.
-function parseCsvLine(line) {
-  const fields = [];
-  let cur = '', inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (inQuotes) {
-      if (c === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else { inQuotes = false; } }
-      else cur += c;
-    } else if (c === '"') inQuotes = true;
-    else if (c === ',') { fields.push(cur); cur = ''; }
-    else cur += c;
-  }
-  fields.push(cur);
-  return fields.map(f => f.trim());
-}
-
-// Accepts ISO dates plus loose human dates ("December 2025", "July 25-27 2024"); returns YYYY-MM-DD or null.
-function parseFlexibleDate(raw) {
-  let s = (raw || '').trim();
-  if (!s) return null;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  s = s.replace(/([A-Za-z]+)-[A-Za-z]+(\s+\d{4})/, '$1$2'); // "February-June 2024" -> "February 2024"
-  s = s.replace(/(\d{1,2})-\d{1,2}(\s+\d{4})/, '$1$2');     // "July 25-27 2024" -> "July 25 2024"
-  s = s.replace(/,/g, ' ');
-  const d = new Date(s);
-  if (isNaN(d.getTime())) return null;
-  const pad = n => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
-async function runBulkImport() {
-  const childId = document.getElementById('bulk-child').value;
-  const lines = document.getElementById('bulk-rows').value.split('\n').map(l => l.trim()).filter(Boolean);
-  if (!lines.length) { toast('Paste at least one row.'); return; }
-
-  const rows = [];
-  const skipped = [];
-  lines.forEach((line, i) => {
-    const [rawDate, title, rawCategory, description, rawTags] = parseCsvLine(line);
-    const date = parseFlexibleDate(rawDate);
-    if (!date || !title) { skipped.push(i + 1); return; }
-    const category = CATEGORIES.includes((rawCategory || '').trim().toLowerCase()) ? rawCategory.trim().toLowerCase() : CATEGORIES[0];
-    const tags = (rawTags || '').split(';').map(t => t.trim()).filter(Boolean);
-    rows.push({ date, title: title.trim(), category, description: (description || '').trim(), tags });
-  });
-
-  if (!rows.length) { toast('No valid rows found. Check the date and title columns.'); return; }
-
-  const btn = document.getElementById('bulk-import-btn');
-  btn.disabled = true; btn.textContent = 'Importing...';
-  try {
-    const batch = db.batch();
-    rows.forEach(r => {
-      batch.set(entriesCol().doc(), {
-        ...r, childId, mediaUrls: [], mediaPaths: [],
-        addedByUid: currentUser.uid, addedByEmail: currentUser.email || '',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      });
-    });
-    await batch.commit();
-    toast(`Imported ${rows.length} entr${rows.length === 1 ? 'y' : 'ies'}` + (skipped.length ? `, skipped line${skipped.length === 1 ? '' : 's'} ${skipped.join(', ')}` : ''));
-    closeOverlay('bulk-overlay');
-    await loadEntries();
-    renderTimeline();
-    renderAdminOverview();
-  } catch (err) {
-    console.error('runBulkImport failed:', err.code, err.message);
-    toast(`Couldn't import: ${err.code || err.message}`);
-  } finally {
-    btn.disabled = false; btn.textContent = 'Import entries';
-  }
-}
-
-async function deleteEntry() {
-  if (!editingEntryId || !isOwnerView) return;
-  const ok = await confirmDialog("This permanently removes the entry and its photos. This can't be undone.", { title: 'Delete this entry?', confirmLabel: 'Delete', danger: true });
-  if (!ok) return;
-  try {
-    const entry = entries.find(e => e.id === editingEntryId);
-    if (entry && entry.mediaPaths) {
-      await Promise.all(entry.mediaPaths.map(p => storage.ref(p).delete().catch(e => console.warn('delete failed', p, e.code))));
+    function openBulkImport() {
+      if (!isOwnerView) { toast('Only the journal owner can bulk import.'); return; }
+      if (!children.length) { toast('Add a child in Admin before importing.'); return; }
+      const sel = document.getElementById('bulk-child');
+      sel.innerHTML = children.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+      document.getElementById('bulk-rows').value = BULK_SAMPLE;
+      openOverlay('bulk-overlay');
     }
-    await entriesCol().doc(editingEntryId).delete();
-    toast('Entry deleted');
-    closeOverlay('entry-overlay');
-    await loadEntries();
-    renderTimeline();
-  } catch (err) {
-    console.error('deleteEntry failed:', err.code, err.message);
-    toast(`Couldn't delete: ${err.code || err.message}`);
-  }
-}
 
-/* ---------- admin: overview + children ---------- */
+    // Splits one line on commas, honoring "quoted, fields" so descriptions can contain commas.
+    function parseCsvLine(line) {
+      const fields = [];
+      let cur = '', inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (inQuotes) {
+          if (c === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else { inQuotes = false; } }
+          else cur += c;
+        } else if (c === '"') inQuotes = true;
+        else if (c === ',') { fields.push(cur); cur = ''; }
+        else cur += c;
+      }
+      fields.push(cur);
+      return fields.map(f => f.trim());
+    }
 
-function openAdmin() {
-  if (!isOwnerView) return;
-  renderAdminOverview();
-  renderAdminChildren();
-  renderShareScopePicks();
-  renderAdminShares();
-  document.getElementById('admin-view').classList.add('open');
-}
-function closeAdmin() { document.getElementById('admin-view').classList.remove('open'); }
+    // Accepts ISO dates plus loose human dates ("December 2025", "July 25-27 2024"); returns YYYY-MM-DD or null.
+    function parseFlexibleDate(raw) {
+      let s = (raw || '').trim();
+      if (!s) return null;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      s = s.replace(/([A-Za-z]+)-[A-Za-z]+(\s+\d{4})/, '$1$2'); // "February-June 2024" -> "February 2024"
+      s = s.replace(/(\d{1,2})-\d{1,2}(\s+\d{4})/, '$1$2');     // "July 25-27 2024" -> "July 25 2024"
+      s = s.replace(/,/g, ' ');
+      const d = new Date(s);
+      if (isNaN(d.getTime())) return null;
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
 
-function renderAdminOverview() {
-  const el = document.getElementById('admin-stats');
-  const thisYear = String(new Date().getFullYear());
-  const countThisYear = entries.filter(e => (e.date || '').startsWith(thisYear)).length;
-  const boxes = [
-    { n: entries.length, l: 'Total entries' },
-    { n: countThisYear, l: 'This year' },
-    ...children.map(c => ({ n: entries.filter(e => e.childId === c.id).length, l: c.name })),
-  ];
-  el.innerHTML = boxes.map(b => `<div class="stat-box"><div class="n">${b.n}</div><div class="l">${escapeHtml(b.l)}</div></div>`).join('');
-}
+    async function runBulkImport() {
+      const childId = document.getElementById('bulk-child').value;
+      const lines = document.getElementById('bulk-rows').value.split('\n').map(l => l.trim()).filter(Boolean);
+      if (!lines.length) { toast('Paste at least one row.'); return; }
 
-function renderAdminChildren() {
-  const el = document.getElementById('admin-children');
-  el.innerHTML = '';
-  if (!childrenAll.length) {
-    el.innerHTML = '<div style="padding:14px; font-size:11px; color:var(--ink-mute);">No children added yet.</div>';
-    return;
-  }
-  childrenAll.forEach(c => {
-    const hidden = c.status === 'removed';
-    const row = document.createElement('div');
-    row.className = 'child-row';
-    if (hidden) row.style.opacity = '0.55';
-    const count = entries.filter(e => e.childId === c.id).length;
-    row.innerHTML = `
+      const rows = [];
+      const skipped = [];
+      lines.forEach((line, i) => {
+        const [rawDate, title, rawCategory, description, rawTags] = parseCsvLine(line);
+        const date = parseFlexibleDate(rawDate);
+        if (!date || !title) { skipped.push(i + 1); return; }
+        const category = CATEGORIES.includes((rawCategory || '').trim().toLowerCase()) ? rawCategory.trim().toLowerCase() : CATEGORIES[0];
+        const tags = (rawTags || '').split(';').map(t => t.trim()).filter(Boolean);
+        rows.push({ date, title: title.trim(), category, description: (description || '').trim(), tags });
+      });
+
+      if (!rows.length) { toast('No valid rows found. Check the date and title columns.'); return; }
+
+      const btn = document.getElementById('bulk-import-btn');
+      btn.disabled = true; btn.textContent = 'Importing...';
+      try {
+        const batch = db.batch();
+        rows.forEach(r => {
+          batch.set(entriesCol().doc(), {
+            ...r, childId, mediaUrls: [], mediaPaths: [],
+            addedByUid: currentUser.uid, addedByEmail: currentUser.email || '',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+        });
+        await batch.commit();
+        toast(`Imported ${rows.length} entr${rows.length === 1 ? 'y' : 'ies'}` + (skipped.length ? `, skipped line${skipped.length === 1 ? '' : 's'} ${skipped.join(', ')}` : ''));
+        closeOverlay('bulk-overlay');
+        await loadEntries();
+        await ensureAllEntriesLoaded();
+        renderTimeline();
+        renderAdminOverview();
+      } catch (err) {
+        console.error('runBulkImport failed:', err.code, err.message);
+        toast(`Couldn't import: ${err.code || err.message}`);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Import entries';
+      }
+    }
+
+    async function deleteEntry() {
+      if (!editingEntryId || !isOwnerView) return;
+      const ok = await confirmDialog("This permanently removes the entry and its photos. This can't be undone.", { title: 'Delete this entry?', confirmLabel: 'Delete', danger: true });
+      if (!ok) return;
+      try {
+        const entry = entries.find(e => e.id === editingEntryId);
+        if (entry && entry.mediaPaths) {
+          await Promise.all(entry.mediaPaths.map(p => storage.ref(p).delete().catch(e => console.warn('delete failed', p, e.code))));
+        }
+        await entriesCol().doc(editingEntryId).delete();
+        toast('Entry deleted');
+        closeOverlay('entry-overlay');
+        await loadEntries();
+        renderTimeline();
+      } catch (err) {
+        console.error('deleteEntry failed:', err.code, err.message);
+        toast(`Couldn't delete: ${err.code || err.message}`);
+      }
+    }
+
+    /* ---------- admin: overview + children ---------- */
+
+    async function openAdmin() {
+      if (!isOwnerView) return;
+      document.getElementById('admin-view').classList.add('open');
+      // Admin overview/child counts need every entry, not just the pages loaded
+      // so far for the timeline.
+      await ensureAllEntriesLoaded();
+      renderAdminOverview();
+      renderAdminChildren();
+      renderShareScopePicks();
+      renderAdminShares();
+    }
+    function closeAdmin() { document.getElementById('admin-view').classList.remove('open'); }
+
+    function renderAdminOverview() {
+      const el = document.getElementById('admin-stats');
+      const thisYear = String(new Date().getFullYear());
+      const countThisYear = entries.filter(e => (e.date || '').startsWith(thisYear)).length;
+      const boxes = [
+        { n: entries.length, l: 'Total entries' },
+        { n: countThisYear, l: 'This year' },
+        ...children.map(c => ({ n: entries.filter(e => e.childId === c.id).length, l: c.name })),
+      ];
+      el.innerHTML = boxes.map(b => `<div class="stat-box"><div class="n">${b.n}</div><div class="l">${escapeHtml(b.l)}</div></div>`).join('');
+    }
+
+    function renderAdminChildren() {
+      const el = document.getElementById('admin-children');
+      el.innerHTML = '';
+      if (!childrenAll.length) {
+        el.innerHTML = '<div style="padding:14px; font-size:11px; color:var(--ink-mute);">No children added yet.</div>';
+        return;
+      }
+      childrenAll.forEach(c => {
+        const hidden = c.status === 'removed';
+        const row = document.createElement('div');
+        row.className = 'child-row';
+        if (hidden) row.style.opacity = '0.55';
+        const count = entries.filter(e => e.childId === c.id).length;
+        row.innerHTML = `
       <div class="child-left">
         ${avatarHtml(c)}
         <div>
@@ -1185,91 +2358,91 @@ function renderAdminChildren() {
       </div>
       <div class="toggle${hidden ? '' : ' on'}" title="${hidden ? 'Unhide' : 'Hide'} ${escapeHtml(c.name)}"><div class="knob"></div></div>
     `;
-    row.querySelector('.toggle').onclick = () => hidden ? unhideChild(c.id, c.name) : removeChild(c.id, c.name);
-    el.appendChild(row);
-  });
-}
+        row.querySelector('.toggle').onclick = () => hidden ? unhideChild(c.id, c.name) : removeChild(c.id, c.name);
+        el.appendChild(row);
+      });
+    }
 
-function openAddChild() {
-  document.getElementById('c-name').value = '';
-  document.getElementById('c-birthdate').value = '';
-  openOverlay('child-overlay');
-}
+    function openAddChild() {
+      document.getElementById('c-name').value = '';
+      document.getElementById('c-birthdate').value = '';
+      openOverlay('child-overlay');
+    }
 
-async function saveChild() {
-  const name = val('c-name');
-  if (!name) { toast("Give the child a name."); return; }
-  const birthdate = document.getElementById('c-birthdate').value || null;
+    async function saveChild() {
+      const name = val('c-name');
+      if (!name) { toast("Give the child a name."); return; }
+      const birthdate = document.getElementById('c-birthdate').value || null;
 
-  const btn = document.getElementById('c-save-btn');
-  btn.disabled = true; btn.textContent = 'Adding...';
-  try {
-    await childrenCol().add({ name, birthdate, status: 'active', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-    toast(`${name} added`);
-    closeOverlay('child-overlay');
-    await loadChildren();
-    renderAdminChildren(); renderChildToggle(); renderAdminOverview();
-  } catch (err) {
-    console.error('saveChild failed:', err.code, err.message);
-    toast(`Couldn't add child: ${err.code || err.message}`);
-  } finally {
-    btn.disabled = false; btn.textContent = 'Add child';
-  }
-}
+      const btn = document.getElementById('c-save-btn');
+      btn.disabled = true; btn.textContent = 'Adding...';
+      try {
+        await childrenCol().add({ name, birthdate, status: 'active', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        toast(`${name} added`);
+        closeOverlay('child-overlay');
+        await loadChildren();
+        renderAdminChildren(); renderChildToggle(); renderAdminOverview();
+      } catch (err) {
+        console.error('saveChild failed:', err.code, err.message);
+        toast(`Couldn't add child: ${err.code || err.message}`);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Add child';
+      }
+    }
 
-async function removeChild(childId, name) {
-  const count = entries.filter(e => e.childId === childId).length;
-  const warn = `Their ${count} ${count === 1 ? 'entry stays' : 'entries stay'} saved, but ${name} won't show in the toggle or add-entry form until re-added.`;
-  const ok = await confirmDialog(warn, { title: `Hide ${name} from the app?`, confirmLabel: 'Hide', danger: true });
-  if (!ok) return;
-  try {
-    await childrenCol().doc(childId).update({ status: 'removed' });
-    toast(`${name} hidden`);
-    await loadChildren();
-    renderAdminChildren(); renderChildToggle(); renderAdminOverview();
-    if (activeChildFilter === childId) { activeChildFilter = 'all'; renderChildToggle(); renderTimeline(); }
-  } catch (err) {
-    console.error('removeChild failed:', err.code, err.message);
-    toast(`Couldn't remove: ${err.code || err.message}`);
-  }
-}
+    async function removeChild(childId, name) {
+      const count = entries.filter(e => e.childId === childId).length;
+      const warn = `Their ${count} ${count === 1 ? 'entry stays' : 'entries stay'} saved, but ${name} won't show in the toggle or add-entry form until re-added.`;
+      const ok = await confirmDialog(warn, { title: `Hide ${name} from the app?`, confirmLabel: 'Hide', danger: true });
+      if (!ok) return;
+      try {
+        await childrenCol().doc(childId).update({ status: 'removed' });
+        toast(`${name} hidden`);
+        await loadChildren();
+        renderAdminChildren(); renderChildToggle(); renderAdminOverview();
+        if (activeChildFilter === childId) { activeChildFilter = 'all'; renderChildToggle(); onFilterChanged(); }
+      } catch (err) {
+        console.error('removeChild failed:', err.code, err.message);
+        toast(`Couldn't remove: ${err.code || err.message}`);
+      }
+    }
 
-async function unhideChild(childId, name) {
-  try {
-    await childrenCol().doc(childId).update({ status: 'active' });
-    toast(`${name} unhidden`);
-    await loadChildren();
-    renderAdminChildren(); renderChildToggle(); renderAdminOverview();
-  } catch (err) {
-    console.error('unhideChild failed:', err.code, err.message);
-    toast(`Couldn't unhide: ${err.code || err.message}`);
-  }
-}
+    async function unhideChild(childId, name) {
+      try {
+        await childrenCol().doc(childId).update({ status: 'active' });
+        toast(`${name} unhidden`);
+        await loadChildren();
+        renderAdminChildren(); renderChildToggle(); renderAdminOverview();
+      } catch (err) {
+        console.error('unhideChild failed:', err.code, err.message);
+        toast(`Couldn't unhide: ${err.code || err.message}`);
+      }
+    }
 
-/* ---------- admin: sharing ---------- */
+    /* ---------- admin: sharing ---------- */
 
-function renderShareScopePicks() {
-  const el = document.getElementById('share-scope-picks');
-  const opts = [{ id: 'all', label: 'Both/all' }, ...children.map(c => ({ id: c.id, label: c.name }))];
-  el.innerHTML = opts.map(o => `<span class="pick-chip${shareScope === o.id ? ' selected' : ''}" data-cat="milestone" onclick="pickShareScope('${o.id}')">${escapeHtml(o.label)}</span>`).join('');
-}
-function pickShareScope(id) { shareScope = id; renderShareScopePicks(); }
+    function renderShareScopePicks() {
+      const el = document.getElementById('share-scope-picks');
+      const opts = [{ id: 'all', label: 'Both/all' }, ...children.map(c => ({ id: c.id, label: c.name }))];
+      el.innerHTML = opts.map(o => `<span class="pick-chip${shareScope === o.id ? ' selected' : ''}" data-cat="milestone" onclick="pickShareScope('${o.id}')">${escapeHtml(o.label)}</span>`).join('');
+    }
+    function pickShareScope(id) { shareScope = id; renderShareScopePicks(); }
 
-function renderAdminShares() {
-  const el = document.getElementById('admin-shares');
-  el.innerHTML = '';
-  if (!shares.length) {
-    el.innerHTML = '<div style="padding:14px; font-size:11px; color:var(--ink-mute);">No one else has access yet.</div>';
-    return;
-  }
-  shares.forEach(s => {
-    const row = document.createElement('div');
-    row.className = 'share-row';
-    row.style.flexDirection = 'column';
-    row.style.alignItems = 'stretch';
-    row.style.gap = '8px';
-    const scopeLabel = s.scope === 'all' ? 'all children' : (childName(s.scope) || 'one child');
-    row.innerHTML = `
+    function renderAdminShares() {
+      const el = document.getElementById('admin-shares');
+      el.innerHTML = '';
+      if (!shares.length) {
+        el.innerHTML = '<div style="padding:14px; font-size:11px; color:var(--ink-mute);">No one else has access yet.</div>';
+        return;
+      }
+      shares.forEach(s => {
+        const row = document.createElement('div');
+        row.className = 'share-row';
+        row.style.flexDirection = 'column';
+        row.style.alignItems = 'stretch';
+        row.style.gap = '8px';
+        const scopeLabel = s.scope === 'all' ? 'all children' : (childName(s.scope) || 'one child');
+        row.innerHTML = `
       <div style="display:flex; align-items:center; justify-content:space-between;">
         <div>
           <div style="font-size:12px;">${escapeHtml(s.email)}</div>
@@ -1286,65 +2459,66 @@ function renderAdminShares() {
       </div>
       <div style="font-size:10px; color:var(--ink-mute);">No email is sent automatically &mdash; share this link with them yourself. They must sign in with <b>${escapeHtml(s.email)}</b> to unlock access.</div>
     `;
-    const [copyBtn, emailBtn] = row.querySelectorAll('.btn');
-    copyBtn.onclick = () => copyInviteLink(s.email);
-    emailBtn.onclick = () => emailInviteLink(s.email, s.canEdit);
-    row.querySelector('.icon-btn').onclick = () => revokeShare(s.id, s.email);
-    el.appendChild(row);
-  });
-}
+        const [copyBtn, emailBtn] = row.querySelectorAll('.btn');
+        copyBtn.onclick = () => copyInviteLink(s.email);
+        emailBtn.onclick = () => emailInviteLink(s.email, s.canEdit);
+        row.querySelector('.icon-btn').onclick = () => revokeShare(s.id, s.email);
+        el.appendChild(row);
+      });
+    }
 
-function inviteLinkUrl() { return location.origin + location.pathname; }
+    function inviteLinkUrl() { return location.origin + location.pathname; }
 
-function copyInviteLink(email) {
-  navigator.clipboard.writeText(inviteLinkUrl())
-    .then(() => toast(`Link copied — send it to ${email}`))
-    .catch(() => toast('Could not copy link — copy it from the address bar instead.'));
-}
+    function copyInviteLink(email) {
+      navigator.clipboard.writeText(inviteLinkUrl())
+        .then(() => toast(`Link copied — send it to ${email}`))
+        .catch(() => toast('Could not copy link — copy it from the address bar instead.'));
+    }
 
-function emailInviteLink(email, canEdit) {
-  const subject = encodeURIComponent("You've been invited to My Lore");
-  const body = encodeURIComponent(
-    `Hi!\n\nI'd like to share our My Lore journal with you (${canEdit ? 'you can add entries' : 'view only'}).\n\n` +
-    `Open this link and sign in with Google using ${email}:\n${inviteLinkUrl()}\n`
-  );
-  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-}
+    function emailInviteLink(email, canEdit) {
+      const subject = encodeURIComponent("You've been invited to My Lore");
+      const body = encodeURIComponent(
+        `Hi!\n\nI'd like to share our My Lore journal with you (${canEdit ? 'you can add entries' : 'view only'}).\n\n` +
+        `Open this link and sign in with Google using ${email}:\n${inviteLinkUrl()}\n`
+      );
+      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    }
 
-async function sendShareInvite() {
-  const email = val('share-email').toLowerCase();
-  if (!email || !email.includes('@')) { toast('Enter a valid email.'); return; }
-  const canEdit = document.getElementById('share-canedit-toggle').classList.contains('on');
-  try {
-    await sharesCol().doc(email).set({
-      email, scope: shareScope, canEdit, status: 'active',
-      invitedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-    document.getElementById('share-email').value = '';
-    await loadShares();
-    renderAdminShares();
-    // No backend here to actually send an email — copy the link now and leave
-    // "Copy link" / "Email invite" buttons on the row below for later too.
-    copyInviteLink(email);
-  } catch (err) {
-    console.error('sendShareInvite failed:', err.code, err.message);
-    toast(`Couldn't send invite: ${err.code || err.message}`);
-  }
-}
+    async function sendShareInvite() {
+      const email = val('share-email').toLowerCase();
+      if (!email || !email.includes('@')) { toast('Enter a valid email.'); return; }
+      const canEdit = document.getElementById('share-canedit-toggle').classList.contains('on');
+      try {
+        await sharesCol().doc(email).set({
+          email, scope: shareScope, canEdit, status: 'active',
+          invitedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+        document.getElementById('share-email').value = '';
+        await loadShares();
+        renderAdminShares();
+        // No backend here to actually send an email — copy the link now and leave
+        // "Copy link" / "Email invite" buttons on the row below for later too.
+        copyInviteLink(email);
+      } catch (err) {
+        console.error('sendShareInvite failed:', err.code, err.message);
+        toast(`Couldn't send invite: ${err.code || err.message}`);
+      }
+    }
 
-async function revokeShare(shareId, email) {
-  const ok = await confirmDialog(`They'll immediately lose access to this journal.`, { title: `Revoke access for ${email}?`, confirmLabel: 'Revoke', danger: true });
-  if (!ok) return;
-  try {
-    await sharesCol().doc(shareId).update({ status: 'revoked' });
-    toast('Access revoked');
-    await loadShares();
-    renderAdminShares();
-  } catch (err) {
-    console.error('revokeShare failed:', err.code, err.message);
-    toast(`Couldn't revoke: ${err.code || err.message}`);
-  }
-}
-</script>
+    async function revokeShare(shareId, email) {
+      const ok = await confirmDialog(`They'll immediately lose access to this journal.`, { title: `Revoke access for ${email}?`, confirmLabel: 'Revoke', danger: true });
+      if (!ok) return;
+      try {
+        await sharesCol().doc(shareId).update({ status: 'revoked' });
+        toast('Access revoked');
+        await loadShares();
+        renderAdminShares();
+      } catch (err) {
+        console.error('revokeShare failed:', err.code, err.message);
+        toast(`Couldn't revoke: ${err.code || err.message}`);
+      }
+    }
+  </script>
 </body>
+
 </html>
