@@ -186,9 +186,14 @@
       color: var(--ink);
     }
 
-    #topbar .brand svg {
+    .brand-logo {
       flex-shrink: 0;
-      border-radius: 10px;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .brand-logo-sm {
+      font-size: 17px;
     }
 
     #context-switch {
@@ -341,7 +346,7 @@
     #child-toggle {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 5px;
       margin-bottom: 10px;
     }
 
@@ -350,18 +355,24 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 4px;
       text-align: center;
-      padding: 9px 14px;
-      border-radius: 12px;
+      padding: 5px 10px;
+      border-radius: 10px;
       font-family: 'Baloo 2', sans-serif;
-      font-size: 12.5px;
+      font-size: 10.5px;
       font-weight: 600;
       color: var(--ink-3);
       cursor: pointer;
       white-space: nowrap;
       border: 1.5px solid var(--line);
       background: var(--bg-surface);
+    }
+
+    #child-toggle .seg .avatar-sm {
+      width: 15px;
+      height: 15px;
+      font-size: 8px;
     }
 
     #child-toggle .seg.active {
@@ -1531,7 +1542,8 @@
       }
 
       #child-toggle .seg {
-        font-size: 11.5px;
+        font-size: 9.5px;
+        padding: 4.5px 9px;
       }
 
       .cat-chip {
@@ -1618,16 +1630,7 @@
 
   <div id="topbar">
     <div class="brand">
-      <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-        <defs>
-          <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stop-color="#23a893" />
-            <stop offset="1" stop-color="#7c3aed" />
-          </linearGradient>
-        </defs>
-        <rect width="32" height="32" rx="10" fill="url(#logoGrad)" />
-        <rect x="12" y="12" width="8" height="8" rx="3" fill="#fff" />
-      </svg>
+      <span class="brand-logo" aria-hidden="true">&#129716;</span>
       <span>My Lore</span>
     </div>
     <select id="context-switch" hidden onchange="onContextSwitch(this.value)"></select>
@@ -1685,7 +1688,7 @@
       </p>
       <p>Type <span class="challenge-code" id="delete-challenge-code">DELETE</span> to confirm.</p>
       <input id="delete-challenge-input" autocomplete="off" oninput="onDeleteChallengeInput()">
-      <button class="btn btn-block btn-danger" id="delete-confirm-btn" onclick="confirmBulkDelete()"
+      <button class="btn btn-block btn-danger" id="delete-confirm-btn" onclick="confirmDeleteModal()"
         disabled>Delete</button>
       <button class="btn btn-block" style="margin-top:8px;" onclick="closeOverlay('delete-modal')">Cancel</button>
     </div>
@@ -1829,16 +1832,7 @@
   <div id="admin-view">
     <div class="admin-head">
       <button onclick="closeAdmin()">&#8592;</button>
-      <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
-        <defs>
-          <linearGradient id="logoGradAdmin" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stop-color="#23a893" />
-            <stop offset="1" stop-color="#7c3aed" />
-          </linearGradient>
-        </defs>
-        <rect width="32" height="32" rx="10" fill="url(#logoGradAdmin)" />
-        <rect x="12" y="12" width="8" height="8" rx="3" fill="#fff" />
-      </svg>
+      <span class="brand-logo brand-logo-sm" aria-hidden="true">&#129716;</span>
       <div style="font-weight:600; font-size:14px;">Admin</div>
     </div>
     <div class="admin-body">
@@ -1931,7 +1925,7 @@
     const SAMPLE_ENTRIES = [
       {
         childName: 'Mia', category: 'milestone', title: 'First steps!', date: '2026-03-02',
-        description: "Mia took her first wobbly steps across the living room — straight into Dad's arms."
+        description: "Mia took her first wobbly steps across the living room into Dad's arms :)"
       },
       {
         childName: 'Leo', category: 'achievement', title: 'Won the school spelling bee', date: '2025-11-14',
@@ -1939,7 +1933,7 @@
       },
       {
         childName: 'Rex', category: 'health', title: 'Vet check-up: all clear', date: '2025-09-08',
-        description: 'Annual check-up — weight, teeth, and vitals all normal.'
+        description: 'Annual check-up.. weight, teeth, and vitals all normal.'
       },
       {
         childName: 'Mia', category: 'learning', title: 'Finished her first chapter book', date: '2025-06-21',
@@ -1960,6 +1954,9 @@
     let activeChildFilter = 'all';
     let activeCategoryFilter = 'all';
 
+    let pendingDeleteMode = 'entries'; // 'entries' | 'child'
+    let pendingDeleteChildId = null;
+
     const ENTRIES_PAGE_SIZE = 20;
     let entriesCursor = null;     // last loaded doc snapshot, for startAfter()
     let entriesHasMore = true;    // more pages left to fetch on the server
@@ -1972,6 +1969,12 @@
     let shareScope = 'all';
     let selectMode = false;
     let selectedIds = new Set();
+
+    // E2EE key state (see /* ---------- crypto ---------- */ below).
+    let myPrivateKey = null;        // this browser's non-extractable RSA-OAEP CryptoKey
+    let journalKey = null;          // AES-GCM CryptoKey for the currently-loaded journal
+    let journalKeyOwnerId = null;   // which ownerId `journalKey` belongs to (invalidate on switch)
+    const publicKeyCache = new Map(); // email -> imported RSA-OAEP public CryptoKey
 
     /* ---------- helpers ---------- */
 
@@ -2049,6 +2052,277 @@
       if (!iso) return '';
       const [y, m, d] = iso.split('-').map(Number);
       return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    }
+
+    /* ---------- crypto (partial end-to-end encryption) ---------- */
+    // Entry title/description/tags and photos are encrypted client-side with
+    // AES-GCM before they ever reach Firestore/Storage; childId/category/date/
+    // timestamps/author fields stay plaintext so Firestore can still filter,
+    // sort, and paginate server-side. Each signed-in user has an RSA-OAEP
+    // keypair — the private half never leaves the browser (stored in
+    // IndexedDB, generated non-extractable). The journal's AES data key is
+    // wrapped separately for the owner and each active collaborator so only
+    // they can unwrap it with their own private key. See README for the full
+    // design writeup.
+
+    const IDB_DB = 'my-lore-keys';
+    const IDB_STORE = 'keys';
+    function idbOpen() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(IDB_DB, 1);
+        req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    async function idbGet(key) {
+      const idb = await idbOpen();
+      return new Promise((resolve, reject) => {
+        const req = idb.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    async function idbPut(key, value) {
+      const idb = await idbOpen();
+      return new Promise((resolve, reject) => {
+        const tx = idb.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).put(value, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    function buf2b64(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+    function b642buf(b64) { return Uint8Array.from(atob(b64), c => c.charCodeAt(0)).buffer; }
+
+    // Generates (once per browser) or loads this user's RSA-OAEP keypair. The
+    // private key is generated non-extractable and persisted as a CryptoKey
+    // object directly in IndexedDB — it's never exported, never transmitted.
+    // The public key is exported and published so journal owners can look it
+    // up by email to wrap the journal key for this user.
+    async function loadOrCreateKeypair() {
+      if (!currentUser || !currentUser.email) return;
+      const existing = await idbGet('privateKey');
+      if (existing) { myPrivateKey = existing; return; }
+
+      const pair = await crypto.subtle.generateKey(
+        { name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
+        false, ['wrapKey', 'unwrapKey']
+      );
+      await idbPut('privateKey', pair.privateKey);
+      myPrivateKey = pair.privateKey;
+
+      const spki = await crypto.subtle.exportKey('spki', pair.publicKey);
+      await db.collection('publicKeys').doc(currentUser.email).set({
+        publicKey: buf2b64(spki), updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+
+    async function getPublicKey(email) {
+      if (publicKeyCache.has(email)) return publicKeyCache.get(email);
+      const snap = await db.collection('publicKeys').doc(email).get();
+      if (!snap.exists) { publicKeyCache.set(email, null); return null; }
+      const key = await crypto.subtle.importKey(
+        'spki', b642buf(snap.data().publicKey), { name: 'RSA-OAEP', hash: 'SHA-256' }, true, ['wrapKey']
+      );
+      publicKeyCache.set(email, key);
+      return key;
+    }
+
+    // Ensures `journalKey` holds the AES-GCM key for the journal currently
+    // loaded (`ownerId`) — generating one (owner, first use) or fetching +
+    // unwrapping the caller's already-wrapped copy otherwise. Returns null if
+    // no key is available yet (e.g. a collaborator whose wrap is still
+    // pending — see completePendingKeyWraps).
+    async function ensureJournalKey() {
+      if (journalKeyOwnerId === ownerId && journalKey) return journalKey;
+      if (!myPrivateKey) await loadOrCreateKeypair();
+
+      const keyDocRef = db.collection('users').doc(ownerId).collection('keys').doc('journal');
+
+      if (isOwnerView) {
+        const snap = await keyDocRef.get();
+        if (snap.exists) {
+          journalKey = await crypto.subtle.unwrapKey(
+            'raw', b642buf(snap.data().wrappedKeyForOwner), myPrivateKey,
+            { name: 'RSA-OAEP' }, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+          );
+          journalKeyOwnerId = ownerId;
+          return journalKey;
+        }
+        // First time this journal needs a key: generate one and self-wrap it.
+        const aesKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
+        const myPub = await getPublicKey(currentUser.email);
+        const wrapped = await crypto.subtle.wrapKey('raw', aesKey, myPub, { name: 'RSA-OAEP' });
+        await keyDocRef.set({
+          wrappedKeyForOwner: buf2b64(wrapped), keyVersion: 1,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+        journalKey = aesKey; journalKeyOwnerId = ownerId;
+        return journalKey;
+      }
+
+      // Collaborator: their wrapped copy lives on their own share doc.
+      const shareSnap = await db.collection('users').doc(ownerId).collection('shares').doc(currentUser.email).get();
+      const wrappedKey = shareSnap.exists ? shareSnap.data().wrappedKey : null;
+      if (!wrappedKey) { journalKey = null; journalKeyOwnerId = ownerId; return null; }
+      journalKey = await crypto.subtle.unwrapKey(
+        'raw', b642buf(wrappedKey), myPrivateKey,
+        { name: 'RSA-OAEP' }, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+      );
+      journalKeyOwnerId = ownerId;
+      return journalKey;
+    }
+
+    // Encrypts {title, description, tags} into a single base64 `contentEnc`
+    // field (random 12-byte IV prepended to the ciphertext).
+    async function encryptEntryFields({ title, description, tags }) {
+      const key = (journalKeyOwnerId === ownerId && journalKey) ? journalKey : await ensureJournalKey();
+      if (!key) throw new Error('No journal key available yet — try again in a moment.');
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const plaintext = new TextEncoder().encode(JSON.stringify({ title, description, tags }));
+      const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plaintext);
+      const combined = new Uint8Array(iv.byteLength + ciphertext.byteLength);
+      combined.set(iv, 0); combined.set(new Uint8Array(ciphertext), iv.byteLength);
+      return buf2b64(combined.buffer);
+    }
+
+    // Decrypts an entry doc's `contentEnc` back onto its title/description/tags
+    // fields. Legacy entries with no `contentEnc` (written before encryption
+    // shipped, or not yet migrated) pass through untouched so old and new
+    // entries render side by side without error.
+    async function decryptEntryFields(entry) {
+      if (!entry.contentEnc) return entry;
+      try {
+        const key = (journalKeyOwnerId === ownerId && journalKey) ? journalKey : await ensureJournalKey();
+        if (!key) throw new Error('no key');
+        const combined = new Uint8Array(b642buf(entry.contentEnc));
+        const iv = combined.slice(0, 12);
+        const ciphertext = combined.slice(12);
+        const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+        const { title, description, tags } = JSON.parse(new TextDecoder().decode(plaintext));
+        return { ...entry, title, description, tags };
+      } catch (err) {
+        console.warn('decryptEntryFields failed for', entry.id, err);
+        return { ...entry, title: '(unable to decrypt)', description: '', tags: [] };
+      }
+    }
+
+    // Photo bytes are encrypted with a per-entry AES-GCM media key (kept
+    // separate from the journal key so revoking access only needs to re-wrap
+    // this small key on rotation, never re-upload photo bytes).
+    async function encryptBlob(blob, mediaKey) {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const plaintext = await blob.arrayBuffer();
+      const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, mediaKey, plaintext);
+      const combined = new Uint8Array(iv.byteLength + ciphertext.byteLength);
+      combined.set(iv, 0); combined.set(new Uint8Array(ciphertext), iv.byteLength);
+      return new Blob([combined], { type: 'application/octet-stream' });
+    }
+    async function decryptBlob(ciphertextBuf, mediaKey) {
+      const combined = new Uint8Array(ciphertextBuf);
+      const iv = combined.slice(0, 12);
+      const ciphertext = combined.slice(12);
+      const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, mediaKey, ciphertext);
+      return new Blob([plaintext], { type: 'image/jpeg' });
+    }
+    async function wrapMediaKey(mediaKey) {
+      const key = (journalKeyOwnerId === ownerId && journalKey) ? journalKey : await ensureJournalKey();
+      const raw = await crypto.subtle.exportKey('raw', mediaKey);
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, raw);
+      const combined = new Uint8Array(iv.byteLength + ciphertext.byteLength);
+      combined.set(iv, 0); combined.set(new Uint8Array(ciphertext), iv.byteLength);
+      return buf2b64(combined.buffer);
+    }
+    async function unwrapMediaKey(wrapped) {
+      const key = (journalKeyOwnerId === ownerId && journalKey) ? journalKey : await ensureJournalKey();
+      const combined = new Uint8Array(b642buf(wrapped));
+      const iv = combined.slice(0, 12);
+      const ciphertext = combined.slice(12);
+      const raw = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+      return crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']);
+    }
+
+    // Owner sharing with someone who has never signed in yet has no public key
+    // to wrap against (share doc is written with keyPending:true). Called on
+    // every journal load (owner only) to catch up any invitee who has since
+    // signed in and published a key.
+    async function completePendingKeyWraps() {
+      if (!isOwnerView) return;
+      const pending = shares.filter(s => s.status === 'active' && s.keyPending);
+      if (!pending.length) return;
+      const key = await ensureJournalKey();
+      if (!key) return;
+      let completed = 0;
+      for (const s of pending) {
+        const pub = await getPublicKey(s.email);
+        if (!pub) continue;
+        const wrapped = await crypto.subtle.wrapKey('raw', key, pub, { name: 'RSA-OAEP' });
+        await sharesCol().doc(s.id).update({ wrappedKey: buf2b64(wrapped), keyPending: false });
+        completed++;
+      }
+      if (completed) { await loadShares(); renderAdminShares(); }
+    }
+
+    // Rotates the journal's AES key: generates a new one, re-wraps it for the
+    // owner and every still-active collaborator, then re-encrypts every
+    // entry's text and re-wraps every entry's media key under it. Photo
+    // *bytes* already in Storage are never re-uploaded — only the small media
+    // key that unlocks them changes, so this stays cheap (pure Firestore
+    // reads/writes) even at thousands of entries. A revoked collaborator who
+    // already cached a photo's decrypted bytes/key keeps that one historical
+    // item — this closes off new/ongoing access, not retroactive local copies.
+    async function rotateJournalKey() {
+      const oldKey = await ensureJournalKey();
+      if (!oldKey) return; // nothing encrypted yet — nothing to rotate
+
+      const newKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
+
+      await loadShares();
+      const activeShares = shares.filter(s => s.status === 'active' && !s.keyPending);
+
+      const myPub = await getPublicKey(currentUser.email);
+      const ownerWrapped = await crypto.subtle.wrapKey('raw', newKey, myPub, { name: 'RSA-OAEP' });
+      await db.collection('users').doc(ownerId).collection('keys').doc('journal').update({
+        wrappedKeyForOwner: buf2b64(ownerWrapped),
+        keyVersion: firebase.firestore.FieldValue.increment(1),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+
+      for (const s of activeShares) {
+        const pub = await getPublicKey(s.email);
+        if (!pub) continue;
+        const wrapped = await crypto.subtle.wrapKey('raw', newKey, pub, { name: 'RSA-OAEP' });
+        await sharesCol().doc(s.id).update({ wrappedKey: buf2b64(wrapped) });
+      }
+
+      // Re-encrypt every entry's text + re-wrap its media key, batched. The
+      // module-level `journalKey` is swapped between old/new mid-loop so the
+      // encrypt/decrypt helpers above (which read it implicitly) pick up the
+      // right key for each half of the operation.
+      await ensureAllEntriesLoaded();
+      const all = entries.slice();
+      const CHUNK = 400;
+      for (let i = 0; i < all.length; i += CHUNK) {
+        const chunk = all.slice(i, i + CHUNK);
+        const batch = db.batch();
+        for (const e of chunk) {
+          journalKey = oldKey; journalKeyOwnerId = ownerId;
+          const plainFields = e.contentEnc ? await decryptEntryFields(e) : e;
+          const mediaKey = e.mediaKeyWrapped ? await unwrapMediaKey(e.mediaKeyWrapped) : null;
+
+          journalKey = newKey; journalKeyOwnerId = ownerId;
+          const update = { contentEnc: await encryptEntryFields(plainFields) };
+          if (mediaKey) update.mediaKeyWrapped = await wrapMediaKey(mediaKey);
+          batch.update(entriesCol().doc(e.id), update);
+        }
+        await batch.commit();
+      }
+
+      journalKey = newKey; journalKeyOwnerId = ownerId;
     }
 
     /* ---------- auth ---------- */
@@ -2322,10 +2596,10 @@
       if (!currentUser) {
         return `
       <div class="empty-card">
-        <div class="empty-icon">&#10024;</div>
+        <div class="empty-icon">&#127793;</div>
         <h3>What is My Lore?</h3>
-        <p>An unfolding life stream — private, and yours alone. Save the moments as they happen, then reminisce, or turn them into a time capsule, a college essay, or a story worth telling.</p>
-        <br>
+        <p>An unfolding life stream — a personal event log. Save the moments as they happen, then reminisce, or turn them into a time capsule, a college essay, or a story worth telling.</p>
+
         <p>Built by a dad of two kids and a puppy 🐶</p>
       </div>
       <div class="sample-label">What an event stream looks like..</div>
@@ -2452,6 +2726,7 @@
 
     function openDeleteConfirm() {
       if (!selectedIds.size) { toast('Select at least one entry.'); return; }
+      pendingDeleteMode = 'entries';
       const n = selectedIds.size;
       document.getElementById('delete-count-label').textContent = n === 1 ? 'this entry' : `these ${n} entries`;
       document.getElementById('delete-modal-warning').textContent =
@@ -2463,9 +2738,27 @@
       openOverlay('delete-modal');
     }
 
+    function openDeleteChildConfirm(childId, name) {
+      pendingDeleteMode = 'child';
+      pendingDeleteChildId = childId;
+      const count = entries.filter(e => e.childId === childId).length;
+      document.getElementById('delete-count-label').textContent = name;
+      document.getElementById('delete-modal-warning').textContent =
+        `This permanently deletes ${name} and ${count === 1 ? 'their entry' : `all ${count} of their entries`} (and photos). This can't be undone.`;
+      document.getElementById('delete-challenge-code').textContent = 'DELETE';
+      const input = document.getElementById('delete-challenge-input');
+      input.value = '';
+      document.getElementById('delete-confirm-btn').disabled = true;
+      openOverlay('delete-modal');
+    }
+
     function onDeleteChallengeInput() {
       const match = document.getElementById('delete-challenge-input').value === document.getElementById('delete-challenge-code').textContent;
       document.getElementById('delete-confirm-btn').disabled = !match;
+    }
+
+    function confirmDeleteModal() {
+      return pendingDeleteMode === 'child' ? confirmDeleteChild() : confirmBulkDelete();
     }
 
     async function confirmBulkDelete() {
@@ -2491,6 +2784,44 @@
         updateStoryBtnVisibility();
       } catch (err) {
         console.error('confirmBulkDelete failed:', err.code, err.message);
+        toast(`Couldn't delete: ${err.code || err.message}`);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Delete';
+      }
+    }
+
+    async function confirmDeleteChild() {
+      const childId = pendingDeleteChildId;
+      if (!childId) return;
+      const child = childrenAll.find(c => c.id === childId);
+      const name = child ? child.name : 'child';
+      const btn = document.getElementById('delete-confirm-btn');
+      btn.disabled = true; btn.textContent = 'Deleting...';
+      try {
+        await ensureAllEntriesLoaded();
+        const childEntries = entries.filter(e => e.childId === childId);
+        for (const entry of childEntries) {
+          if (entry.mediaPaths) {
+            await Promise.all(entry.mediaPaths.map(p => storage.ref(p).delete().catch(e => console.warn('delete failed', p, e.code))));
+          }
+        }
+        // Firestore batches cap at 500 writes; chunk to be safe.
+        for (let i = 0; i < childEntries.length; i += 450) {
+          const batch = db.batch();
+          childEntries.slice(i, i + 450).forEach(e => batch.delete(entriesCol().doc(e.id)));
+          await batch.commit();
+        }
+        await childrenCol().doc(childId).delete();
+        toast(`${name} and their data deleted`);
+        closeOverlay('delete-modal');
+        pendingDeleteChildId = null;
+        await loadChildren();
+        await loadEntries();
+        renderAdminChildren(); renderChildToggle(); renderAdminOverview();
+        renderTimeline();
+        if (activeChildFilter === childId) { activeChildFilter = 'all'; renderChildToggle(); onFilterChanged(); }
+      } catch (err) {
+        console.error('confirmDeleteChild failed:', err.code, err.message);
         toast(`Couldn't delete: ${err.code || err.message}`);
       } finally {
         btn.disabled = false; btn.textContent = 'Delete';
@@ -3025,9 +3356,13 @@
           <div class="child-meta">${count} ${count === 1 ? 'entry' : 'entries'}</div>
         </div>
       </div>
-      <div class="toggle${hidden ? '' : ' on'}" title="${hidden ? 'Unhide' : 'Hide'} ${escapeHtml(c.name)}"><div class="knob"></div></div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="icon-btn" title="Delete ${escapeHtml(c.name)} permanently">&#128465;</button>
+        <div class="toggle${hidden ? '' : ' on'}" title="${hidden ? 'Unhide' : 'Hide'} ${escapeHtml(c.name)}"><div class="knob"></div></div>
+      </div>
     `;
         row.querySelector('.toggle').onclick = () => hidden ? unhideChild(c.id, c.name) : removeChild(c.id, c.name);
+        row.querySelector('.icon-btn').onclick = () => openDeleteChildConfirm(c.id, c.name);
         el.appendChild(row);
       });
     }

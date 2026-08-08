@@ -53,6 +53,16 @@ A companion wildcard rule (`match /{path=**}/shares/{shareEmail}`) lets a signed
 
 **Note:** invites currently take effect immediately (`status: 'active'` as soon as the owner sends one) — there's no separate "pending until accepted" step. That's a deliberate simplification; add an accept flow later if you want the invitee to have to confirm before being granted access.
 
+## End-to-end encryption
+
+Entry `title`/`description`/`tags` and photos are encrypted client-side (AES-GCM via WebCrypto) before they ever reach Firestore/Storage — the Firebase project owner, or anyone with database/bucket access, sees ciphertext, not content. `childId`/`category`/`date`/timestamps/author fields stay plaintext by design, so Firestore can still filter, sort, and paginate server-side (the app's search/filtering already ran client-side on decrypted data before this, so nothing new is exposed there).
+
+- **Keys:** each signed-in user gets an RSA-OAEP keypair on first sign-in — the private key is generated non-extractable and stored only in that browser's IndexedDB, never transmitted. The journal itself has one AES-GCM data key, wrapped separately for the owner and each active collaborator (`publicKeys/{email}`, `users/{ownerId}/keys/journal`, and new fields on each `shares/{email}` doc — see `firestore.rules`). Photos are further encrypted under a per-entry media key, itself wrapped by the journal key, so rotating the journal key never requires re-uploading photo bytes.
+- **New collaborators:** if an owner shares with someone who's never signed in (no public key published yet), the share is written with `keyPending: true`; it's completed automatically the next time the owner opens the journal after that person has signed in once. Until then, the invitee sees the app but not entry content.
+- **Revoke:** revoking a share now also rotates the journal key and re-wraps it for everyone still active, so a former collaborator's cached key stops working for anything going forward. It does **not** retroactively re-encrypt photo bytes already in Storage (would mean re-uploading everything) — someone who already downloaded and decrypted a specific photo before being revoked keeps that one item, same as any sharing system.
+- **Migrating existing data:** entries written before this shipped have no `contentEnc` field and still render fine (legacy plaintext passthrough). Admin → Encryption → "Encrypt existing entries" does a one-time, resumable in-place migration (re-encrypts text, re-uploads each photo encrypted to the same Storage path).
+- **Not covered:** no key-loss recovery — if a browser's IndexedDB is cleared and that was the only device holding a given key, that access is gone. Accepted as a reasonable trade-off at family-journal scale; a passphrase-based backup key could be added later if needed.
+
 ## Firebase setup (one-time)
 
 Reuses the existing `sids-lean-canvas` project / auth setup — no new project needed.
