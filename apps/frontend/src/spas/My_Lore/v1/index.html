@@ -51,6 +51,8 @@
       --c-learning-bg: #fbdce7;
       --c-health: #1a7a68;
       --c-health-bg: #d9f0ea;
+      --c-moment: #6b3fa0;
+      --c-moment-bg: #ede1f7;
 
       --bg-texture-color: #fffeea;
       --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg fill='%238fb5f7' fill-opacity='0.08'%3E%3Cpath d='M12 0h18v6h6v6h6v18h-6v6h-6v6H12v-6H6v-6H0V12h6V6h6V0zm12 6h-6v6h-6v6H6v6h6v6h6v6h6v-6h6v-6h6v-6h-6v-6h-6V6zm-6 12h6v6h-6v-6zm24 24h6v6h-6v-6z'%3E%3C/path%3E%3C/g%3E%3C/svg%3E");
@@ -143,6 +145,11 @@
       padding: 6px 8px;
       line-height: 1;
       font-size: 14.5px;
+    }
+
+    #btn-admin {
+      font-size: 20px;
+      padding: 5px 8px;
     }
 
     .btn-block {
@@ -369,15 +376,21 @@
 
     #category-chips {
       display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
+      flex-wrap: nowrap;
+      gap: 5px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    #category-chips::-webkit-scrollbar {
+      display: none;
     }
 
     .cat-chip {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 20px;
+      padding: 5px 9px;
+      border-radius: 16px;
       white-space: nowrap;
       cursor: pointer;
       border: 1.5px solid var(--line);
@@ -413,6 +426,12 @@
     .cat-chip.active[data-cat="health"] {
       background: var(--c-health-bg);
       color: var(--c-health);
+      border-color: transparent;
+    }
+
+    .cat-chip.active[data-cat="moment"] {
+      background: var(--c-moment-bg);
+      color: var(--c-moment);
       border-color: transparent;
     }
 
@@ -557,6 +576,11 @@
     .pill.cat-health {
       background: var(--c-health-bg);
       color: var(--c-health);
+    }
+
+    .pill.cat-moment {
+      background: var(--c-moment-bg);
+      color: var(--c-moment);
     }
 
     #empty-state {
@@ -817,6 +841,35 @@
       background: var(--c-health-bg);
       color: var(--c-health);
       border-color: transparent;
+    }
+
+    .pick-chip.selected[data-cat="moment"] {
+      background: var(--c-moment-bg);
+      color: var(--c-moment);
+      border-color: transparent;
+    }
+
+    #f-category-picks.pick-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 10px;
+    }
+
+    #f-category-picks .pick-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+      border-radius: var(--radius);
+      padding: 8px 13px;
+      gap: 1px;
+    }
+
+    .pick-chip-desc {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: inherit;
+      opacity: .7;
     }
 
     .tag-combo {
@@ -1280,6 +1333,177 @@
       padding: 60px 20px;
     }
 
+    /* ---------- story view ---------- */
+    .story-note {
+      font-size: 10.5px;
+      color: var(--ink-mute);
+      padding: 0 20px 10px;
+      margin-top: -4px;
+    }
+
+    .story-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 12px 20px 0;
+    }
+
+    .story-tab {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 13px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--bg-subtle);
+      color: var(--ink-3);
+      cursor: pointer;
+    }
+
+    .story-tab.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .story-tab-panel {
+      padding: 16px 20px 20px;
+    }
+
+    .story-empty {
+      font-size: 13px;
+      color: var(--ink-mute);
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .spine-wrap {
+      display: flex;
+      overflow-x: auto;
+      gap: 0;
+      padding: 4px 2px 10px;
+      scrollbar-width: thin;
+    }
+
+    .spine-month {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 30px;
+      flex-shrink: 0;
+    }
+
+    .spine-lbl {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 9px;
+      color: var(--ink-mute);
+      margin-bottom: 6px;
+      white-space: nowrap;
+    }
+
+    .spine-line {
+      width: 100%;
+      height: 2px;
+      background: var(--line-strong);
+    }
+
+    .spine-dots {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .spine-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 1.5px solid var(--bg-surface);
+      cursor: pointer;
+    }
+
+    .spine-more {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--ink-mute);
+      margin-top: 2px;
+    }
+
+    .story-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin-top: 10px;
+    }
+
+    .story-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--ink-2);
+    }
+
+    .story-legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .child-chip-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .child-chip {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--bg-subtle);
+      color: var(--ink-2);
+      cursor: pointer;
+    }
+
+    .child-chip.active {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    .catrow {
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+
+    .catrow-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .catrow-top b {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 12px;
+    }
+
+    .catbar-track {
+      height: 9px;
+      border-radius: 6px;
+      background: var(--bg-subtle);
+      overflow: hidden;
+    }
+
+    .catbar-fill {
+      height: 100%;
+      border-radius: 6px;
+    }
+
     /* ---------- mobile ---------- */
     @media (max-width: 480px) {
 
@@ -1311,7 +1535,8 @@
       }
 
       .cat-chip {
-        font-size: 10px;
+        font-size: 9px;
+        padding: 4.5px 8px;
       }
 
       .year-label {
@@ -1409,6 +1634,7 @@
     <div class="spacer"></div>
     <div id="auth-area">
       <button class="btn btn-icon btn-sm" id="btn-admin" title="Admin" onclick="openAdmin()" hidden>&#9881;</button>
+      <button class="btn btn-icon btn-sm" id="btn-story" title="Your story" onclick="openStoryView()" hidden>&#10024;</button>
       <button class="btn btn-sm" id="btn-signin" onclick="signInWithGoogle()">Sign in</button>
       <div id="user-menu-wrap" hidden>
         <button id="user-avatar" onclick="toggleUserMenu()" title="Account"></button>
@@ -1541,7 +1767,7 @@
         <label class="field-label">Events (one per line)</label>
         <div style="font-size:10px; color:var(--ink-3); margin-bottom:6px; line-height:1.5;">
           Format: <code>date, title, category, description, tags</code><br>
-          Category is one of achievement / milestone / learning / health (optional, defaults to achievement). Separate
+          Category is one of achievement / milestone / learning / health / moment (optional, defaults to achievement). Separate
           tags with <code>;</code>. Wrap a field in quotes if it contains a comma. Sample rows are pre-filled below
           &mdash; replace them with your own.
         </div>
@@ -1576,6 +1802,26 @@
       </div>
 
       <button class="btn btn-primary btn-block" onclick="saveChild()" id="c-save-btn">Add child</button>
+    </div>
+  </div>
+
+  <!-- STORY VIEW -->
+  <div class="overlay" id="story-overlay">
+    <div class="sheet">
+      <div class="sheet-grab"></div>
+      <div class="sheet-head">
+        <h2>Your story</h2>
+        <button class="sheet-close" onclick="closeOverlay('story-overlay')">&#10005;</button>
+      </div>
+      <div class="story-note" id="story-loaded-note" hidden>Based on your most recently loaded entries</div>
+
+      <div class="story-tabs">
+        <button class="story-tab active" data-tab="timeline" onclick="setStoryTab('timeline')">Timeline</button>
+        <button class="story-tab" data-tab="breakdown" onclick="setStoryTab('breakdown')">By category</button>
+      </div>
+
+      <div id="story-tab-timeline" class="story-tab-panel"></div>
+      <div id="story-tab-breakdown" class="story-tab-panel" hidden></div>
     </div>
   </div>
 
@@ -1671,8 +1917,15 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    const CATEGORIES = ['achievement', 'milestone', 'learning', 'health'];
-    const CATEGORY_LABEL = { achievement: 'Achievement', milestone: 'Milestone', learning: 'Learning', health: 'Health' };
+    const CATEGORIES = ['achievement', 'health', 'learning', 'milestone', 'moment'];
+    const CATEGORY_LABEL = { achievement: 'Achievement', milestone: 'Milestone', learning: 'Learning', health: 'Health', moment: 'Moment' };
+    const CATEGORY_DESC = {
+      achievement: 'Earned through effort',
+      milestone: 'A first, hit once',
+      learning: 'A skill, built over time',
+      health: 'Medical or wellness',
+      moment: 'A memory worth keeping',
+    };
 
     // Shown to signed-out visitors so they can see what a logged event looks like.
     const SAMPLE_ENTRIES = [
@@ -1836,6 +2089,7 @@
         contexts = []; ownerId = null; children = []; entries = []; shares = [];
         entriesCursor = null; entriesHasMore = false; entriesAllLoaded = false;
         document.getElementById('btn-admin').hidden = true;
+        updateStoryBtnVisibility();
         document.getElementById('timeline').innerHTML = renderEmptyState('');
         document.getElementById('load-more-row').hidden = true;
       }
@@ -1889,6 +2143,7 @@
       renderChildToggle();
       renderCategoryChips();
       renderTimeline();
+      updateStoryBtnVisibility();
     }
 
     /* ---------- data loading ---------- */
@@ -2069,7 +2324,7 @@
       <div class="empty-card">
         <div class="empty-icon">&#10024;</div>
         <h3>What is My Lore?</h3>
-        <p>A private life stream. Quickly log the events, achievements, and milestones as they happen — then reminisce, or turn the timeline into a resume, a college essay, or a story worth telling.</p>
+        <p>An unfolding life stream. Save moments, achievements, and milestones — <strong>then reminisce, or turn them into a time capsule, a college essay, or a story worth telling.</strong></p>
         <br>
         <p>Built by a dad of two kids and a puppy 🐶</p>
       </div>
@@ -2233,6 +2488,7 @@
         toggleSelectMode();
         await loadEntries();
         renderTimeline();
+        updateStoryBtnVisibility();
       } catch (err) {
         console.error('confirmBulkDelete failed:', err.code, err.message);
         toast(`Couldn't delete: ${err.code || err.message}`);
@@ -2264,7 +2520,12 @@
       childSelect.innerHTML = children.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
 
       const picks = document.getElementById('f-category-picks');
-      picks.innerHTML = CATEGORIES.map(c => `<span class="pick-chip" data-cat="${c}" onclick="pickCategory('${c}')">${CATEGORY_LABEL[c]}</span>`).join('');
+      picks.innerHTML = CATEGORIES.map(c => `
+        <span class="pick-chip" data-cat="${c}" onclick="pickCategory('${c}')">
+          <span>${CATEGORY_LABEL[c]}</span>
+          <span class="pick-chip-desc">${CATEGORY_DESC[c]}</span>
+        </span>
+      `).join('');
 
       const entry = entryId ? entries.find(e => e.id === entryId) : null;
 
@@ -2449,6 +2710,7 @@
         closeOverlay('entry-overlay');
         await loadEntries();
         renderTimeline();
+        updateStoryBtnVisibility();
       } catch (err) {
         console.error('saveEntry failed:', err.code, err.message);
         toast(`Couldn't save: ${err.code || err.message}`);
@@ -2540,6 +2802,7 @@
         await ensureAllEntriesLoaded();
         renderTimeline();
         renderAdminOverview();
+        updateStoryBtnVisibility();
       } catch (err) {
         console.error('runBulkImport failed:', err.code, err.message);
         toast(`Couldn't import: ${err.code || err.message}`);
@@ -2562,10 +2825,156 @@
         closeOverlay('entry-overlay');
         await loadEntries();
         renderTimeline();
+        updateStoryBtnVisibility();
       } catch (err) {
         console.error('deleteEntry failed:', err.code, err.message);
         toast(`Couldn't delete: ${err.code || err.message}`);
       }
+    }
+
+    /* ---------- story view: mini spine timeline + category breakdown ---------- */
+
+    let storyBreakdownChild = 'all'; // local to the modal, resets each time it opens
+
+    function updateStoryBtnVisibility() {
+      document.getElementById('btn-story').hidden = document.getElementById('btn-admin').hidden || !entries.length;
+    }
+
+    function openStoryView() {
+      storyBreakdownChild = 'all';
+      document.getElementById('story-loaded-note').hidden = entriesAllLoaded;
+      renderStoryTimeline();
+      renderStoryBreakdown();
+      setStoryTab('timeline');
+      openOverlay('story-overlay');
+    }
+
+    function setStoryTab(name) {
+      document.querySelectorAll('.story-tab').forEach(el => {
+        el.classList.toggle('active', el.dataset.tab === name);
+      });
+      document.getElementById('story-tab-timeline').hidden = name !== 'timeline';
+      document.getElementById('story-tab-breakdown').hidden = name !== 'breakdown';
+    }
+
+    const SPINE_DOT_CAP = 8;
+
+    function renderStoryTimeline() {
+      const el = document.getElementById('story-tab-timeline');
+      if (!entries.length) {
+        el.innerHTML = '<div class="story-empty">No entries yet.</div>';
+        return;
+      }
+
+      const byMonth = {}; // 'YYYY-MM' -> entries[]
+      entries.forEach(e => {
+        if (!e.date) return;
+        const key = e.date.slice(0, 7);
+        (byMonth[key] = byMonth[key] || []).push(e);
+      });
+
+      const months = Object.keys(byMonth).sort(); // chronological
+      const monthLabel = key => {
+        const [y, m] = key.split('-');
+        return new Date(Number(y), Number(m) - 1, 1)
+          .toLocaleDateString(undefined, { month: 'short' })
+          + (m === '01' ? ` '${y.slice(2)}` : ''); // year label only on January, keep it compact
+      };
+
+      el.innerHTML = `
+        <div class="spine-wrap" id="spine-scroll">
+          ${months.map(key => {
+            const monthEntries = byMonth[key];
+            const shown = monthEntries.slice(0, SPINE_DOT_CAP);
+            const overflow = monthEntries.length - shown.length;
+            return `
+            <div class="spine-month">
+              <div class="spine-lbl">${monthLabel(key)}</div>
+              <div class="spine-line"></div>
+              <div class="spine-dots">
+                ${shown.map(e => `
+                  <span class="spine-dot"
+                        style="background:var(--c-${e.category}, var(--ink-3));"
+                        title="${escapeHtml(e.title)} — ${e.date}"
+                        onclick="onSpineDotClick('${e.id}')"></span>
+                `).join('')}
+                ${overflow > 0 ? `<span class="spine-more">+${overflow}</span>` : ''}
+              </div>
+            </div>
+          `}).join('')}
+        </div>
+        <div class="story-legend">
+          ${CATEGORIES.map(c => `
+            <span class="story-legend-item">
+              <span class="story-legend-dot" style="background:var(--c-${c});"></span>${CATEGORY_LABEL[c]}
+            </span>
+          `).join('')}
+        </div>
+      `;
+
+      // scroll to the end (most recent month) on first render
+      const scroller = document.getElementById('spine-scroll');
+      if (scroller) scroller.scrollLeft = scroller.scrollWidth;
+    }
+
+    function onSpineDotClick(entryId) {
+      closeOverlay('story-overlay');
+      openEntrySheet(entryId);
+    }
+
+    function renderStoryBreakdown() {
+      const el = document.getElementById('story-tab-breakdown');
+      if (!entries.length) {
+        el.innerHTML = '<div class="story-empty">No entries yet.</div>';
+        return;
+      }
+
+      const filtered = storyBreakdownChild === 'all'
+        ? entries
+        : entries.filter(e => e.childId === storyBreakdownChild);
+
+      const counts = {};
+      CATEGORIES.forEach(c => counts[c] = 0);
+      filtered.forEach(e => { if (counts[e.category] !== undefined) counts[e.category]++; });
+      const max = Math.max(1, ...Object.values(counts));
+
+      el.innerHTML = `
+        <div class="child-chip-row">
+          <span class="child-chip ${storyBreakdownChild === 'all' ? 'active' : ''}"
+                onclick="setStoryBreakdownChild('all')">All</span>
+          ${children.map(c => `
+            <span class="child-chip ${storyBreakdownChild === c.id ? 'active' : ''}"
+                  onclick="setStoryBreakdownChild('${c.id}')">${escapeHtml(c.name)}</span>
+          `).join('')}
+        </div>
+        ${filtered.length === 0
+          ? '<div class="story-empty">No entries for this filter yet.</div>'
+          : CATEGORIES.map(c => `
+            <div class="catrow" onclick="applyStoryFilter('${c}')">
+              <div class="catrow-top">
+                <b>${CATEGORY_LABEL[c]}</b><span>${counts[c]}</span>
+              </div>
+              <div class="catbar-track">
+                <div class="catbar-fill" style="width:${(counts[c] / max) * 100}%; background:var(--c-${c});"></div>
+              </div>
+            </div>
+          `).join('')
+        }
+      `;
+    }
+
+    function setStoryBreakdownChild(childId) {
+      storyBreakdownChild = childId;
+      renderStoryBreakdown();
+    }
+
+    function applyStoryFilter(category) {
+      activeChildFilter = storyBreakdownChild;
+      activeCategoryFilter = category;
+      renderChildToggle();
+      renderCategoryChips();
+      closeOverlay('story-overlay');
+      onFilterChanged();
     }
 
     /* ---------- admin: overview + children ---------- */
