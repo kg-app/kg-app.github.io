@@ -58,20 +58,5 @@ service cloud.firestore {
       allow read: if request.auth != null
                      && resource.data.email == request.auth.token.email;
     }
-
-    // ---------------- E2EE key material ----------------
-    // Each signed-in user publishes their own RSA-OAEP public key here so
-    // journal owners can wrap the journal's AES key for them. Readable by any
-    // signed-in user (needed to look up an invitee's key by email); writable
-    // only by that email's own account.
-    match /publicKeys/{email} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.token.email == email;
-    }
-
-    // The owner's own wrapped copy of the journal's AES data key.
-    match /users/{ownerId}/keys/{doc} {
-      allow read, write: if isOwner(ownerId);
-    }
   }
 }

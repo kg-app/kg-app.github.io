@@ -32,7 +32,7 @@
       --ink-3: #7d7368;
       --ink-mute: #988f84;
       --bg-page: #f5f0e6;
-      --bg-surface: #fafafa;
+      --bg-surface: #fdfbf6;
       --bg-subtle: #efe8db;
       --line: #e6dcc9;
       --line-strong: #d6c9ac;
@@ -43,16 +43,16 @@
       --accent: #3d2a63;
       --accent-2: #1e293b;
 
-      --c-achievement: #ff7f00;
-      --c-achievement-bg: #ffebd6;
-      --c-milestone: #377eb8;
-      --c-milestone-bg: #dfeaf4;
-      --c-learning: #f781bf;
-      --c-learning-bg: #feebf5;
-      --c-health: #4daf4a;
-      --c-health-bg: #e3f2e2;
-      --c-moment: #a65628;
-      --c-moment-bg: #f1e4dd;
+      --c-achievement: #b5551f;
+      --c-achievement-bg: #fbe4cf;
+      --c-milestone: #2a4ba0;
+      --c-milestone-bg: #dde5fb;
+      --c-learning: #9c1f4e;
+      --c-learning-bg: #fbdce7;
+      --c-health: #1a7a68;
+      --c-health-bg: #d9f0ea;
+      --c-moment: #6b3fa0;
+      --c-moment-bg: #ede1f7;
 
       --bg-texture-color: #fffeea;
       --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg fill='%238fb5f7' fill-opacity='0.08'%3E%3Cpath d='M12 0h18v6h6v6h6v18h-6v6h-6v6H12v-6H6v-6H0V12h6V6h6V0zm12 6h-6v6h-6v6H6v6h6v6h6v6h6v-6h6v-6h6v-6h-6v-6h-6V6zm-6 12h6v6h-6v-6zm24 24h6v6h-6v-6z'%3E%3C/path%3E%3C/g%3E%3C/svg%3E");
@@ -669,6 +669,25 @@
       margin-top: 1px;
     }
 
+    .sample-label {
+      max-width: 380px;
+      margin: 26px auto 10px;
+      font-size: 11.5px;
+      color: var(--ink-mute);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .sample-card {
+      cursor: default;
+      opacity: .92;
+    }
+
+    .sample-card:hover {
+      border-color: var(--line);
+    }
+
     /* ---------- FAB ---------- */
     #fab {
       position: fixed;
@@ -875,15 +894,12 @@
       align-items: center;
       gap: 6px;
     }
-
     .tag-combo:focus-within {
       border-color: var(--accent);
     }
-
     .tag-chip-row {
       display: contents;
     }
-
     .tag-chip {
       display: inline-flex;
       align-items: center;
@@ -896,7 +912,6 @@
       color: var(--ink-2);
       white-space: nowrap;
     }
-
     .tag-chip button {
       border: none;
       background: rgba(46, 38, 32, .12);
@@ -912,7 +927,6 @@
       justify-content: center;
       padding: 0;
     }
-
     .tag-combo input {
       flex: 1;
       min-width: 90px;
@@ -920,11 +934,9 @@
       padding: 4px 2px;
       background: transparent;
     }
-
     .tag-combo input:focus {
       outline: none;
     }
-
     .tag-dropdown {
       position: absolute;
       left: 0;
@@ -940,7 +952,6 @@
       z-index: 5;
       padding: 4px;
     }
-
     .tag-option {
       font-size: 12px;
       padding: 7px 9px;
@@ -948,12 +959,9 @@
       cursor: pointer;
       color: var(--ink-2);
     }
-
-    .tag-option:hover,
-    .tag-option.active {
+    .tag-option:hover, .tag-option.active {
       background: var(--bg-subtle);
     }
-
     .tag-option .new-hint {
       color: var(--ink-mute);
       font-size: 10.5px;
@@ -1329,240 +1337,11 @@
       transform: translateX(-50%) translateY(-6px);
     }
 
-    /* ---------- landing (signed-out) ---------- */
-    body:has(#landing-hero:not([hidden])) {
-      overflow: hidden;
-    }
-
-    #landing-hero {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      align-items: stretch;
-      height: calc(100vh - 56px);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .lp-panel {
-      height: 100%;
-      padding: 6% 9%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      overflow-y: auto;
-      position: relative;
-    }
-
-    .lp-left {
-      background: var(--bg-surface);
-      border-right: 1px solid var(--line);
-    }
-
-    .lp-brand-mini {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .lp-icon-badge {
-      width: 46px;
-      height: 46px;
-      border-radius: 13px;
-      background: var(--bg-subtle);
-      border: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 21px;
-      flex-shrink: 0;
-    }
-
-    .lp-brand-mini-label {
-      font-family: 'Baloo 2', sans-serif;
-      font-weight: 700;
-      font-size: 16px;
-      color: var(--ink-2);
-      letter-spacing: .01em;
-    }
-
-    .lp-left h1 {
-      font-family: 'Baloo 2', sans-serif;
-      font-weight: 800;
-      font-size: clamp(26px, 3vw, 34px);
-      line-height: 1.15;
-      margin-bottom: 14px;
-    }
-
-    .lp-accent-word {
-      background: linear-gradient(100deg, #6b5fd6, #c98a6b);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .lp-lede {
-      font-size: 15px;
-      line-height: 1.65;
-      color: var(--ink-2);
-      max-width: 460px;
-      margin-bottom: 18px;
-    }
-
-    .lp-signature {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-      color: var(--ink-3);
-      margin-bottom: 26px;
-    }
-
-    .lp-avatar-dot {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: var(--bg-subtle);
-      border: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      flex-shrink: 0;
-    }
-
-    .lp-cta-row {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-
-    .lp-cta {
-      font-family: 'Baloo 2', sans-serif;
-      font-weight: 700;
-      font-size: 14.5px;
-      padding: 13px 22px;
-      border-radius: 999px;
-      border: none;
-      background: var(--accent);
-      color: #fdfbf6;
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      cursor: pointer;
-      box-shadow: 0 3px 0 #2a1c47;
-      transition: transform .12s ease, box-shadow .12s ease;
-    }
-
-    .lp-cta:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 0 #2a1c47;
-    }
-
-    .lp-cta:active {
-      transform: translateY(2px);
-      box-shadow: 0 1px 0 #2a1c47;
-    }
-
-    .lp-cta svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    .lp-trust {
-      font-size: 11.5px;
-      color: var(--ink-mute);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .lp-right {
-      gap: 12px;
-    }
-
-    .lp-stream-label {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .07em;
-      color: var(--ink-mute);
-      margin-bottom: 4px;
-    }
-
-    .lp-right .entry-row {
-      margin-bottom: 10px;
-      opacity: 0;
-      animation: lp-rise .5s ease forwards;
-    }
-
-    .lp-right .entry-card {
-      cursor: default;
-    }
-
-    .lp-right .entry-row:nth-child(2) {
-      animation-delay: .08s;
-    }
-
-    .lp-right .entry-row:nth-child(3) {
-      animation-delay: .16s;
-    }
-
-    .lp-right .entry-row:nth-child(4) {
-      animation-delay: .24s;
-    }
-
-    .lp-right .entry-row:nth-child(5) {
-      animation-delay: .32s;
-    }
-
-    .lp-right .entry-row:nth-child(6) {
-      animation-delay: .4s;
-    }
-
-    @keyframes lp-rise {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .lp-more-hint {
-      font-size: 11.5px;
-      color: var(--ink-mute);
+    #signed-out-msg {
       text-align: center;
-      margin-top: 2px;
-      opacity: 0;
-      animation: lp-rise .5s ease forwards;
-      animation-delay: .48s;
-    }
-
-    @media (max-width: 860px) {
-      body:has(#landing-hero:not([hidden])) {
-        overflow: visible;
-      }
-
-      #landing-hero {
-        grid-template-columns: 1fr;
-        height: auto;
-        overflow: visible;
-      }
-
-      .lp-left {
-        border-right: none;
-        border-bottom: 1px solid var(--line);
-      }
-
-      .lp-panel {
-        padding: 40px 24px;
-      }
+      color: var(--ink-mute);
+      font-size: 12px;
+      padding: 60px 20px;
     }
 
     /* ---------- story view ---------- */
@@ -1622,31 +1401,6 @@
       align-items: center;
       min-width: 30px;
       flex-shrink: 0;
-    }
-
-    .spine-year-divider {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      flex-shrink: 0;
-      padding: 0 6px;
-    }
-
-    .spine-year-lbl {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--ink-2);
-      margin-bottom: 6px;
-      white-space: nowrap;
-    }
-
-    .spine-year-line {
-      width: 1.5px;
-      flex: 1;
-      min-height: 10px;
-      background: var(--line);
-      border-radius: 2px;
     }
 
     .spine-lbl {
@@ -1883,8 +1637,7 @@
     <div class="spacer"></div>
     <div id="auth-area">
       <button class="btn btn-icon btn-sm" id="btn-admin" title="Admin" onclick="openAdmin()" hidden>&#9881;</button>
-      <button class="btn btn-icon btn-sm" id="btn-story" title="Your story" onclick="openStoryView()"
-        hidden>&#10024;</button>
+      <button class="btn btn-icon btn-sm" id="btn-story" title="Your story" onclick="openStoryView()" hidden>&#10024;</button>
       <button class="btn btn-sm" id="btn-signin" onclick="signInWithGoogle()">Sign in</button>
       <div id="user-menu-wrap" hidden>
         <button id="user-avatar" onclick="toggleUserMenu()" title="Account"></button>
@@ -1895,132 +1648,6 @@
       </div>
     </div>
   </div>
-
-  <section id="landing-hero">
-    <div class="lp-panel lp-left">
-      <div class="lp-brand-mini">
-        <div class="lp-icon-badge" aria-hidden="true">&#127793;</div>
-        <div class="lp-brand-mini-label">What is My Lore?</div>
-      </div>
-
-      <h1>An unfolding<br><span class="lp-accent-word">life stream</span></h1>
-      <p class="lp-lede">Private, and yours alone. Save the moments as they happen, then reminisce, open it like a
-        time capsule, or turn it into a resume, a college essay, or a story worth telling.</p>
-
-      <div class="lp-signature">
-        <span class="lp-avatar-dot" aria-hidden="true">&#128054;</span>
-        Built by a dad of two kids and a puppy
-      </div>
-
-      <div class="lp-cta-row">
-        <button class="lp-cta" onclick="signInWithGoogle()">
-          <svg viewBox="0 0 48 48">
-            <path fill="#fff"
-              d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6-6C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z" />
-          </svg>
-          Log in and use My Lore
-        </button>
-      </div>
-
-      <div class="lp-trust">&#128274; Entries are encrypted — only you can see them</div>
-    </div>
-
-    <div class="lp-panel lp-right">
-      <div class="lp-stream-label">What an event stream looks like</div>
-
-      <div class="entry-row">
-        <div class="entry-card" style="background:#dbeafe;">
-          <div class="entry-icon" style="background:var(--c-milestone-bg); color:var(--c-milestone);">M</div>
-          <div class="entry-body">
-            <div class="entry-top">
-              <div class="entry-title">First steps!</div>
-              <div class="entry-date">Mar 2</div>
-            </div>
-            <div class="entry-desc">Wobbly steps across the living room, straight into Dad's arms.</div>
-            <div class="pill-row">
-              <span class="pill cat-milestone">Milestone</span>
-              <span class="pill">Mia</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="entry-row">
-        <div class="entry-card" style="background:#fef3c7;">
-          <div class="entry-icon" style="background:var(--c-achievement-bg); color:var(--c-achievement);">L</div>
-          <div class="entry-body">
-            <div class="entry-top">
-              <div class="entry-title">Won the school spelling bee</div>
-              <div class="entry-date">Nov 14</div>
-            </div>
-            <div class="entry-desc">Took first place spelling "chrysanthemum" without a hitch.</div>
-            <div class="entry-media">
-              <img
-                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23efe8db'/%3E%3Ccircle cx='23' cy='22' r='6' fill='%23d6c9ac'/%3E%3Cpath d='M6 48 L24 30 L34 40 L46 26 L58 48 Z' fill='%23d6c9ac'/%3E%3C/svg%3E"
-                alt="">
-            </div>
-            <div class="pill-row">
-              <span class="pill cat-achievement">Achievement</span>
-              <span class="pill">Leo</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="entry-row">
-        <div class="entry-card" style="background:#dbeafe;">
-          <div class="entry-icon" style="background:var(--c-learning-bg); color:var(--c-learning);">M</div>
-          <div class="entry-body">
-            <div class="entry-top">
-              <div class="entry-title">Finished her first chapter book</div>
-              <div class="entry-date">Jun 21</div>
-            </div>
-            <div class="entry-desc">Read it cover to cover, all by herself.</div>
-            <div class="pill-row">
-              <span class="pill cat-learning">Learning</span>
-              <span class="pill">Mia</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="entry-row">
-        <div class="entry-card" style="background:#fae8ff;">
-          <div class="entry-icon" style="background:var(--c-health-bg); color:var(--c-health);">R</div>
-          <div class="entry-body">
-            <div class="entry-top">
-              <div class="entry-title">Vet check-up: all clear</div>
-              <div class="entry-date">Sep 8</div>
-            </div>
-            <div class="entry-desc">Annual check-up — weight, teeth, and vitals all normal.</div>
-            <div class="pill-row">
-              <span class="pill cat-health">Health</span>
-              <span class="pill">Rex</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="entry-row">
-        <div class="entry-card" style="background:#fef3c7;">
-          <div class="entry-icon" style="background:var(--c-moment-bg); color:var(--c-moment);">L</div>
-          <div class="entry-body">
-            <div class="entry-top">
-              <div class="entry-title">Beach trip, just the two of us</div>
-              <div class="entry-date">Aug 3</div>
-            </div>
-            <div class="entry-desc">Built a lopsided sandcastle and ate way too much ice cream.</div>
-            <div class="pill-row">
-              <span class="pill cat-moment">Moment</span>
-              <span class="pill">Leo</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="lp-more-hint">+ 127 more moments, waiting</div>
-    </div>
-  </section>
 
   <div id="select-bar">
     <span class="count" id="select-count">0 selected</span>
@@ -2048,6 +1675,7 @@
       <button class="btn btn-sm" id="btn-load-more" onclick="loadMoreEntries()">Load more</button>
     </div>
     <div id="scroll-sentinel" style="height:1px;"></div>
+    <div id="signed-out-msg">Sign in to see your family's story.</div>
   </div>
 
   <button id="fab" onclick="openEntrySheet()" hidden>+</button>
@@ -2060,7 +1688,7 @@
       </p>
       <p>Type <span class="challenge-code" id="delete-challenge-code">DELETE</span> to confirm.</p>
       <input id="delete-challenge-input" autocomplete="off" oninput="onDeleteChallengeInput()">
-      <button class="btn btn-block btn-danger" id="delete-confirm-btn" onclick="confirmDeleteModal()"
+      <button class="btn btn-block btn-danger" id="delete-confirm-btn" onclick="confirmBulkDelete()"
         disabled>Delete</button>
       <button class="btn btn-block" style="margin-top:8px;" onclick="closeOverlay('delete-modal')">Cancel</button>
     </div>
@@ -2106,8 +1734,8 @@
         <label class="field-label">Tags</label>
         <div class="tag-combo" id="tag-combo">
           <div class="tag-chip-row" id="tag-chip-row"></div>
-          <input id="f-tags" placeholder="Add a tag…" autocomplete="off" oninput="onTagInput()"
-            onkeydown="onTagKeydown(event)" onfocus="onTagInput()">
+          <input id="f-tags" placeholder="Add a tag…" autocomplete="off"
+            oninput="onTagInput()" onkeydown="onTagKeydown(event)" onfocus="onTagInput()">
           <div class="tag-dropdown" id="tag-dropdown" hidden></div>
         </div>
       </div>
@@ -2142,8 +1770,7 @@
         <label class="field-label">Events (one per line)</label>
         <div style="font-size:10px; color:var(--ink-3); margin-bottom:6px; line-height:1.5;">
           Format: <code>date, title, category, description, tags</code><br>
-          Category is one of achievement / milestone / learning / health / moment (optional, defaults to achievement).
-          Separate
+          Category is one of achievement / milestone / learning / health / moment (optional, defaults to achievement). Separate
           tags with <code>;</code>. Wrap a field in quotes if it contains a comma. Sample rows are pre-filled below
           &mdash; replace them with your own.
         </div>
@@ -2220,17 +1847,6 @@
       <button class="btn btn-block" style="margin-bottom:22px;" onclick="openBulkImport()">&#128228; Bulk
         import</button>
 
-      <div class="section-label">Encryption</div>
-      <div class="list-card" style="padding:12px; margin-bottom:22px;">
-        <div style="font-size:12.5px; color:var(--ink-3); margin-bottom:10px;">
-          Entry text and photos are encrypted before they're stored. Entries added before encryption was turned on
-          are still readable but not yet encrypted — run this once to bring them up to date.
-        </div>
-        <button class="btn btn-block" id="encrypt-migrate-btn" onclick="migrateToEncrypted()">&#128274; Encrypt
-          existing entries</button>
-        <div id="encrypt-migrate-status" style="font-size:12px; color:var(--ink-3); margin-top:6px;"></div>
-      </div>
-
       <div class="section-label">Share view-only / editable link</div>
       <div class="list-card" style="padding:12px;">
         <div class="field">
@@ -2305,6 +1921,26 @@
       moment: 'A memory worth keeping',
     };
 
+    // Shown to signed-out visitors so they can see what a logged event looks like.
+    const SAMPLE_ENTRIES = [
+      {
+        childName: 'Mia', category: 'milestone', title: 'First steps!', date: '2026-03-02',
+        description: "Mia took her first wobbly steps across the living room into Dad's arms :)"
+      },
+      {
+        childName: 'Leo', category: 'achievement', title: 'Won the school spelling bee', date: '2025-11-14',
+        description: 'Took first place spelling "chrysanthemum" without a hitch. So proud!'
+      },
+      {
+        childName: 'Rex', category: 'health', title: 'Vet check-up: all clear', date: '2025-09-08',
+        description: 'Annual check-up.. weight, teeth, and vitals all normal.'
+      },
+      {
+        childName: 'Mia', category: 'learning', title: 'Finished her first chapter book', date: '2025-06-21',
+        description: 'Read "Junie B. Jones" cover to cover, all by herself.'
+      },
+    ];
+
     let currentUser = null;
     let contexts = [];        // [{id: ownerUid, label, role: 'owner'|'editor'|'viewer'}]
     let ownerId = null;       // uid of the journal currently being viewed
@@ -2318,9 +1954,6 @@
     let activeChildFilter = 'all';
     let activeCategoryFilter = 'all';
 
-    let pendingDeleteMode = 'entries'; // 'entries' | 'child'
-    let pendingDeleteChildId = null;
-
     const ENTRIES_PAGE_SIZE = 20;
     let entriesCursor = null;     // last loaded doc snapshot, for startAfter()
     let entriesHasMore = true;    // more pages left to fetch on the server
@@ -2333,12 +1966,6 @@
     let shareScope = 'all';
     let selectMode = false;
     let selectedIds = new Set();
-
-    // E2EE key state (see /* ---------- crypto ---------- */ below).
-    let myPrivateKey = null;        // this browser's non-extractable RSA-OAEP CryptoKey
-    let journalKey = null;          // AES-GCM CryptoKey for the currently-loaded journal
-    let journalKeyOwnerId = null;   // which ownerId `journalKey` belongs to (invalidate on switch)
-    const publicKeyCache = new Map(); // email -> imported RSA-OAEP public CryptoKey
 
     /* ---------- helpers ---------- */
 
@@ -2418,335 +2045,6 @@
       return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     }
 
-    /* ---------- crypto (partial end-to-end encryption) ---------- */
-    // Entry title/description/tags and photos are encrypted client-side with
-    // AES-GCM before they ever reach Firestore/Storage; childId/category/date/
-    // timestamps/author fields stay plaintext so Firestore can still filter,
-    // sort, and paginate server-side. Each signed-in user has an RSA-OAEP
-    // keypair — the private half never leaves the browser (stored in
-    // IndexedDB, generated non-extractable). The journal's AES data key is
-    // wrapped separately for the owner and each active collaborator so only
-    // they can unwrap it with their own private key. See README for the full
-    // design writeup.
-
-    const IDB_DB = 'my-lore-keys';
-    const IDB_STORE = 'keys';
-    function idbOpen() {
-      return new Promise((resolve, reject) => {
-        const req = indexedDB.open(IDB_DB, 1);
-        req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      });
-    }
-    async function idbGet(key) {
-      const idb = await idbOpen();
-      return new Promise((resolve, reject) => {
-        const req = idb.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(key);
-        req.onsuccess = () => resolve(req.result || null);
-        req.onerror = () => reject(req.error);
-      });
-    }
-    async function idbPut(key, value) {
-      const idb = await idbOpen();
-      return new Promise((resolve, reject) => {
-        const tx = idb.transaction(IDB_STORE, 'readwrite');
-        tx.objectStore(IDB_STORE).put(value, key);
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
-      });
-    }
-
-    function buf2b64(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))); }
-    function b642buf(b64) { return Uint8Array.from(atob(b64), c => c.charCodeAt(0)).buffer; }
-
-    // Generates (once per browser) or loads this user's RSA-OAEP keypair. The
-    // private key is generated non-extractable and persisted as a CryptoKey
-    // object directly in IndexedDB — it's never exported, never transmitted.
-    // The public key is exported and published so journal owners can look it
-    // up by email to wrap the journal key for this user.
-    async function loadOrCreateKeypair() {
-      if (!currentUser || !currentUser.email) return;
-      const existingPriv = await idbGet('privateKey');
-      const existingPubB64 = await idbGet('publicKeySpki');
-
-      if (existingPriv && existingPubB64) {
-        myPrivateKey = existingPriv;
-        // Make sure the server's published key actually matches what's cached
-        // locally — not just that a doc exists. A prior publish attempt may
-        // have failed (rules not deployed yet), or the two could have
-        // diverged some other way; either leaves anything wrapped against the
-        // stale published key unusable with this browser's private key.
-        const snap = await db.collection('publicKeys').doc(currentUser.email).get();
-        if (!snap.exists || snap.data().publicKey !== existingPubB64) {
-          console.warn('publicKeys doc missing or out of sync with local keypair — republishing.');
-          await db.collection('publicKeys').doc(currentUser.email).set({
-            publicKey: existingPubB64, updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          });
-        }
-        return;
-      }
-
-      // No usable local keypair yet — generate one. (Also covers a legacy
-      // state from before the public key was cached alongside the private
-      // one locally: safer to start clean than guess at a mismatched pair.)
-      const pair = await crypto.subtle.generateKey(
-        { name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
-        false, ['wrapKey', 'unwrapKey']
-      );
-      await idbPut('privateKey', pair.privateKey);
-      myPrivateKey = pair.privateKey;
-
-      const spki = await crypto.subtle.exportKey('spki', pair.publicKey);
-      const pubB64 = buf2b64(spki);
-      await idbPut('publicKeySpki', pubB64);
-      await db.collection('publicKeys').doc(currentUser.email).set({
-        publicKey: pubB64, updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      });
-    }
-
-    async function getPublicKey(email) {
-      if (publicKeyCache.has(email)) return publicKeyCache.get(email);
-      const snap = await db.collection('publicKeys').doc(email).get();
-      if (!snap.exists) { publicKeyCache.set(email, null); return null; }
-      const key = await crypto.subtle.importKey(
-        'spki', b642buf(snap.data().publicKey), { name: 'RSA-OAEP', hash: 'SHA-256' }, true, ['wrapKey']
-      );
-      publicKeyCache.set(email, key);
-      return key;
-    }
-
-    // Ensures `journalKey` holds the AES-GCM key for the journal currently
-    // loaded (`ownerId`) — generating one (owner, first use) or fetching +
-    // unwrapping the caller's already-wrapped copy otherwise. Returns null if
-    // no key is available yet (e.g. a collaborator whose wrap is still
-    // pending — see completePendingKeyWraps).
-    async function ensureJournalKey() {
-      if (journalKeyOwnerId === ownerId && journalKey) return journalKey;
-      if (!myPrivateKey) await loadOrCreateKeypair();
-
-      const keyDocRef = db.collection('users').doc(ownerId).collection('keys').doc('journal');
-
-      if (isOwnerView) {
-        const snap = await keyDocRef.get();
-        if (snap.exists) {
-          try {
-            journalKey = await crypto.subtle.unwrapKey(
-              'raw', b642buf(snap.data().wrappedKeyForOwner), myPrivateKey,
-              { name: 'RSA-OAEP' }, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
-            );
-            journalKeyOwnerId = ownerId;
-            return journalKey;
-          } catch (err) {
-            // This browser's private key doesn't match what the journal key was
-            // wrapped against (e.g. IndexedDB didn't persist across a reload/port
-            // change). Self-heal by generating a fresh journal key rather than
-            // hard-failing — any entries already encrypted under the old key
-            // become unreadable (they'll show "(unable to decrypt)"), which is
-            // unavoidable once the matching private key is gone.
-            console.error('Journal key unwrap failed, generating a new one:', err.name, err.message);
-            toast("This device's key didn't match the saved journal key — generating a new one. Entries encrypted under the old key won't be readable.");
-            publicKeyCache.delete(currentUser.email); // don't reuse a possibly-stale cached entry
-          }
-        }
-        // First time this journal needs a key, or recovering from a mismatch
-        // above: generate one and self-wrap it.
-        const aesKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
-        const myPub = await getPublicKey(currentUser.email);
-        const wrapped = await crypto.subtle.wrapKey('raw', aesKey, myPub, { name: 'RSA-OAEP' });
-        await keyDocRef.set({
-          wrappedKeyForOwner: buf2b64(wrapped),
-          keyVersion: firebase.firestore.FieldValue.increment(1),
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        }, { merge: true });
-        journalKey = aesKey; journalKeyOwnerId = ownerId;
-        return journalKey;
-      }
-
-      // Collaborator: their wrapped copy lives on their own share doc.
-      const shareSnap = await db.collection('users').doc(ownerId).collection('shares').doc(currentUser.email).get();
-      const wrappedKey = shareSnap.exists ? shareSnap.data().wrappedKey : null;
-      if (!wrappedKey) { journalKey = null; journalKeyOwnerId = ownerId; return null; }
-      journalKey = await crypto.subtle.unwrapKey(
-        'raw', b642buf(wrappedKey), myPrivateKey,
-        { name: 'RSA-OAEP' }, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
-      );
-      journalKeyOwnerId = ownerId;
-      return journalKey;
-    }
-
-    // Encrypts {title, description, tags} into a single base64 `contentEnc`
-    // field (random 12-byte IV prepended to the ciphertext).
-    async function encryptEntryFields({ title, description, tags }) {
-      const key = (journalKeyOwnerId === ownerId && journalKey) ? journalKey : await ensureJournalKey();
-      if (!key) throw new Error('No journal key available yet — try again in a moment.');
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      const plaintext = new TextEncoder().encode(JSON.stringify({ title, description, tags }));
-      const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plaintext);
-      const combined = new Uint8Array(iv.byteLength + ciphertext.byteLength);
-      combined.set(iv, 0); combined.set(new Uint8Array(ciphertext), iv.byteLength);
-      return buf2b64(combined.buffer);
-    }
-
-    // Decrypts an entry doc's `contentEnc` back onto its title/description/tags
-    // fields. Legacy entries with no `contentEnc` (written before encryption
-    // shipped, or not yet migrated) pass through untouched so old and new
-    // entries render side by side without error.
-    async function decryptEntryFields(entry) {
-      if (!entry.contentEnc) return entry;
-      try {
-        const key = (journalKeyOwnerId === ownerId && journalKey) ? journalKey : await ensureJournalKey();
-        if (!key) throw new Error('no key');
-        const combined = new Uint8Array(b642buf(entry.contentEnc));
-        const iv = combined.slice(0, 12);
-        const ciphertext = combined.slice(12);
-        const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
-        const { title, description, tags } = JSON.parse(new TextDecoder().decode(plaintext));
-        return { ...entry, title, description, tags };
-      } catch (err) {
-        console.warn('decryptEntryFields failed for', entry.id, err);
-        return { ...entry, title: '(unable to decrypt)', description: '', tags: [] };
-      }
-    }
-
-    // Photo bytes are encrypted with a per-entry AES-GCM media key (kept
-    // separate from the journal key so revoking access only needs to re-wrap
-    // this small key on rotation, never re-upload photo bytes).
-    async function encryptBlob(blob, mediaKey) {
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      const plaintext = await blob.arrayBuffer();
-      const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, mediaKey, plaintext);
-      const combined = new Uint8Array(iv.byteLength + ciphertext.byteLength);
-      combined.set(iv, 0); combined.set(new Uint8Array(ciphertext), iv.byteLength);
-      return new Blob([combined], { type: 'application/octet-stream' });
-    }
-    async function decryptBlob(ciphertextBuf, mediaKey) {
-      const combined = new Uint8Array(ciphertextBuf);
-      const iv = combined.slice(0, 12);
-      const ciphertext = combined.slice(12);
-      const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, mediaKey, ciphertext);
-      return new Blob([plaintext], { type: 'image/jpeg' });
-    }
-    async function wrapMediaKey(mediaKey) {
-      const key = (journalKeyOwnerId === ownerId && journalKey) ? journalKey : await ensureJournalKey();
-      const raw = await crypto.subtle.exportKey('raw', mediaKey);
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, raw);
-      const combined = new Uint8Array(iv.byteLength + ciphertext.byteLength);
-      combined.set(iv, 0); combined.set(new Uint8Array(ciphertext), iv.byteLength);
-      return buf2b64(combined.buffer);
-    }
-    async function unwrapMediaKey(wrapped) {
-      const key = (journalKeyOwnerId === ownerId && journalKey) ? journalKey : await ensureJournalKey();
-      const combined = new Uint8Array(b642buf(wrapped));
-      const iv = combined.slice(0, 12);
-      const ciphertext = combined.slice(12);
-      const raw = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
-      return crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']);
-    }
-
-    // Fetches + decrypts a stored photo into a local, displayable object URL,
-    // caching by Storage URL so re-renders don't re-download/re-decrypt. Legacy
-    // photos (no mediaKeyWrapped — uploaded before photo encryption shipped)
-    // pass through untouched, same as decryptEntryFields does for text.
-    const decryptedMediaCache = new Map(); // Storage download URL -> local object URL
-    async function resolveMediaUrl(entry, url) {
-      if (!entry.mediaKeyWrapped) return url;
-      if (decryptedMediaCache.has(url)) return decryptedMediaCache.get(url);
-      try {
-        const mediaKey = await unwrapMediaKey(entry.mediaKeyWrapped);
-        const resp = await fetch(url);
-        const buf = await resp.arrayBuffer();
-        const blob = await decryptBlob(buf, mediaKey);
-        const objectUrl = URL.createObjectURL(blob);
-        decryptedMediaCache.set(url, objectUrl);
-        return objectUrl;
-      } catch (err) {
-        console.warn('resolveMediaUrl failed for', url, err);
-        return null;
-      }
-    }
-
-    // Owner sharing with someone who has never signed in yet has no public key
-    // to wrap against (share doc is written with keyPending:true). Called on
-    // every journal load (owner only) to catch up any invitee who has since
-    // signed in and published a key.
-    async function completePendingKeyWraps() {
-      if (!isOwnerView) return;
-      const pending = shares.filter(s => s.status === 'active' && s.keyPending);
-      if (!pending.length) return;
-      const key = await ensureJournalKey();
-      if (!key) return;
-      let completed = 0;
-      for (const s of pending) {
-        const pub = await getPublicKey(s.email);
-        if (!pub) continue;
-        const wrapped = await crypto.subtle.wrapKey('raw', key, pub, { name: 'RSA-OAEP' });
-        await sharesCol().doc(s.id).update({ wrappedKey: buf2b64(wrapped), keyPending: false });
-        completed++;
-      }
-      if (completed) { await loadShares(); renderAdminShares(); }
-    }
-
-    // Rotates the journal's AES key: generates a new one, re-wraps it for the
-    // owner and every still-active collaborator, then re-encrypts every
-    // entry's text and re-wraps every entry's media key under it. Photo
-    // *bytes* already in Storage are never re-uploaded — only the small media
-    // key that unlocks them changes, so this stays cheap (pure Firestore
-    // reads/writes) even at thousands of entries. A revoked collaborator who
-    // already cached a photo's decrypted bytes/key keeps that one historical
-    // item — this closes off new/ongoing access, not retroactive local copies.
-    async function rotateJournalKey() {
-      const oldKey = await ensureJournalKey();
-      if (!oldKey) return; // nothing encrypted yet — nothing to rotate
-
-      const newKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
-
-      await loadShares();
-      const activeShares = shares.filter(s => s.status === 'active' && !s.keyPending);
-
-      const myPub = await getPublicKey(currentUser.email);
-      const ownerWrapped = await crypto.subtle.wrapKey('raw', newKey, myPub, { name: 'RSA-OAEP' });
-      await db.collection('users').doc(ownerId).collection('keys').doc('journal').update({
-        wrappedKeyForOwner: buf2b64(ownerWrapped),
-        keyVersion: firebase.firestore.FieldValue.increment(1),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      });
-
-      for (const s of activeShares) {
-        const pub = await getPublicKey(s.email);
-        if (!pub) continue;
-        const wrapped = await crypto.subtle.wrapKey('raw', newKey, pub, { name: 'RSA-OAEP' });
-        await sharesCol().doc(s.id).update({ wrappedKey: buf2b64(wrapped) });
-      }
-
-      // Re-encrypt every entry's text + re-wrap its media key, batched. The
-      // module-level `journalKey` is swapped between old/new mid-loop so the
-      // encrypt/decrypt helpers above (which read it implicitly) pick up the
-      // right key for each half of the operation.
-      await ensureAllEntriesLoaded();
-      const all = entries.slice();
-      const CHUNK = 400;
-      for (let i = 0; i < all.length; i += CHUNK) {
-        const chunk = all.slice(i, i + CHUNK);
-        const batch = db.batch();
-        for (const e of chunk) {
-          journalKey = oldKey; journalKeyOwnerId = ownerId;
-          const plainFields = e.contentEnc ? await decryptEntryFields(e) : e;
-          const mediaKey = e.mediaKeyWrapped ? await unwrapMediaKey(e.mediaKeyWrapped) : null;
-
-          journalKey = newKey; journalKeyOwnerId = ownerId;
-          const update = { contentEnc: await encryptEntryFields(plainFields) };
-          if (mediaKey) update.mediaKeyWrapped = await wrapMediaKey(mediaKey);
-          batch.update(entriesCol().doc(e.id), update);
-        }
-        await batch.commit();
-      }
-
-      journalKey = newKey; journalKeyOwnerId = ownerId;
-    }
-
     /* ---------- auth ---------- */
 
     function signInWithGoogle() {
@@ -2776,20 +2074,17 @@
       }
       document.getElementById('fab').hidden = !user;
       document.getElementById('controls').hidden = !user;
-      document.getElementById('landing-hero').hidden = !!user;
+      document.getElementById('signed-out-msg').hidden = !!user;
       document.getElementById('context-switch').hidden = true;
 
       if (user) {
-        try { await loadOrCreateKeypair(); }
-        catch (err) { console.error('loadOrCreateKeypair failed:', err.code, err.message); toast(`Couldn't set up encryption: ${err.code || err.message}`); }
         await discoverContexts();
       } else {
-        myPrivateKey = null; journalKey = null; journalKeyOwnerId = null; publicKeyCache.clear();
         contexts = []; ownerId = null; children = []; entries = []; shares = [];
         entriesCursor = null; entriesHasMore = false; entriesAllLoaded = false;
         document.getElementById('btn-admin').hidden = true;
         updateStoryBtnVisibility();
-        document.getElementById('timeline').innerHTML = '';
+        document.getElementById('timeline').innerHTML = renderEmptyState('');
         document.getElementById('load-more-row').hidden = true;
       }
     });
@@ -2833,23 +2128,12 @@
     async function loadJournal(id) {
       ownerId = id;
       isOwnerView = (ownerId === currentUser.uid);
-      journalKey = null; journalKeyOwnerId = null; // invalidate cached key from any previous journal
       document.getElementById('btn-admin').hidden = !isOwnerView;
       selectMode = false; selectedIds = new Set();
       document.getElementById('select-toggle').hidden = false;
       updateSelectBar();
-      if (isOwnerView) await loadShares();
-      try {
-        await ensureJournalKey(); // must resolve before loadEntries() so entries can decrypt on read
-      } catch (err) {
-        // Don't let a key-setup failure (e.g. firestore.rules not deployed yet)
-        // block loading — legacy plaintext entries still render fine via
-        // decryptEntryFields()'s passthrough; only new/encrypted saves need a key.
-        console.error('ensureJournalKey failed:', err.code, err.message);
-        toast(`Couldn't set up encryption key: ${err.code || err.message}`);
-      }
       await Promise.all([loadChildren(), loadEntries()]);
-      if (isOwnerView) completePendingKeyWraps(); // fire-and-forget, catches up any newly-signed-in invitee
+      if (isOwnerView) await loadShares();
       renderChildToggle();
       renderCategoryChips();
       renderTimeline();
@@ -2881,8 +2165,7 @@
       if (entriesCursor) q = q.startAfter(entriesCursor);
       if (pageSize) q = q.limit(pageSize);
       const snap = await q.get();
-      const page = await Promise.all(snap.docs.map(d => decryptEntryFields({ id: d.id, ...d.data() })));
-      entries = entries.concat(page);
+      entries = entries.concat(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       if (snap.docs.length) entriesCursor = snap.docs[snap.docs.length - 1];
       entriesHasMore = !!pageSize && snap.docs.length === pageSize;
     }
@@ -3004,7 +2287,44 @@
 
     function childName(id) { const c = children.find(c => c.id === id); return c ? c.name : ''; }
 
+    function renderSampleEntries() {
+      return SAMPLE_ENTRIES.map(e => {
+        const { bg } = childAvatarColor(e.childName);
+        const catSoft = `var(--c-${e.category}-bg, var(--bg-subtle))`;
+        const catColor = `var(--c-${e.category}, var(--ink-3))`;
+        return `
+      <div class="entry-row">
+        <div class="entry-card sample-card" style="background:${bg};">
+          <div class="entry-icon" style="background:${catSoft}; color:${catColor};">${escapeHtml(e.childName.charAt(0).toUpperCase())}</div>
+          <div class="entry-body">
+            <div class="entry-top">
+              <div class="entry-title">${escapeHtml(e.title)}</div>
+              <div class="entry-date">${fmtDate(e.date)}</div>
+            </div>
+            <div class="entry-desc">${escapeHtml(e.description)}</div>
+            <div class="pill-row">
+              <span class="pill cat-${e.category}">${CATEGORY_LABEL[e.category]}</span>
+              <span class="pill">${escapeHtml(e.childName)}</span>
+            </div>
+          </div>
+        </div>
+      </div>`;
+      }).join('');
+    }
+
     function renderEmptyState(searchQuery) {
+      if (!currentUser) {
+        return `
+      <div class="empty-card">
+        <div class="empty-icon">&#127793;</div>
+        <h3>What is My Lore?</h3>
+        <p>An unfolding life stream — a personal event log. Save the moments as they happen, then reminisce, or turn them into a time capsule, a college essay, or a story worth telling.</p>
+
+        <p>Built by a dad of two kids and a puppy 🐶</p>
+      </div>
+      <div class="sample-label">What an event stream looks like..</div>
+      ${renderSampleEntries()}`;
+      }
       if (!children.length) {
         return `
       <div class="empty-card">
@@ -3065,8 +2385,7 @@
         card.style.background = childAvatarColor(e.childId).bg;
         card.onclick = selectMode ? () => toggleEntrySelected(e.id) : () => openEntrySheet(e.id);
 
-        const shownUrls = (e.mediaUrls || []).slice(0, 4);
-        const media = shownUrls.map(u => `<img class="enc-img" data-url="${escapeHtml(u)}" alt="">`).join('');
+        const media = (e.mediaUrls || []).slice(0, 4).map(u => `<img src="${u}" alt="">`).join('');
         const tags = (e.tags || []).map(t => `<span class="pill">${escapeHtml(t)}</span>`).join('');
         const catSoft = `var(--c-${e.category}-bg, var(--bg-subtle))`;
         const catColor = `var(--c-${e.category}, var(--ink-3))`;
@@ -3098,10 +2417,6 @@
         }
         row.appendChild(card);
         el.appendChild(row);
-
-        card.querySelectorAll('.enc-img').forEach(img => {
-          resolveMediaUrl(e, img.dataset.url).then(src => { if (src) img.src = src; });
-        });
       });
     }
 
@@ -3131,7 +2446,6 @@
 
     function openDeleteConfirm() {
       if (!selectedIds.size) { toast('Select at least one entry.'); return; }
-      pendingDeleteMode = 'entries';
       const n = selectedIds.size;
       document.getElementById('delete-count-label').textContent = n === 1 ? 'this entry' : `these ${n} entries`;
       document.getElementById('delete-modal-warning').textContent =
@@ -3143,27 +2457,9 @@
       openOverlay('delete-modal');
     }
 
-    function openDeleteChildConfirm(childId, name) {
-      pendingDeleteMode = 'child';
-      pendingDeleteChildId = childId;
-      const count = entries.filter(e => e.childId === childId).length;
-      document.getElementById('delete-count-label').textContent = name;
-      document.getElementById('delete-modal-warning').textContent =
-        `This permanently deletes ${name} and ${count === 1 ? 'their entry' : `all ${count} of their entries`} (and photos). This can't be undone.`;
-      document.getElementById('delete-challenge-code').textContent = 'DELETE';
-      const input = document.getElementById('delete-challenge-input');
-      input.value = '';
-      document.getElementById('delete-confirm-btn').disabled = true;
-      openOverlay('delete-modal');
-    }
-
     function onDeleteChallengeInput() {
       const match = document.getElementById('delete-challenge-input').value === document.getElementById('delete-challenge-code').textContent;
       document.getElementById('delete-confirm-btn').disabled = !match;
-    }
-
-    function confirmDeleteModal() {
-      return pendingDeleteMode === 'child' ? confirmDeleteChild() : confirmBulkDelete();
     }
 
     async function confirmBulkDelete() {
@@ -3189,44 +2485,6 @@
         updateStoryBtnVisibility();
       } catch (err) {
         console.error('confirmBulkDelete failed:', err.code, err.message);
-        toast(`Couldn't delete: ${err.code || err.message}`);
-      } finally {
-        btn.disabled = false; btn.textContent = 'Delete';
-      }
-    }
-
-    async function confirmDeleteChild() {
-      const childId = pendingDeleteChildId;
-      if (!childId) return;
-      const child = childrenAll.find(c => c.id === childId);
-      const name = child ? child.name : 'child';
-      const btn = document.getElementById('delete-confirm-btn');
-      btn.disabled = true; btn.textContent = 'Deleting...';
-      try {
-        await ensureAllEntriesLoaded();
-        const childEntries = entries.filter(e => e.childId === childId);
-        for (const entry of childEntries) {
-          if (entry.mediaPaths) {
-            await Promise.all(entry.mediaPaths.map(p => storage.ref(p).delete().catch(e => console.warn('delete failed', p, e.code))));
-          }
-        }
-        // Firestore batches cap at 500 writes; chunk to be safe.
-        for (let i = 0; i < childEntries.length; i += 450) {
-          const batch = db.batch();
-          childEntries.slice(i, i + 450).forEach(e => batch.delete(entriesCol().doc(e.id)));
-          await batch.commit();
-        }
-        await childrenCol().doc(childId).delete();
-        toast(`${name} and their data deleted`);
-        closeOverlay('delete-modal');
-        pendingDeleteChildId = null;
-        await loadChildren();
-        await loadEntries();
-        renderAdminChildren(); renderChildToggle(); renderAdminOverview();
-        renderTimeline();
-        if (activeChildFilter === childId) { activeChildFilter = 'all'; renderChildToggle(); onFilterChanged(); }
-      } catch (err) {
-        console.error('confirmDeleteChild failed:', err.code, err.message);
         toast(`Couldn't delete: ${err.code || err.message}`);
       } finally {
         btn.disabled = false; btn.textContent = 'Delete';
@@ -3277,9 +2535,7 @@
       pickCategory(entry ? entry.category : CATEGORIES[0]);
 
       if (entry && entry.mediaUrls) {
-        entry.mediaUrls.forEach(u => {
-          resolveMediaUrl(entry, u).then(src => { if (src) addImagePreview(src, null); });
-        });
+        entry.mediaUrls.forEach(u => addImagePreview(u, null));
       }
 
       document.getElementById('f-delete-btn').hidden = !(entry && isOwnerView);
@@ -3422,49 +2678,26 @@
       btn.disabled = true; btn.textContent = 'Saving...';
 
       try {
-        await ensureJournalKey();
         const ref = editingEntryId ? entriesCol().doc(editingEntryId) : entriesCol().doc();
         const existing = editingEntryId ? entries.find(e => e.id === editingEntryId) : null;
         const mediaUrls = existing ? [...(existing.mediaUrls || [])] : [];
         const mediaPaths = existing ? [...(existing.mediaPaths || [])] : [];
 
-        // Photos are encrypted under a per-entry media key (generated once,
-        // reused across edits) — not the journal key directly — so rotating
-        // the journal key never requires re-uploading photo bytes.
-        let mediaKeyWrapped = existing ? existing.mediaKeyWrapped : null;
-        if (pendingImages.length) {
-          const mediaKey = mediaKeyWrapped
-            ? await unwrapMediaKey(mediaKeyWrapped)
-            : await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
-          if (!mediaKeyWrapped) mediaKeyWrapped = await wrapMediaKey(mediaKey);
-
-          for (const p of pendingImages) {
-            const resized = await resizeImage(p.file);
-            const encrypted = await encryptBlob(resized, mediaKey);
-            const path = `users/${ownerId}/entries/${ref.id}/${Date.now()}_${p.file.name}`;
-            const sref = storage.ref(path);
-            await sref.put(encrypted, { contentType: 'application/octet-stream' });
-            const url = await sref.getDownloadURL();
-            mediaUrls.push(url); mediaPaths.push(path);
-          }
+        for (const p of pendingImages) {
+          const blob = await resizeImage(p.file);
+          const path = `users/${ownerId}/entries/${ref.id}/${Date.now()}_${p.file.name}`;
+          const sref = storage.ref(path);
+          await sref.put(blob, { contentType: 'image/jpeg' });
+          const url = await sref.getDownloadURL();
+          mediaUrls.push(url); mediaPaths.push(path);
         }
 
         const data = {
-          contentEnc: await encryptEntryFields({ title, description, tags }),
-          date, childId, category, mediaUrls, mediaPaths,
+          title, date, childId, category, description, tags, mediaUrls, mediaPaths,
           addedByUid: currentUser.uid, addedByEmail: currentUser.email || '',
           updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         };
-        if (mediaKeyWrapped) data.mediaKeyWrapped = mediaKeyWrapped;
         if (!editingEntryId) data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-
-        // Clear legacy plaintext fields (present if this was an unmigrated
-        // entry being edited) now that its content lives in contentEnc.
-        if (existing && (existing.title !== undefined || existing.description !== undefined)) {
-          data.title = firebase.firestore.FieldValue.delete();
-          data.description = firebase.firestore.FieldValue.delete();
-          data.tags = firebase.firestore.FieldValue.delete();
-        }
 
         await ref.set(data, { merge: true });
         toast('Entry saved');
@@ -3473,8 +2706,8 @@
         renderTimeline();
         updateStoryBtnVisibility();
       } catch (err) {
-        console.error('saveEntry failed:', err.name || err.code, err.message, err);
-        toast(`Couldn't save: ${err.code || err.message || err.name || 'unknown error — check console'}`);
+        console.error('saveEntry failed:', err.code, err.message);
+        toast(`Couldn't save: ${err.code || err.message}`);
       } finally {
         btn.disabled = false; btn.textContent = 'Save entry';
       }
@@ -3547,17 +2780,15 @@
       const btn = document.getElementById('bulk-import-btn');
       btn.disabled = true; btn.textContent = 'Importing...';
       try {
-        await ensureJournalKey();
         const batch = db.batch();
-        for (const r of rows) {
+        rows.forEach(r => {
           batch.set(entriesCol().doc(), {
-            date: r.date, category: r.category, childId, mediaUrls: [], mediaPaths: [],
-            contentEnc: await encryptEntryFields({ title: r.title, description: r.description, tags: r.tags }),
+            ...r, childId, mediaUrls: [], mediaPaths: [],
             addedByUid: currentUser.uid, addedByEmail: currentUser.email || '',
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
           });
-        }
+        });
         await batch.commit();
         toast(`Imported ${rows.length} entr${rows.length === 1 ? 'y' : 'ies'}` + (skipped.length ? `, skipped line${skipped.length === 1 ? '' : 's'} ${skipped.join(', ')}` : ''));
         closeOverlay('bulk-overlay');
@@ -3571,72 +2802,6 @@
         toast(`Couldn't import: ${err.code || err.message}`);
       } finally {
         btn.disabled = false; btn.textContent = 'Import entries';
-      }
-    }
-
-    /* ---------- one-time migration of pre-encryption entries ---------- */
-
-    // Brings every legacy plaintext entry (no contentEnc field — written
-    // before encryption shipped) up to the encrypted schema: re-uploads its
-    // photos encrypted under a fresh per-entry media key (same Storage path,
-    // so mediaUrls stay valid), encrypts its text into contentEnc, and clears
-    // the old plaintext title/description/tags fields. Presence of
-    // contentEnc is the idempotency marker, so an interrupted run can just be
-    // re-run safely — already-migrated entries are skipped.
-    async function migrateToEncrypted() {
-      if (!isOwnerView) return;
-      const statusEl = document.getElementById('encrypt-migrate-status');
-      const btn = document.getElementById('encrypt-migrate-btn');
-      try {
-        await ensureJournalKey();
-        await ensureAllEntriesLoaded();
-        const legacy = entries.filter(e => !e.contentEnc);
-        if (!legacy.length) { statusEl.textContent = 'Everything is already encrypted.'; return; }
-
-        btn.disabled = true;
-        let done = 0;
-        for (const entry of legacy) {
-          btn.textContent = `Encrypting... (${done}/${legacy.length})`;
-          statusEl.textContent = `${done} of ${legacy.length} entries done`;
-
-          let mediaKeyWrapped = entry.mediaKeyWrapped || null;
-          const mediaPaths = entry.mediaPaths || [];
-          if (mediaPaths.length) {
-            const mediaKey = mediaKeyWrapped
-              ? await unwrapMediaKey(mediaKeyWrapped)
-              : await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
-            if (!mediaKeyWrapped) mediaKeyWrapped = await wrapMediaKey(mediaKey);
-
-            for (const path of mediaPaths) {
-              const sref = storage.ref(path);
-              // Existing bytes here are still plaintext JPEG (this entry hasn't
-              // been migrated yet) — download, encrypt, overwrite in place.
-              const plainBlob = await sref.getDownloadURL().then(url => fetch(url)).then(r => r.blob());
-              const encrypted = await encryptBlob(plainBlob, mediaKey);
-              await sref.put(encrypted, { contentType: 'application/octet-stream' });
-            }
-          }
-
-          await entriesCol().doc(entry.id).update({
-            contentEnc: await encryptEntryFields({ title: entry.title, description: entry.description, tags: entry.tags }),
-            mediaKeyWrapped: mediaKeyWrapped || firebase.firestore.FieldValue.delete(),
-            title: firebase.firestore.FieldValue.delete(),
-            description: firebase.firestore.FieldValue.delete(),
-            tags: firebase.firestore.FieldValue.delete(),
-          });
-          done++;
-        }
-
-        statusEl.textContent = `Done — encrypted ${done} entr${done === 1 ? 'y' : 'ies'}.`;
-        toast('Existing entries are now encrypted.');
-        await loadEntries();
-        await ensureAllEntriesLoaded();
-        renderTimeline();
-      } catch (err) {
-        console.error('migrateToEncrypted failed:', err.code, err.message);
-        statusEl.textContent = `Stopped: ${err.code || err.message}. Safe to run again — already-encrypted entries are skipped.`;
-      } finally {
-        btn.disabled = false; btn.textContent = '\u{1F512} Encrypt existing entries';
       }
     }
 
@@ -3705,23 +2870,18 @@
       const months = Object.keys(byMonth).sort(); // chronological
       const monthLabel = key => {
         const [y, m] = key.split('-');
-        return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString(undefined, { month: 'short' });
+        return new Date(Number(y), Number(m) - 1, 1)
+          .toLocaleDateString(undefined, { month: 'short' })
+          + (m === '01' ? ` '${y.slice(2)}` : ''); // year label only on January, keep it compact
       };
 
-      let lastYear = null;
       el.innerHTML = `
         <div class="spine-wrap" id="spine-scroll">
           ${months.map(key => {
-        const year = key.slice(0, 4);
-        const yearDivider = year !== lastYear
-          ? `<div class="spine-year-divider"><div class="spine-year-lbl">${year}</div><div class="spine-year-line"></div></div>`
-          : '';
-        lastYear = year;
-
-        const monthEntries = byMonth[key];
-        const shown = monthEntries.slice(0, SPINE_DOT_CAP);
-        const overflow = monthEntries.length - shown.length;
-        return yearDivider + `
+            const monthEntries = byMonth[key];
+            const shown = monthEntries.slice(0, SPINE_DOT_CAP);
+            const overflow = monthEntries.length - shown.length;
+            return `
             <div class="spine-month">
               <div class="spine-lbl">${monthLabel(key)}</div>
               <div class="spine-line"></div>
@@ -3859,13 +3019,9 @@
           <div class="child-meta">${count} ${count === 1 ? 'entry' : 'entries'}</div>
         </div>
       </div>
-      <div style="display:flex; align-items:center; gap:12px;">
-        <button class="icon-btn" title="Delete ${escapeHtml(c.name)} permanently">&#128465;</button>
-        <div class="toggle${hidden ? '' : ' on'}" title="${hidden ? 'Unhide' : 'Hide'} ${escapeHtml(c.name)}"><div class="knob"></div></div>
-      </div>
+      <div class="toggle${hidden ? '' : ' on'}" title="${hidden ? 'Unhide' : 'Hide'} ${escapeHtml(c.name)}"><div class="knob"></div></div>
     `;
         row.querySelector('.toggle').onclick = () => hidden ? unhideChild(c.id, c.name) : removeChild(c.id, c.name);
-        row.querySelector('.icon-btn').onclick = () => openDeleteChildConfirm(c.id, c.name);
         el.appendChild(row);
       });
     }
@@ -3996,32 +3152,16 @@
       if (!email || !email.includes('@')) { toast('Enter a valid email.'); return; }
       const canEdit = document.getElementById('share-canedit-toggle').classList.contains('on');
       try {
-        // If the invitee has already signed in once (their public key is
-        // published) we can wrap the journal key for them right now; otherwise
-        // mark keyPending — completePendingKeyWraps() finishes it once they've
-        // signed in and we next load this journal as owner.
-        const key = await ensureJournalKey();
-        const pub = key ? await getPublicKey(email) : null;
-        const shareDoc = {
+        await sharesCol().doc(email).set({
           email, scope: shareScope, canEdit, status: 'active',
           invitedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        };
-        if (pub && key) {
-          const wrapped = await crypto.subtle.wrapKey('raw', key, pub, { name: 'RSA-OAEP' });
-          shareDoc.wrappedKey = buf2b64(wrapped);
-          shareDoc.keyPending = false;
-        } else {
-          shareDoc.wrappedKey = null;
-          shareDoc.keyPending = true;
-        }
-        await sharesCol().doc(email).set(shareDoc);
+        });
         document.getElementById('share-email').value = '';
         await loadShares();
         renderAdminShares();
         // No backend here to actually send an email — copy the link now and leave
         // "Copy link" / "Email invite" buttons on the row below for later too.
         copyInviteLink(email);
-        if (shareDoc.keyPending) toast(`Invite sent — ${email} needs to sign in once before they can see entry content.`);
       } catch (err) {
         console.error('sendShareInvite failed:', err.code, err.message);
         toast(`Couldn't send invite: ${err.code || err.message}`);
@@ -4033,19 +3173,14 @@
       if (!ok) return;
       try {
         await sharesCol().doc(shareId).update({ status: 'revoked' });
-        toast('Access revoked — rotating journal key…');
+        toast('Access revoked');
         await loadShares();
         renderAdminShares();
-        // Rotating means a copy of the old key this collaborator already has
-        // cached stops being useful for anything written after this point.
-        await rotateJournalKey();
-        toast('Journal key rotated.');
       } catch (err) {
         console.error('revokeShare failed:', err.code, err.message);
         toast(`Couldn't revoke: ${err.code || err.message}`);
       }
     }
-
   </script>
 </body>
 
