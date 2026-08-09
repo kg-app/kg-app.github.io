@@ -32,7 +32,7 @@
       --ink-3: #7d7368;
       --ink-mute: #988f84;
       --bg-page: #f5f0e6;
-      --bg-surface: #fdfbf6;
+      --bg-surface: #fafafa;
       --bg-subtle: #efe8db;
       --line: #e6dcc9;
       --line-strong: #d6c9ac;
@@ -1337,20 +1337,24 @@
     #landing-hero {
       display: grid;
       grid-template-columns: 1fr 1fr;
+      align-items: stretch;
       height: calc(100vh - 56px);
       overflow: hidden;
       position: relative;
     }
 
     .lp-panel {
+      height: 100%;
       padding: 6% 9%;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      overflow-y: auto;
       position: relative;
     }
 
     .lp-left {
+      background: var(--bg-surface);
       border-right: 1px solid var(--line);
     }
 
@@ -1510,6 +1514,14 @@
       animation-delay: .24s;
     }
 
+    .lp-right .entry-row:nth-child(5) {
+      animation-delay: .32s;
+    }
+
+    .lp-right .entry-row:nth-child(6) {
+      animation-delay: .4s;
+    }
+
     @keyframes lp-rise {
       from {
         opacity: 0;
@@ -1529,7 +1541,7 @@
       margin-top: 2px;
       opacity: 0;
       animation: lp-rise .5s ease forwards;
-      animation-delay: .32s;
+      animation-delay: .48s;
     }
 
     @media (max-width: 860px) {
@@ -1917,7 +1929,7 @@
       <div class="lp-stream-label">What an event stream looks like</div>
 
       <div class="entry-row">
-        <div class="entry-card">
+        <div class="entry-card" style="background:#dbeafe;">
           <div class="entry-icon" style="background:var(--c-milestone-bg); color:var(--c-milestone);">M</div>
           <div class="entry-body">
             <div class="entry-top">
@@ -1934,7 +1946,7 @@
       </div>
 
       <div class="entry-row">
-        <div class="entry-card">
+        <div class="entry-card" style="background:#fef3c7;">
           <div class="entry-icon" style="background:var(--c-achievement-bg); color:var(--c-achievement);">L</div>
           <div class="entry-body">
             <div class="entry-top">
@@ -1956,7 +1968,7 @@
       </div>
 
       <div class="entry-row">
-        <div class="entry-card">
+        <div class="entry-card" style="background:#dbeafe;">
           <div class="entry-icon" style="background:var(--c-learning-bg); color:var(--c-learning);">M</div>
           <div class="entry-body">
             <div class="entry-top">
@@ -1967,6 +1979,40 @@
             <div class="pill-row">
               <span class="pill cat-learning">Learning</span>
               <span class="pill">Mia</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="entry-row">
+        <div class="entry-card" style="background:#fae8ff;">
+          <div class="entry-icon" style="background:var(--c-health-bg); color:var(--c-health);">R</div>
+          <div class="entry-body">
+            <div class="entry-top">
+              <div class="entry-title">Vet check-up: all clear</div>
+              <div class="entry-date">Sep 8</div>
+            </div>
+            <div class="entry-desc">Annual check-up — weight, teeth, and vitals all normal.</div>
+            <div class="pill-row">
+              <span class="pill cat-health">Health</span>
+              <span class="pill">Rex</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="entry-row">
+        <div class="entry-card" style="background:#fef3c7;">
+          <div class="entry-icon" style="background:var(--c-moment-bg); color:var(--c-moment);">L</div>
+          <div class="entry-body">
+            <div class="entry-top">
+              <div class="entry-title">Beach trip, just the two of us</div>
+              <div class="entry-date">Aug 3</div>
+            </div>
+            <div class="entry-desc">Built a lopsided sandcastle and ate way too much ice cream.</div>
+            <div class="pill-row">
+              <span class="pill cat-moment">Moment</span>
+              <span class="pill">Leo</span>
             </div>
           </div>
         </div>
