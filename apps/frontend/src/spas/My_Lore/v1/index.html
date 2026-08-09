@@ -43,19 +43,29 @@
       --accent: #3d2a63;
       --accent-2: #1e293b;
 
-      --c-achievement: #b5551f;
-      --c-achievement-bg: #fbe4cf;
-      --c-milestone: #2a4ba0;
-      --c-milestone-bg: #dde5fb;
-      --c-learning: #9c1f4e;
-      --c-learning-bg: #fbdce7;
-      --c-health: #1a7a68;
-      --c-health-bg: #d9f0ea;
-      --c-moment: #6b3fa0;
-      --c-moment-bg: #ede1f7;
+      --c-achievement: #ed7d5b;
+      --c-achievement-bg: #fbe7e1;
+      --c-milestone: #7c93c9;
+      --c-milestone-bg: #e7ebf5;
+      --c-learning: #de71c0;
+      --c-learning-bg: #f9e5f3;
+      --c-health: #5ab99a;
+      --c-health-bg: #e1f2ec;
+      --c-moment: #93cc57;
+      --c-moment-bg: #ebf5e0;
 
-      --bg-texture-color: #fffeea;
-      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg fill='%238fb5f7' fill-opacity='0.08'%3E%3Cpath d='M12 0h18v6h6v6h6v18h-6v6h-6v6H12v-6H6v-6H0V12h6V6h6V0zm12 6h-6v6h-6v6H6v6h6v6h6v6h6v-6h6v-6h6v-6h-6v-6h-6V6zm-6 12h6v6h-6v-6zm24 24h6v6h-6v-6z'%3E%3C/path%3E%3C/g%3E%3C/svg%3E");
+      --c-child-margot: #e67b39;
+      --c-child-margot-text: #2e2620;
+      --c-child-nayna: #3a54b5;
+      --c-child-nayna-text: #ffffff;
+      --c-child-nishka: #a03fa6;
+      --c-child-nishka-text: #ffffff;
+      --c-child-default: #9f9a63;
+      --c-child-default-text: #2e2620;
+
+      /* Same dot-quilt background used across the landing page, the app, and admin. */
+      --bg-texture-color: #FBF7E9;
+      --bg-texture: radial-gradient(circle at 1px 1px, rgba(61, 42, 99, 0.06) 1px, transparent 0);
     }
 
     html,
@@ -67,7 +77,7 @@
       font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
       background-color: var(--bg-texture-color);
       background-image: var(--bg-texture);
-      background-size: 72px 72px;
+      background-size: 22px 22px;
       background-attachment: fixed;
       color: var(--ink);
       -webkit-font-smoothing: antialiased;
@@ -481,7 +491,7 @@
       flex: 1;
       min-width: 0;
       background: var(--bg-surface);
-      border: 1px solid var(--line);
+      border: 1px solid transparent;
       border-radius: var(--radius);
       padding: 14px 14px 12px;
       cursor: pointer;
@@ -565,32 +575,32 @@
       font-weight: 700;
       padding: 3px 10px;
       border-radius: 100px;
-      background: var(--bg-subtle);
-      color: var(--ink-3);
+      background: rgba(255, 255, 255, .55);
+      color: var(--ink-2);
     }
 
     .pill.cat-achievement {
-      background: var(--c-achievement-bg);
+      background: rgba(255, 255, 255, .55);
       color: var(--c-achievement);
     }
 
     .pill.cat-milestone {
-      background: var(--c-milestone-bg);
+      background: rgba(255, 255, 255, .55);
       color: var(--c-milestone);
     }
 
     .pill.cat-learning {
-      background: var(--c-learning-bg);
+      background: rgba(255, 255, 255, .55);
       color: var(--c-learning);
     }
 
     .pill.cat-health {
-      background: var(--c-health-bg);
+      background: rgba(255, 255, 255, .55);
       color: var(--c-health);
     }
 
     .pill.cat-moment {
-      background: var(--c-moment-bg);
+      background: rgba(255, 255, 255, .55);
       color: var(--c-moment);
     }
 
@@ -669,23 +679,359 @@
       margin-top: 1px;
     }
 
-    .sample-label {
-      max-width: 380px;
-      margin: 26px auto 10px;
-      font-size: 11.5px;
-      color: var(--ink-mute);
+    /* ---------- landing page (signed-out) ---------- */
+    /* All tokens/classes below are scoped under #landing-page so they can't
+       collide with the app's own --ink/--line/--radius-lg/.btn/.avatar/etc. */
+    #landing-page {
+      --lp-ink: #2B2233;
+      --lp-ink-soft: #6E6280;
+      --lp-accent: #3D2A63;
+      --lp-accent-hover: #2F2050;
+      --lp-line: #E7DFC8;
+      --lp-card-mint: #C7EFDD;
+      --lp-card-peach: #F8DFC0;
+      --lp-card-lavender: #EAD9F5;
+      --lp-cat-milestone-bg: #D9DEFB;
+      --lp-cat-milestone-fg: #3B4CC8;
+      --lp-cat-achievement-bg: #F7DAB0;
+      --lp-cat-achievement-fg: #B5651D;
+      --lp-cat-health-bg: #CDEFE0;
+      --lp-cat-health-fg: #1F7A5C;
+      --lp-cat-learning-bg: #F8D0DE;
+      --lp-cat-learning-fg: #B23A61;
+      --lp-cat-moment-bg: #E4D3F7;
+      --lp-cat-moment-fg: #6B3FA0;
+      --lp-radius-lg: 22px;
+      --lp-radius-md: 16px;
+      --lp-radius-pill: 999px;
+
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 100dvh;
+      color: var(--lp-ink);
+      font-family: 'Inter', sans-serif;
+    }
+
+    @media (min-width: 861px) {
+      body.landing-mode { height: 100%; overflow: hidden; }
+      #landing-page { height: 100dvh; }
+    }
+
+    #landing-page header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px clamp(20px, 4vw, 56px);
+    }
+
+    #landing-page .lp-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Baloo 2', sans-serif;
       font-weight: 700;
+      font-size: 20px;
+      letter-spacing: -0.01em;
+      color: var(--lp-ink);
+    }
+
+    #landing-page .lp-logo .mark {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    #landing-page .lp-btn {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 14.5px;
+      border: none;
+      border-radius: var(--lp-radius-pill);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    #landing-page .lp-btn:active {
+      transform: translateY(1px);
+    }
+
+    #landing-page .lp-btn:focus-visible {
+      outline: 3px solid var(--lp-accent);
+      outline-offset: 2px;
+    }
+
+    #landing-page .lp-btn-ghost {
+      background: transparent;
+      color: var(--lp-accent);
+      border: 1.5px solid var(--lp-accent);
+      padding: 9px 20px;
+    }
+
+    #landing-page .lp-btn-ghost:hover {
+      background: rgba(61, 42, 99, 0.06);
+    }
+
+    #landing-page .lp-btn-primary {
+      background: var(--lp-accent);
+      color: #fff;
+      padding: 14px 26px;
+      font-size: 15.5px;
+      box-shadow: 0 8px 20px rgba(61, 42, 99, 0.25);
+    }
+
+    #landing-page .lp-btn-primary:hover {
+      background: var(--lp-accent-hover);
+      box-shadow: 0 10px 24px rgba(61, 42, 99, 0.32);
+    }
+
+    #landing-page main {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      align-items: center;
+      gap: clamp(24px, 4vw, 64px);
+      padding: 0 clamp(20px, 4vw, 56px);
+      min-height: 0;
+    }
+
+    #landing-page .lp-copy {
+      max-width: 560px;
+    }
+
+    #landing-page .lp-eyebrow {
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      letter-spacing: .04em;
+      color: var(--lp-accent);
+      margin: 0 0 14px;
     }
 
-    .sample-card {
-      cursor: default;
-      opacity: .92;
+    #landing-page .lp-headline {
+      font-family: 'Baloo 2', sans-serif;
+      font-weight: 700;
+      font-size: clamp(30px, 4.4vh, 48px);
+      line-height: 1.08;
+      letter-spacing: -0.01em;
+      margin: 0 0 16px;
+      color: var(--lp-ink);
     }
 
-    .sample-card:hover {
-      border-color: var(--line);
+    #landing-page .lp-subhead {
+      font-size: clamp(15px, 1.9vh, 17px);
+      line-height: 1.55;
+      color: var(--lp-ink-soft);
+      margin: 0 0 26px;
+      max-width: 480px;
+    }
+
+    #landing-page .lp-cta-row {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    #landing-page .lp-trust-line {
+      font-size: 13.5px;
+      color: var(--lp-ink-soft);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #landing-page .lp-google-g {
+      width: 18px;
+      height: 18px;
+      flex: none;
+    }
+
+    #landing-page .lp-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 22px;
+    }
+
+    #landing-page .lp-chip {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--lp-ink);
+      background: #fff;
+      border: 1px solid var(--lp-line);
+      padding: 7px 14px;
+      border-radius: var(--lp-radius-pill);
+    }
+
+    #landing-page .lp-stream-wrap {
+      position: relative;
+      height: min(560px, 62vh);
+      display: flex;
+      justify-content: center;
+    }
+
+    #landing-page .lp-stream-frame {
+      position: relative;
+      width: min(360px, 90%);
+      height: 100%;
+      background: #fff;
+      border-radius: var(--lp-radius-lg);
+      border: 1px solid var(--lp-line);
+      box-shadow: 0 30px 60px -20px rgba(61, 42, 99, 0.28);
+      overflow: hidden;
+      transform: rotate(1.2deg);
+    }
+
+    #landing-page .lp-stream-frame::before,
+    #landing-page .lp-stream-frame::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 56px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    #landing-page .lp-stream-frame::before {
+      top: 0;
+      background: linear-gradient(#fff, rgba(255, 255, 255, 0));
+    }
+
+    #landing-page .lp-stream-frame::after {
+      bottom: 0;
+      background: linear-gradient(rgba(255, 255, 255, 0), #fff);
+    }
+
+    #landing-page .lp-stream-chrome {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 14px;
+      z-index: 3;
+    }
+
+    #landing-page .lp-stream-chrome span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--lp-line);
+    }
+
+    #landing-page .lp-stream-track {
+      position: absolute;
+      top: 34px;
+      left: 0;
+      right: 0;
+      padding: 10px 14px 14px;
+      animation: lp-drift 26s linear infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #landing-page .lp-stream-track {
+        animation: none;
+      }
+    }
+
+    @keyframes lp-drift {
+      from { transform: translateY(0); }
+      to { transform: translateY(-50%); }
+    }
+
+    #landing-page .lp-entry {
+      border-radius: var(--lp-radius-md);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+
+    #landing-page .lp-entry-mint { background: var(--lp-card-mint); }
+    #landing-page .lp-entry-peach { background: var(--lp-card-peach); }
+    #landing-page .lp-entry-lavender { background: var(--lp-card-lavender); }
+
+    #landing-page .lp-entry-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    #landing-page .lp-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      flex: none;
+    }
+
+    #landing-page .lp-entry-title {
+      font-weight: 700;
+      font-size: 14.5px;
+      line-height: 1.3;
+      font-family: 'Baloo 2', sans-serif;
+      color: var(--lp-ink);
+    }
+
+    #landing-page .lp-entry-date {
+      margin-left: auto;
+      font-size: 11.5px;
+      color: var(--lp-ink-soft);
+      flex: none;
+      padding-top: 1px;
+    }
+
+    #landing-page .lp-entry-body {
+      font-size: 12.5px;
+      color: var(--lp-ink-soft);
+      line-height: 1.45;
+      margin: 6px 0 10px 36px;
+    }
+
+    #landing-page .lp-entry-tags {
+      display: flex;
+      gap: 6px;
+      margin-left: 36px;
+      flex-wrap: wrap;
+    }
+
+    #landing-page .lp-tag {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: var(--lp-radius-pill);
+    }
+
+    #landing-page .lp-tag-milestone { background: var(--lp-cat-milestone-bg); color: var(--lp-cat-milestone-fg); }
+    #landing-page .lp-tag-achievement { background: var(--lp-cat-achievement-bg); color: var(--lp-cat-achievement-fg); }
+    #landing-page .lp-tag-health { background: var(--lp-cat-health-bg); color: var(--lp-cat-health-fg); }
+    #landing-page .lp-tag-learning { background: var(--lp-cat-learning-bg); color: var(--lp-cat-learning-fg); }
+    #landing-page .lp-tag-moment { background: var(--lp-cat-moment-bg); color: var(--lp-cat-moment-fg); }
+
+    #landing-page footer {
+      text-align: center;
+      padding: 16px clamp(20px, 4vw, 56px) 20px;
+      font-size: 13px;
+      color: var(--lp-ink-soft);
+    }
+
+    @media (max-width: 860px) {
+      #landing-page main {
+        grid-template-columns: 1fr;
+        padding: 8px 20px 32px;
+      }
+      #landing-page .lp-copy { max-width: none; order: 1; }
+      #landing-page .lp-stream-wrap { order: 2; height: 340px; margin-top: 20px; }
+      #landing-page .lp-headline { font-size: clamp(28px, 8vw, 38px); }
+      #landing-page header { padding: 18px 20px; }
     }
 
     /* ---------- FAB ---------- */
@@ -1011,7 +1357,7 @@
       inset: 0;
       background-color: var(--bg-texture-color);
       background-image: var(--bg-texture);
-      background-size: 72px 72px;
+      background-size: 22px 22px;
       z-index: 40;
       overflow-y: auto;
     }
@@ -1628,6 +1974,55 @@
 
 <body>
 
+  <!-- LANDING PAGE (signed-out visitors) -->
+  <div id="landing-page" hidden>
+    <header>
+      <div class="lp-logo"><span class="mark" aria-hidden="true">&#127793;</span> My Lore</div>
+      <button class="lp-btn lp-btn-ghost" type="button" onclick="signInWithGoogle()">Sign in</button>
+    </header>
+
+    <main>
+      <div class="lp-copy">
+        <p class="lp-eyebrow">A private family journal</p>
+        <h1 class="lp-headline">Every little thing,<br>kept safe.</h1>
+        <p class="lp-subhead">
+          My Lore is an unfolding life stream — save moments as they happen,
+          then turn them into a time capsule, a resume, or a story worth telling.
+        </p>
+
+        <div class="lp-cta-row">
+          <button class="lp-btn lp-btn-primary" type="button" onclick="signInWithGoogle()">
+            <svg class="lp-google-g" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/>
+              <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 0 0 9 18z"/>
+              <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.66 9c0-.59.1-1.17.29-1.7V4.97H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.03l2.99-2.33z"/>
+              <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.97l2.99 2.33C4.66 5.17 6.65 3.58 9 3.58z"/>
+            </svg>
+            Sign in with Google
+          </button>
+          <div class="lp-trust-line">&#128274; Private and secure. Only your family can see it.</div>
+        </div>
+
+        <div class="lp-chips">
+          <span class="lp-chip">&#127873; Time capsule</span>
+          <span class="lp-chip">&#128196; Resume fodder</span>
+          <span class="lp-chip">&#9997;&#65039; College essay</span>
+        </div>
+      </div>
+
+      <div class="lp-stream-wrap">
+        <div class="lp-stream-frame">
+          <div class="lp-stream-chrome"><span></span><span></span><span></span></div>
+          <div class="lp-stream-track" id="lp-stream-track">
+            <!-- content duplicated once via JS for seamless loop -->
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>Built by a dad of two kids and a puppy &#128054;</footer>
+  </div>
+
   <div id="topbar">
     <div class="brand">
       <span class="brand-logo" aria-hidden="true">&#129716;</span>
@@ -1921,24 +2316,26 @@
       moment: 'A memory worth keeping',
     };
 
-    // Shown to signed-out visitors so they can see what a logged event looks like.
-    const SAMPLE_ENTRIES = [
-      {
-        childName: 'Mia', category: 'milestone', title: 'First steps!', date: '2026-03-02',
-        description: "Mia took her first wobbly steps across the living room into Dad's arms :)"
-      },
-      {
-        childName: 'Leo', category: 'achievement', title: 'Won the school spelling bee', date: '2025-11-14',
-        description: 'Took first place spelling "chrysanthemum" without a hitch. So proud!'
-      },
-      {
-        childName: 'Rex', category: 'health', title: 'Vet check-up: all clear', date: '2025-09-08',
-        description: 'Annual check-up.. weight, teeth, and vitals all normal.'
-      },
-      {
-        childName: 'Mia', category: 'learning', title: 'Finished her first chapter book', date: '2025-06-21',
-        description: 'Read "Junie B. Jones" cover to cover, all by herself.'
-      },
+    // Shown in the landing page's animated stream (signed-out visitors only).
+    const LANDING_ENTRIES = [
+      { avatar: 'M', avatarBg: '#3D2A63', bg: 'mint', title: 'First steps!',
+        date: 'Mar 2', body: "Mia took her first wobbly steps across the living room into Dad's arms :)",
+        tags: [['Milestone', 'milestone'], ['Mia', 'plain']] },
+      { avatar: 'L', avatarBg: '#D98A3D', bg: 'peach', title: 'Won the school spelling bee',
+        date: 'Nov 14', body: 'Took first place spelling "chrysanthemum" without a hitch. So proud!',
+        tags: [['Achievement', 'achievement'], ['Leo', 'plain']] },
+      { avatar: 'R', avatarBg: '#1F7A5C', bg: 'lavender', title: 'Vet check-up: all clear',
+        date: 'Sep 8', body: 'Annual check-up.. weight, teeth, and vitals all normal.',
+        tags: [['Health', 'health'], ['Rex', 'plain']] },
+      { avatar: 'M', avatarBg: '#B23A61', bg: 'mint', title: 'Finished her first chapter book',
+        date: 'Jun 21', body: 'Read "Junie B. Jones" cover to cover, all by herself.',
+        tags: [['Learning', 'learning'], ['Mia', 'plain']] },
+      { avatar: 'N', avatarBg: '#6B3FA0', bg: 'lavender', title: 'First day of kindergarten',
+        date: 'Aug 25', body: 'Walked in without looking back. We were the ones who cried.',
+        tags: [['Moment', 'moment'], ['Nishka', 'plain']] },
+      { avatar: 'L', avatarBg: '#3B4CC8', bg: 'peach', title: 'Rode a bike with no training wheels',
+        date: 'May 4', body: 'Three wobbly laps around the driveway, then he never looked back.',
+        tags: [['Milestone', 'milestone'], ['Leo', 'plain']] },
     ];
 
     let currentUser = null;
@@ -2013,29 +2410,28 @@
       return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
     function initials(name) {
-      const parts = (name || '?').trim().split(/\s+/);
-      return ((parts[0]?.[0] || '?') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+      const parts = (name || '?').trim().split(/\s+/).filter(Boolean);
+      if (parts.length > 1) {
+        return ((parts[0][0] || '') + (parts[parts.length - 1][0] || '')).toUpperCase();
+      }
+      const w = parts[0] || '?';
+      return (w.length > 1 ? w.slice(0, 2) : w).toUpperCase();
     }
 
-    const AVATAR_PALETTE = [
-      { bg: '#dcfce7', fg: '#16a34a' }, { bg: '#dbeafe', fg: '#2563eb' },
-      { bg: '#fef3c7', fg: '#d97706' }, { bg: '#fae8ff', fg: '#a21caf' },
-      { bg: '#ffe4e6', fg: '#e11d48' }, { bg: '#e0f2fe', fg: '#0284c7' },
-      { bg: '#ede9fe', fg: '#7c3aed' }, { bg: '#fef9c3', fg: '#a16207' },
-      { bg: '#ffedd5', fg: '#c2410c' }, { bg: '#ccfbf1', fg: '#0f766e' },
-    ];
-    function hashStr(str) {
-      let h = 0;
-      for (let i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) | 0; }
-      return Math.abs(h);
+    const CHILD_BADGE_VARS = {
+      margot: ['--c-child-margot', '--c-child-margot-text'],
+      nayna: ['--c-child-nayna', '--c-child-nayna-text'],
+      nishka: ['--c-child-nishka', '--c-child-nishka-text'],
+    };
+    function childAvatarColor(name) {
+      const key = (name || '').trim().toLowerCase();
+      const [bgVar, fgVar] = CHILD_BADGE_VARS[key] || ['--c-child-default', '--c-child-default-text'];
+      return { bg: `var(${bgVar})`, fg: `var(${fgVar})` };
     }
-    function childAvatarColor(childId) { return AVATAR_PALETTE[hashStr(childId || '') % AVATAR_PALETTE.length]; }
     function avatarHtml(child, size) {
-      const { bg, fg } = childAvatarColor(child.id);
+      const { bg, fg } = childAvatarColor(child.name);
       const cls = size === 'sm' || size === 'chip' ? 'avatar avatar-sm' : 'avatar';
-      const style = size === 'chip'
-        ? `background:${fg}; color:#fff; box-shadow:0 0 0 1.5px rgba(255,255,255,.8);`
-        : `background:${bg}; color:${fg};`;
+      const style = `background:${bg}; color:${fg};`;
       return `<div class="${cls}" style="${style}">${initials(child.name)}</div>`;
     }
     function todayStr() { const d = new Date(); return d.toISOString().slice(0, 10); }
@@ -2064,6 +2460,10 @@
 
     auth.onAuthStateChanged(async user => {
       currentUser = user;
+      document.getElementById('landing-page').hidden = !!user;
+      document.getElementById('topbar').hidden = !user;
+      document.getElementById('shell').hidden = !user;
+      document.body.classList.toggle('landing-mode', !user);
       document.getElementById('btn-signin').hidden = !!user;
       document.getElementById('user-menu-wrap').hidden = !user;
       document.getElementById('user-popup').classList.remove('open');
@@ -2084,8 +2484,9 @@
         entriesCursor = null; entriesHasMore = false; entriesAllLoaded = false;
         document.getElementById('btn-admin').hidden = true;
         updateStoryBtnVisibility();
-        document.getElementById('timeline').innerHTML = renderEmptyState('');
+        document.getElementById('timeline').innerHTML = '';
         document.getElementById('load-more-row').hidden = true;
+        renderLandingStream();
       }
     });
 
@@ -2259,7 +2660,7 @@
         d.className = 'seg' + (active ? ' active' : '');
         d.dataset.cat = s.id;
         if (active && s.id !== 'all') {
-          const { bg, fg } = childAvatarColor(s.id);
+          const { bg, fg } = childAvatarColor(s.name);
           d.style.background = bg;
           d.style.color = fg;
         }
@@ -2287,44 +2688,39 @@
 
     function childName(id) { const c = children.find(c => c.id === id); return c ? c.name : ''; }
 
-    function renderSampleEntries() {
-      return SAMPLE_ENTRIES.map(e => {
-        const { bg } = childAvatarColor(e.childName);
-        const catSoft = `var(--c-${e.category}-bg, var(--bg-subtle))`;
-        const catColor = `var(--c-${e.category}, var(--ink-3))`;
-        return `
-      <div class="entry-row">
-        <div class="entry-card sample-card" style="background:${bg};">
-          <div class="entry-icon" style="background:${catSoft}; color:${catColor};">${escapeHtml(e.childName.charAt(0).toUpperCase())}</div>
-          <div class="entry-body">
-            <div class="entry-top">
-              <div class="entry-title">${escapeHtml(e.title)}</div>
-              <div class="entry-date">${fmtDate(e.date)}</div>
-            </div>
-            <div class="entry-desc">${escapeHtml(e.description)}</div>
-            <div class="pill-row">
-              <span class="pill cat-${e.category}">${CATEGORY_LABEL[e.category]}</span>
-              <span class="pill">${escapeHtml(e.childName)}</span>
-            </div>
+    function landingTagClass(kind) {
+      return kind === 'plain' ? 'lp-tag' : `lp-tag lp-tag-${kind}`;
+    }
+
+    function renderLandingEntry(e) {
+      const tagsHtml = e.tags.map(([label, kind]) =>
+        `<span class="${landingTagClass(kind)}"${kind === 'plain' ? ' style="background:#F1EDE0;color:#6E6280;"' : ''}>${escapeHtml(label)}</span>`
+      ).join('');
+      return `
+        <div class="lp-entry lp-entry-${e.bg}">
+          <div class="lp-entry-top">
+            <div class="lp-avatar" style="background:${e.avatarBg}">${e.avatar}</div>
+            <div class="lp-entry-title">${escapeHtml(e.title)}</div>
+            <div class="lp-entry-date">${e.date}</div>
           </div>
-        </div>
-      </div>`;
-      }).join('');
+          <div class="lp-entry-body">${escapeHtml(e.body)}</div>
+          <div class="lp-entry-tags">${tagsHtml}</div>
+        </div>`;
+    }
+
+    // Populates the landing page's animated stream. Duplicated once so the
+    // CSS -50% keyframe loop (lp-drift) is seamless.
+    function renderLandingStream() {
+      const track = document.getElementById('lp-stream-track');
+      if (!track || track.dataset.rendered) return;
+      const html = LANDING_ENTRIES.map(renderLandingEntry).join('');
+      track.innerHTML = html + html;
+      track.dataset.rendered = '1';
     }
 
     function renderEmptyState(searchQuery) {
-      if (!currentUser) {
-        return `
-      <div class="empty-card">
-        <div class="empty-icon">&#127793;</div>
-        <h3>What is My Lore?</h3>
-        <p>An unfolding life stream — a personal event log. Save the moments as they happen, then reminisce, or turn them into a time capsule, a college essay, or a story worth telling.</p>
-
-        <p>Built by a dad of two kids and a puppy 🐶</p>
-      </div>
-      <div class="sample-label">What an event stream looks like..</div>
-      ${renderSampleEntries()}`;
-      }
+      // Signed-out visitors see #landing-page instead of the timeline (see
+      // auth.onAuthStateChanged), so this function is only ever reached signed in.
       if (!children.length) {
         return `
       <div class="empty-card">
@@ -2382,17 +2778,18 @@
         row.className = 'entry-row' + (selectMode ? ' select-mode' : '') + (selectedIds.has(e.id) ? ' selected' : '');
         const card = document.createElement('div');
         card.className = 'entry-card';
-        card.style.background = childAvatarColor(e.childId).bg;
         card.onclick = selectMode ? () => toggleEntrySelected(e.id) : () => openEntrySheet(e.id);
 
         const media = (e.mediaUrls || []).slice(0, 4).map(u => `<img src="${u}" alt="">`).join('');
         const tags = (e.tags || []).map(t => `<span class="pill">${escapeHtml(t)}</span>`).join('');
         const catSoft = `var(--c-${e.category}-bg, var(--bg-subtle))`;
-        const catColor = `var(--c-${e.category}, var(--ink-3))`;
+        const cName = childName(e.childId) || '?';
+        const { bg: childBg, fg: childFg } = childAvatarColor(cName);
+        card.style.background = catSoft;
 
         card.innerHTML = `
-      <div class="entry-icon" style="background:${catSoft}; color:${catColor};">
-        ${escapeHtml((childName(e.childId) || '?').trim().charAt(0).toUpperCase())}
+      <div class="entry-icon" style="background:${childBg}; color:${childFg};">
+        ${escapeHtml(initials(cName))}
       </div>
       <div class="entry-body">
         <div class="entry-top">
