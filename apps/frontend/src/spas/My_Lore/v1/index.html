@@ -669,25 +669,6 @@
       margin-top: 1px;
     }
 
-    .sample-label {
-      max-width: 380px;
-      margin: 26px auto 10px;
-      font-size: 11.5px;
-      color: var(--ink-mute);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-
-    .sample-card {
-      cursor: default;
-      opacity: .92;
-    }
-
-    .sample-card:hover {
-      border-color: var(--line);
-    }
-
     /* ---------- FAB ---------- */
     #fab {
       position: fixed;
@@ -894,12 +875,15 @@
       align-items: center;
       gap: 6px;
     }
+
     .tag-combo:focus-within {
       border-color: var(--accent);
     }
+
     .tag-chip-row {
       display: contents;
     }
+
     .tag-chip {
       display: inline-flex;
       align-items: center;
@@ -912,6 +896,7 @@
       color: var(--ink-2);
       white-space: nowrap;
     }
+
     .tag-chip button {
       border: none;
       background: rgba(46, 38, 32, .12);
@@ -927,6 +912,7 @@
       justify-content: center;
       padding: 0;
     }
+
     .tag-combo input {
       flex: 1;
       min-width: 90px;
@@ -934,9 +920,11 @@
       padding: 4px 2px;
       background: transparent;
     }
+
     .tag-combo input:focus {
       outline: none;
     }
+
     .tag-dropdown {
       position: absolute;
       left: 0;
@@ -952,6 +940,7 @@
       z-index: 5;
       padding: 4px;
     }
+
     .tag-option {
       font-size: 12px;
       padding: 7px 9px;
@@ -959,9 +948,12 @@
       cursor: pointer;
       color: var(--ink-2);
     }
-    .tag-option:hover, .tag-option.active {
+
+    .tag-option:hover,
+    .tag-option.active {
       background: var(--bg-subtle);
     }
+
     .tag-option .new-hint {
       color: var(--ink-mute);
       font-size: 10.5px;
@@ -1337,11 +1329,228 @@
       transform: translateX(-50%) translateY(-6px);
     }
 
-    #signed-out-msg {
-      text-align: center;
+    /* ---------- landing (signed-out) ---------- */
+    body:has(#landing-hero:not([hidden])) {
+      overflow: hidden;
+    }
+
+    #landing-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      height: calc(100vh - 56px);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .lp-panel {
+      padding: 6% 9%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+    }
+
+    .lp-left {
+      border-right: 1px solid var(--line);
+    }
+
+    .lp-brand-mini {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .lp-icon-badge {
+      width: 46px;
+      height: 46px;
+      border-radius: 13px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+      flex-shrink: 0;
+    }
+
+    .lp-brand-mini-label {
+      font-family: 'Baloo 2', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--ink-2);
+      letter-spacing: .01em;
+    }
+
+    .lp-left h1 {
+      font-family: 'Baloo 2', sans-serif;
+      font-weight: 800;
+      font-size: clamp(26px, 3vw, 34px);
+      line-height: 1.15;
+      margin-bottom: 14px;
+    }
+
+    .lp-accent-word {
+      background: linear-gradient(100deg, #6b5fd6, #c98a6b);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .lp-lede {
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--ink-2);
+      max-width: 460px;
+      margin-bottom: 18px;
+    }
+
+    .lp-signature {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--ink-3);
+      margin-bottom: 26px;
+    }
+
+    .lp-avatar-dot {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--bg-subtle);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .lp-cta-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .lp-cta {
+      font-family: 'Baloo 2', sans-serif;
+      font-weight: 700;
+      font-size: 14.5px;
+      padding: 13px 22px;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #fdfbf6;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #2a1c47;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+
+    .lp-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 0 #2a1c47;
+    }
+
+    .lp-cta:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #2a1c47;
+    }
+
+    .lp-cta svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .lp-trust {
+      font-size: 11.5px;
       color: var(--ink-mute);
-      font-size: 12px;
-      padding: 60px 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .lp-right {
+      gap: 12px;
+    }
+
+    .lp-stream-label {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--ink-mute);
+      margin-bottom: 4px;
+    }
+
+    .lp-right .entry-row {
+      margin-bottom: 10px;
+      opacity: 0;
+      animation: lp-rise .5s ease forwards;
+    }
+
+    .lp-right .entry-card {
+      cursor: default;
+    }
+
+    .lp-right .entry-row:nth-child(2) {
+      animation-delay: .08s;
+    }
+
+    .lp-right .entry-row:nth-child(3) {
+      animation-delay: .16s;
+    }
+
+    .lp-right .entry-row:nth-child(4) {
+      animation-delay: .24s;
+    }
+
+    @keyframes lp-rise {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .lp-more-hint {
+      font-size: 11.5px;
+      color: var(--ink-mute);
+      text-align: center;
+      margin-top: 2px;
+      opacity: 0;
+      animation: lp-rise .5s ease forwards;
+      animation-delay: .32s;
+    }
+
+    @media (max-width: 860px) {
+      body:has(#landing-hero:not([hidden])) {
+        overflow: visible;
+      }
+
+      #landing-hero {
+        grid-template-columns: 1fr;
+        height: auto;
+        overflow: visible;
+      }
+
+      .lp-left {
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .lp-panel {
+        padding: 40px 24px;
+      }
     }
 
     /* ---------- story view ---------- */
@@ -1662,7 +1871,8 @@
     <div class="spacer"></div>
     <div id="auth-area">
       <button class="btn btn-icon btn-sm" id="btn-admin" title="Admin" onclick="openAdmin()" hidden>&#9881;</button>
-      <button class="btn btn-icon btn-sm" id="btn-story" title="Your story" onclick="openStoryView()" hidden>&#10024;</button>
+      <button class="btn btn-icon btn-sm" id="btn-story" title="Your story" onclick="openStoryView()"
+        hidden>&#10024;</button>
       <button class="btn btn-sm" id="btn-signin" onclick="signInWithGoogle()">Sign in</button>
       <div id="user-menu-wrap" hidden>
         <button id="user-avatar" onclick="toggleUserMenu()" title="Account"></button>
@@ -1673,6 +1883,98 @@
       </div>
     </div>
   </div>
+
+  <section id="landing-hero">
+    <div class="lp-panel lp-left">
+      <div class="lp-brand-mini">
+        <div class="lp-icon-badge" aria-hidden="true">&#127793;</div>
+        <div class="lp-brand-mini-label">What is My Lore?</div>
+      </div>
+
+      <h1>An unfolding<br><span class="lp-accent-word">life stream</span></h1>
+      <p class="lp-lede">Private, and yours alone. Save the moments as they happen, then reminisce, open it like a
+        time capsule, or turn it into a resume, a college essay, or a story worth telling.</p>
+
+      <div class="lp-signature">
+        <span class="lp-avatar-dot" aria-hidden="true">&#128054;</span>
+        Built by a dad of two kids and a puppy
+      </div>
+
+      <div class="lp-cta-row">
+        <button class="lp-cta" onclick="signInWithGoogle()">
+          <svg viewBox="0 0 48 48">
+            <path fill="#fff"
+              d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6-6C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z" />
+          </svg>
+          Log in and use My Lore
+        </button>
+      </div>
+
+      <div class="lp-trust">&#128274; Entries are encrypted — only you can see them</div>
+    </div>
+
+    <div class="lp-panel lp-right">
+      <div class="lp-stream-label">What an event stream looks like</div>
+
+      <div class="entry-row">
+        <div class="entry-card">
+          <div class="entry-icon" style="background:var(--c-milestone-bg); color:var(--c-milestone);">M</div>
+          <div class="entry-body">
+            <div class="entry-top">
+              <div class="entry-title">First steps!</div>
+              <div class="entry-date">Mar 2</div>
+            </div>
+            <div class="entry-desc">Wobbly steps across the living room, straight into Dad's arms.</div>
+            <div class="pill-row">
+              <span class="pill cat-milestone">Milestone</span>
+              <span class="pill">Mia</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="entry-row">
+        <div class="entry-card">
+          <div class="entry-icon" style="background:var(--c-achievement-bg); color:var(--c-achievement);">L</div>
+          <div class="entry-body">
+            <div class="entry-top">
+              <div class="entry-title">Won the school spelling bee</div>
+              <div class="entry-date">Nov 14</div>
+            </div>
+            <div class="entry-desc">Took first place spelling "chrysanthemum" without a hitch.</div>
+            <div class="entry-media">
+              <img
+                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23efe8db'/%3E%3Ccircle cx='23' cy='22' r='6' fill='%23d6c9ac'/%3E%3Cpath d='M6 48 L24 30 L34 40 L46 26 L58 48 Z' fill='%23d6c9ac'/%3E%3C/svg%3E"
+                alt="">
+            </div>
+            <div class="pill-row">
+              <span class="pill cat-achievement">Achievement</span>
+              <span class="pill">Leo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="entry-row">
+        <div class="entry-card">
+          <div class="entry-icon" style="background:var(--c-learning-bg); color:var(--c-learning);">M</div>
+          <div class="entry-body">
+            <div class="entry-top">
+              <div class="entry-title">Finished her first chapter book</div>
+              <div class="entry-date">Jun 21</div>
+            </div>
+            <div class="entry-desc">Read it cover to cover, all by herself.</div>
+            <div class="pill-row">
+              <span class="pill cat-learning">Learning</span>
+              <span class="pill">Mia</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lp-more-hint">+ 127 more moments, waiting</div>
+    </div>
+  </section>
 
   <div id="select-bar">
     <span class="count" id="select-count">0 selected</span>
@@ -1700,7 +2002,6 @@
       <button class="btn btn-sm" id="btn-load-more" onclick="loadMoreEntries()">Load more</button>
     </div>
     <div id="scroll-sentinel" style="height:1px;"></div>
-    <div id="signed-out-msg">Sign in to see your family's story.</div>
   </div>
 
   <button id="fab" onclick="openEntrySheet()" hidden>+</button>
@@ -1759,8 +2060,8 @@
         <label class="field-label">Tags</label>
         <div class="tag-combo" id="tag-combo">
           <div class="tag-chip-row" id="tag-chip-row"></div>
-          <input id="f-tags" placeholder="Add a tag…" autocomplete="off"
-            oninput="onTagInput()" onkeydown="onTagKeydown(event)" onfocus="onTagInput()">
+          <input id="f-tags" placeholder="Add a tag…" autocomplete="off" oninput="onTagInput()"
+            onkeydown="onTagKeydown(event)" onfocus="onTagInput()">
           <div class="tag-dropdown" id="tag-dropdown" hidden></div>
         </div>
       </div>
@@ -1795,7 +2096,8 @@
         <label class="field-label">Events (one per line)</label>
         <div style="font-size:10px; color:var(--ink-3); margin-bottom:6px; line-height:1.5;">
           Format: <code>date, title, category, description, tags</code><br>
-          Category is one of achievement / milestone / learning / health / moment (optional, defaults to achievement). Separate
+          Category is one of achievement / milestone / learning / health / moment (optional, defaults to achievement).
+          Separate
           tags with <code>;</code>. Wrap a field in quotes if it contains a comma. Sample rows are pre-filled below
           &mdash; replace them with your own.
         </div>
@@ -1956,26 +2258,6 @@
       health: 'Medical or wellness',
       moment: 'A memory worth keeping',
     };
-
-    // Shown to signed-out visitors so they can see what a logged event looks like.
-    const SAMPLE_ENTRIES = [
-      {
-        childName: 'Mia', category: 'milestone', title: 'First steps!', date: '2026-03-02',
-        description: "Mia took her first wobbly steps across the living room into Dad's arms :)"
-      },
-      {
-        childName: 'Leo', category: 'achievement', title: 'Won the school spelling bee', date: '2025-11-14',
-        description: 'Took first place spelling "chrysanthemum" without a hitch. So proud!'
-      },
-      {
-        childName: 'Rex', category: 'health', title: 'Vet check-up: all clear', date: '2025-09-08',
-        description: 'Annual check-up.. weight, teeth, and vitals all normal.'
-      },
-      {
-        childName: 'Mia', category: 'learning', title: 'Finished her first chapter book', date: '2025-06-21',
-        description: 'Read "Junie B. Jones" cover to cover, all by herself.'
-      },
-    ];
 
     let currentUser = null;
     let contexts = [];        // [{id: ownerUid, label, role: 'owner'|'editor'|'viewer'}]
@@ -2144,11 +2426,14 @@
 
       if (existingPriv && existingPubB64) {
         myPrivateKey = existingPriv;
-        // Make sure the public key actually made it to the server — a prior
-        // publish attempt may have failed (e.g. rules not deployed yet at the
-        // time) leaving a private key locally with no published match.
+        // Make sure the server's published key actually matches what's cached
+        // locally — not just that a doc exists. A prior publish attempt may
+        // have failed (rules not deployed yet), or the two could have
+        // diverged some other way; either leaves anything wrapped against the
+        // stale published key unusable with this browser's private key.
         const snap = await db.collection('publicKeys').doc(currentUser.email).get();
-        if (!snap.exists) {
+        if (!snap.exists || snap.data().publicKey !== existingPubB64) {
+          console.warn('publicKeys doc missing or out of sync with local keypair — republishing.');
           await db.collection('publicKeys').doc(currentUser.email).set({
             publicKey: existingPubB64, updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
           });
@@ -2204,25 +2489,31 @@
               'raw', b642buf(snap.data().wrappedKeyForOwner), myPrivateKey,
               { name: 'RSA-OAEP' }, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
             );
+            journalKeyOwnerId = ownerId;
+            return journalKey;
           } catch (err) {
-            // Almost always means the private key in this browser's IndexedDB
-            // doesn't match the public key this journal's data key was wrapped
-            // against (e.g. IndexedDB was cleared, or a keypair got regenerated
-            // out of sync with what's stored server-side).
-            throw new Error(`Couldn't unlock the journal key with this browser's key — it may not match what the key was wrapped with (${err.name || err}).`);
+            // This browser's private key doesn't match what the journal key was
+            // wrapped against (e.g. IndexedDB didn't persist across a reload/port
+            // change). Self-heal by generating a fresh journal key rather than
+            // hard-failing — any entries already encrypted under the old key
+            // become unreadable (they'll show "(unable to decrypt)"), which is
+            // unavoidable once the matching private key is gone.
+            console.error('Journal key unwrap failed, generating a new one:', err.name, err.message);
+            toast("This device's key didn't match the saved journal key — generating a new one. Entries encrypted under the old key won't be readable.");
+            publicKeyCache.delete(currentUser.email); // don't reuse a possibly-stale cached entry
           }
-          journalKeyOwnerId = ownerId;
-          return journalKey;
         }
-        // First time this journal needs a key: generate one and self-wrap it.
+        // First time this journal needs a key, or recovering from a mismatch
+        // above: generate one and self-wrap it.
         const aesKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
         const myPub = await getPublicKey(currentUser.email);
         const wrapped = await crypto.subtle.wrapKey('raw', aesKey, myPub, { name: 'RSA-OAEP' });
         await keyDocRef.set({
-          wrappedKeyForOwner: buf2b64(wrapped), keyVersion: 1,
+          wrappedKeyForOwner: buf2b64(wrapped),
+          keyVersion: firebase.firestore.FieldValue.increment(1),
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        });
+        }, { merge: true });
         journalKey = aesKey; journalKeyOwnerId = ownerId;
         return journalKey;
       }
@@ -2439,7 +2730,7 @@
       }
       document.getElementById('fab').hidden = !user;
       document.getElementById('controls').hidden = !user;
-      document.getElementById('signed-out-msg').hidden = !!user;
+      document.getElementById('landing-hero').hidden = !!user;
       document.getElementById('context-switch').hidden = true;
 
       if (user) {
@@ -2452,7 +2743,7 @@
         entriesCursor = null; entriesHasMore = false; entriesAllLoaded = false;
         document.getElementById('btn-admin').hidden = true;
         updateStoryBtnVisibility();
-        document.getElementById('timeline').innerHTML = renderEmptyState('');
+        document.getElementById('timeline').innerHTML = '';
         document.getElementById('load-more-row').hidden = true;
       }
     });
@@ -2667,45 +2958,7 @@
 
     function childName(id) { const c = children.find(c => c.id === id); return c ? c.name : ''; }
 
-    function renderSampleEntries() {
-      return SAMPLE_ENTRIES.map(e => {
-        const { bg } = childAvatarColor(e.childName);
-        const catSoft = `var(--c-${e.category}-bg, var(--bg-subtle))`;
-        const catColor = `var(--c-${e.category}, var(--ink-3))`;
-        return `
-      <div class="entry-row">
-        <div class="entry-card sample-card" style="background:${bg};">
-          <div class="entry-icon" style="background:${catSoft}; color:${catColor};">${escapeHtml(e.childName.charAt(0).toUpperCase())}</div>
-          <div class="entry-body">
-            <div class="entry-top">
-              <div class="entry-title">${escapeHtml(e.title)}</div>
-              <div class="entry-date">${fmtDate(e.date)}</div>
-            </div>
-            <div class="entry-desc">${escapeHtml(e.description)}</div>
-            <div class="pill-row">
-              <span class="pill cat-${e.category}">${CATEGORY_LABEL[e.category]}</span>
-              <span class="pill">${escapeHtml(e.childName)}</span>
-            </div>
-          </div>
-        </div>
-      </div>`;
-      }).join('');
-    }
-
     function renderEmptyState(searchQuery) {
-      if (!currentUser) {
-        return `
-      <div class="empty-card">
-        <div class="empty-icon">&#127793;</div>
-        <h3>What is My Lore?</h3>
-        <p>An unfolding life stream — a personal event log. Save the moments as they happen, then reminisce, or turn them into a time capsule, a college essay, or a story worth telling.</p>
-
-        <p>Built by a dad of two kids and a puppy 🐶</p>
-        <p style="font-size: x-small;">* Event descriptions are encrypted so only you can see them.</p>
-      </div>
-      <div class="sample-label">What an event stream looks like..</div>
-      ${renderSampleEntries()}`;
-      }
       if (!children.length) {
         return `
       <div class="empty-card">
@@ -3413,16 +3666,16 @@
       el.innerHTML = `
         <div class="spine-wrap" id="spine-scroll">
           ${months.map(key => {
-            const year = key.slice(0, 4);
-            const yearDivider = year !== lastYear
-              ? `<div class="spine-year-divider"><div class="spine-year-lbl">${year}</div><div class="spine-year-line"></div></div>`
-              : '';
-            lastYear = year;
+        const year = key.slice(0, 4);
+        const yearDivider = year !== lastYear
+          ? `<div class="spine-year-divider"><div class="spine-year-lbl">${year}</div><div class="spine-year-line"></div></div>`
+          : '';
+        lastYear = year;
 
-            const monthEntries = byMonth[key];
-            const shown = monthEntries.slice(0, SPINE_DOT_CAP);
-            const overflow = monthEntries.length - shown.length;
-            return yearDivider + `
+        const monthEntries = byMonth[key];
+        const shown = monthEntries.slice(0, SPINE_DOT_CAP);
+        const overflow = monthEntries.length - shown.length;
+        return yearDivider + `
             <div class="spine-month">
               <div class="spine-lbl">${monthLabel(key)}</div>
               <div class="spine-line"></div>
@@ -3746,6 +3999,7 @@
         toast(`Couldn't revoke: ${err.code || err.message}`);
       }
     }
+
   </script>
 </body>
 
