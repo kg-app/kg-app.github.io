@@ -732,8 +732,14 @@
     }
 
     @media (min-width: 861px) {
-      body.landing-mode { height: 100%; overflow: hidden; }
-      #landing-page { height: 100dvh; }
+      body.landing-mode {
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #landing-page {
+        height: 100dvh;
+      }
     }
 
     #landing-page header {
@@ -838,7 +844,7 @@
     }
 
     #landing-page .lp-subhead {
-      font-size: clamp(15px, 1.9vh, 17px);
+      font-size: clamp(12px, 1.9vh, 15px);
       line-height: 1.55;
       color: var(--lp-ink-soft);
       margin: 0 0 26px;
@@ -959,8 +965,13 @@
     }
 
     @keyframes lp-drift {
-      from { transform: translateY(0); }
-      to { transform: translateY(-50%); }
+      from {
+        transform: translateY(0);
+      }
+
+      to {
+        transform: translateY(-50%);
+      }
     }
 
     #landing-page .lp-entry {
@@ -969,9 +980,17 @@
       margin-bottom: 12px;
     }
 
-    #landing-page .lp-entry-mint { background: var(--lp-card-mint); }
-    #landing-page .lp-entry-peach { background: var(--lp-card-peach); }
-    #landing-page .lp-entry-lavender { background: var(--lp-card-lavender); }
+    #landing-page .lp-entry-mint {
+      background: var(--lp-card-mint);
+    }
+
+    #landing-page .lp-entry-peach {
+      background: var(--lp-card-peach);
+    }
+
+    #landing-page .lp-entry-lavender {
+      background: var(--lp-card-lavender);
+    }
 
     #landing-page .lp-entry-top {
       display: flex;
@@ -1029,11 +1048,30 @@
       border-radius: var(--lp-radius-pill);
     }
 
-    #landing-page .lp-tag-milestone { background: var(--lp-cat-milestone-bg); color: var(--lp-cat-milestone-fg); }
-    #landing-page .lp-tag-achievement { background: var(--lp-cat-achievement-bg); color: var(--lp-cat-achievement-fg); }
-    #landing-page .lp-tag-health { background: var(--lp-cat-health-bg); color: var(--lp-cat-health-fg); }
-    #landing-page .lp-tag-learning { background: var(--lp-cat-learning-bg); color: var(--lp-cat-learning-fg); }
-    #landing-page .lp-tag-moment { background: var(--lp-cat-moment-bg); color: var(--lp-cat-moment-fg); }
+    #landing-page .lp-tag-milestone {
+      background: var(--lp-cat-milestone-bg);
+      color: var(--lp-cat-milestone-fg);
+    }
+
+    #landing-page .lp-tag-achievement {
+      background: var(--lp-cat-achievement-bg);
+      color: var(--lp-cat-achievement-fg);
+    }
+
+    #landing-page .lp-tag-health {
+      background: var(--lp-cat-health-bg);
+      color: var(--lp-cat-health-fg);
+    }
+
+    #landing-page .lp-tag-learning {
+      background: var(--lp-cat-learning-bg);
+      color: var(--lp-cat-learning-fg);
+    }
+
+    #landing-page .lp-tag-moment {
+      background: var(--lp-cat-moment-bg);
+      color: var(--lp-cat-moment-fg);
+    }
 
     #landing-page footer {
       text-align: center;
@@ -1047,10 +1085,25 @@
         grid-template-columns: 1fr;
         padding: 8px 20px 32px;
       }
-      #landing-page .lp-copy { max-width: none; order: 1; }
-      #landing-page .lp-stream-wrap { order: 2; height: 340px; margin-top: 20px; }
-      #landing-page .lp-headline { font-size: clamp(28px, 8vw, 38px); }
-      #landing-page header { padding: 18px 20px; }
+
+      #landing-page .lp-copy {
+        max-width: none;
+        order: 1;
+      }
+
+      #landing-page .lp-stream-wrap {
+        order: 2;
+        height: 340px;
+        margin-top: 20px;
+      }
+
+      #landing-page .lp-headline {
+        font-size: clamp(28px, 8vw, 38px);
+      }
+
+      #landing-page header {
+        padding: 18px 20px;
+      }
     }
 
     /* ---------- FAB ---------- */
@@ -1259,12 +1312,15 @@
       align-items: center;
       gap: 6px;
     }
+
     .tag-combo:focus-within {
       border-color: var(--accent);
     }
+
     .tag-chip-row {
       display: contents;
     }
+
     .tag-chip {
       display: inline-flex;
       align-items: center;
@@ -1277,6 +1333,7 @@
       color: var(--ink-2);
       white-space: nowrap;
     }
+
     .tag-chip button {
       border: none;
       background: rgba(46, 38, 32, .12);
@@ -1292,6 +1349,7 @@
       justify-content: center;
       padding: 0;
     }
+
     .tag-combo input {
       flex: 1;
       min-width: 90px;
@@ -1299,9 +1357,11 @@
       padding: 4px 2px;
       background: transparent;
     }
+
     .tag-combo input:focus {
       outline: none;
     }
+
     .tag-dropdown {
       position: absolute;
       left: 0;
@@ -1317,6 +1377,7 @@
       z-index: 5;
       padding: 4px;
     }
+
     .tag-option {
       font-size: 12px;
       padding: 7px 9px;
@@ -1324,9 +1385,12 @@
       cursor: pointer;
       color: var(--ink-2);
     }
-    .tag-option:hover, .tag-option.active {
+
+    .tag-option:hover,
+    .tag-option.active {
       background: var(--bg-subtle);
     }
+
     .tag-option .new-hint {
       color: var(--ink-mute);
       font-size: 10.5px;
@@ -2004,20 +2068,25 @@
       <div class="lp-copy">
         <h1 class="lp-headline">A private micro journal.</h1>
         <p class="lp-subhead">
-          My Lore is an unfolding life stream — save moments as they happen, then turn them into a time capsule, a college essay, or a story worth telling.
+          My Lore is an unfolding life stream — save moments as they happen, then reminisce or turn them into a time
+          capsule, a college essay, or a story worth telling.
         </p>
 
         <div class="lp-cta-row">
           <button class="lp-btn lp-btn-primary" type="button" onclick="signInWithGoogle()">
             <svg class="lp-google-g" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/>
-              <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 0 0 9 18z"/>
-              <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.66 9c0-.59.1-1.17.29-1.7V4.97H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.03l2.99-2.33z"/>
-              <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.97l2.99 2.33C4.66 5.17 6.65 3.58 9 3.58z"/>
+              <path fill="#4285F4"
+                d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z" />
+              <path fill="#34A853"
+                d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 0 0 9 18z" />
+              <path fill="#FBBC05"
+                d="M3.95 10.7A5.4 5.4 0 0 1 3.66 9c0-.59.1-1.17.29-1.7V4.97H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.03l2.99-2.33z" />
+              <path fill="#EA4335"
+                d="M9 3.58c1.32 0 2.5.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.97l2.99 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
             </svg>
             Sign in with Google
           </button>
-          <div class="lp-trust-line">&#128274; Private and secure. Only your family can see it.</div>
+          <div class="lp-trust-line">&#128274; Private and secure. Only you can see it.</div>
         </div>
 
         <div class="lp-chips">
@@ -2049,7 +2118,8 @@
     <div class="spacer"></div>
     <div id="auth-area">
       <button class="btn btn-icon btn-sm" id="btn-admin" title="Admin" onclick="openAdmin()" hidden>&#9881;</button>
-      <button class="btn btn-icon btn-sm" id="btn-story" title="Your story" onclick="openStoryView()" hidden>&#10024;</button>
+      <button class="btn btn-icon btn-sm" id="btn-story" title="Your story" onclick="openStoryView()"
+        hidden>&#10024;</button>
       <button class="btn btn-sm" id="btn-signin" onclick="signInWithGoogle()">Sign in</button>
       <div id="user-menu-wrap" hidden>
         <button id="user-avatar" onclick="toggleUserMenu()" title="Account"></button>
@@ -2146,8 +2216,8 @@
         <label class="field-label">Tags</label>
         <div class="tag-combo" id="tag-combo">
           <div class="tag-chip-row" id="tag-chip-row"></div>
-          <input id="f-tags" placeholder="Add a tag…" autocomplete="off"
-            oninput="onTagInput()" onkeydown="onTagKeydown(event)" onfocus="onTagInput()">
+          <input id="f-tags" placeholder="Add a tag…" autocomplete="off" oninput="onTagInput()"
+            onkeydown="onTagKeydown(event)" onfocus="onTagInput()">
           <div class="tag-dropdown" id="tag-dropdown" hidden></div>
         </div>
       </div>
@@ -2182,7 +2252,8 @@
         <label class="field-label">Events (one per line)</label>
         <div style="font-size:10px; color:var(--ink-3); margin-bottom:6px; line-height:1.5;">
           Format: <code>date, title, category, description, tags</code><br>
-          Category is one of achievement / milestone / learning / health / moment (optional, defaults to achievement). Separate
+          Category is one of achievement / milestone / learning / health / moment (optional, defaults to achievement).
+          Separate
           tags with <code>;</code>. Wrap a field in quotes if it contains a comma. Sample rows are pre-filled below
           &mdash; replace them with your own.
         </div>
@@ -2314,24 +2385,36 @@
 
     // Shown in the landing page's animated stream (signed-out visitors only).
     const LANDING_ENTRIES = [
-      { avatar: 'M', avatarBg: '#3D2A63', bg: 'mint', title: 'First steps!',
+      {
+        avatar: 'M', avatarBg: '#3D2A63', bg: 'mint', title: 'First steps!',
         date: 'Mar 2', body: "Mia took her first wobbly steps across the living room into Dad's arms :)",
-        tags: [['Milestone', 'milestone'], ['Mia', 'plain']] },
-      { avatar: 'L', avatarBg: '#D98A3D', bg: 'peach', title: 'Won the school spelling bee',
+        tags: [['Milestone', 'milestone'], ['Mia', 'plain']]
+      },
+      {
+        avatar: 'L', avatarBg: '#D98A3D', bg: 'peach', title: 'Won the school spelling bee',
         date: 'Nov 14', body: 'Took first place spelling "chrysanthemum" without a hitch. So proud!',
-        tags: [['Achievement', 'achievement'], ['Leo', 'plain']] },
-      { avatar: 'R', avatarBg: '#1F7A5C', bg: 'lavender', title: 'Vet check-up: all clear',
+        tags: [['Achievement', 'achievement'], ['Leo', 'plain']]
+      },
+      {
+        avatar: 'R', avatarBg: '#1F7A5C', bg: 'lavender', title: 'Vet check-up: all clear',
         date: 'Sep 8', body: 'Annual check-up.. weight, teeth, and vitals all normal.',
-        tags: [['Health', 'health'], ['Rex', 'plain']] },
-      { avatar: 'M', avatarBg: '#B23A61', bg: 'mint', title: 'Finished her first chapter book',
+        tags: [['Health', 'health'], ['Rex', 'plain']]
+      },
+      {
+        avatar: 'M', avatarBg: '#B23A61', bg: 'mint', title: 'Finished her first chapter book',
         date: 'Jun 21', body: 'Read "Junie B. Jones" cover to cover, all by herself.',
-        tags: [['Learning', 'learning'], ['Mia', 'plain']] },
-      { avatar: 'N', avatarBg: '#6B3FA0', bg: 'lavender', title: 'First day of kindergarten',
+        tags: [['Learning', 'learning'], ['Mia', 'plain']]
+      },
+      {
+        avatar: 'N', avatarBg: '#6B3FA0', bg: 'lavender', title: 'First day of kindergarten',
         date: 'Aug 25', body: 'Walked in without looking back. We were the ones who cried.',
-        tags: [['Moment', 'moment'], ['Nishka', 'plain']] },
-      { avatar: 'L', avatarBg: '#3B4CC8', bg: 'peach', title: 'Rode a bike with no training wheels',
+        tags: [['Moment', 'moment'], ['Nishka', 'plain']]
+      },
+      {
+        avatar: 'L', avatarBg: '#3B4CC8', bg: 'peach', title: 'Rode a bike with no training wheels',
         date: 'May 4', body: 'Three wobbly laps around the driveway, then he never looked back.',
-        tags: [['Milestone', 'milestone'], ['Leo', 'plain']] },
+        tags: [['Milestone', 'milestone'], ['Leo', 'plain']]
+      },
     ];
 
     let currentUser = null;
@@ -3329,10 +3412,10 @@
       el.innerHTML = `
         <div class="spine-wrap" id="spine-scroll">
           ${months.map(key => {
-            const monthEntries = byMonth[key];
-            const shown = monthEntries.slice(0, SPINE_DOT_CAP);
-            const overflow = monthEntries.length - shown.length;
-            return `
+        const monthEntries = byMonth[key];
+        const shown = monthEntries.slice(0, SPINE_DOT_CAP);
+        const overflow = monthEntries.length - shown.length;
+        return `
             <div class="spine-month">
               <div class="spine-lbl">${monthLabel(key)}</div>
               <div class="spine-line"></div>
