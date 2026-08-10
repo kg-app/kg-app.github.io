@@ -2205,7 +2205,7 @@
         <input id="c-birthdate" type="date">
       </div>
 
-      <button class="btn btn-primary btn-block" onclick="saveChild()" id="c-save-btn">Add child</button>
+      <button class="btn btn-primary btn-block" onclick="saveChild()" id="c-save-btn">Add</button>
     </div>
   </div>
 
@@ -2249,30 +2249,9 @@
         import</button>
 
       <div class="section-label">Share view-only / editable link</div>
-      <div class="list-card" style="padding:12px;">
-        <div class="field">
-          <label class="field-label">Recipient email</label>
-          <input id="share-email" placeholder="spouse@email.com">
-        </div>
-        <div class="field">
-          <label class="field-label">Scope</label>
-          <div class="pick-row" id="share-scope-picks"></div>
-        </div>
-        <div
-          style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid var(--line); margin-bottom:10px;">
-          <div>
-            <div style="font-size:12px;">Can edit</div>
-            <div style="font-size:10px; color:var(--ink-mute);">Lets them add their own entries.</div>
-          </div>
-          <div class="toggle" id="share-canedit-toggle" onclick="this.classList.toggle('on')">
-            <div class="knob"></div>
-          </div>
-        </div>
-        <button class="btn btn-primary btn-block" onclick="sendShareInvite()">&#9993; Send invite</button>
+      <div class="list-card" style="padding:12px; text-align:center; color:var(--ink-mute); font-size:12px;">
+        Coming soon
       </div>
-
-      <div class="section-label" style="margin-top:18px;">Active shares</div>
-      <div class="list-card" id="admin-shares"></div>
     </div>
   </div>
 
@@ -3472,7 +3451,7 @@
         console.error('saveChild failed:', err.code, err.message);
         toast(`Couldn't add child: ${err.code || err.message}`);
       } finally {
-        btn.disabled = false; btn.textContent = 'Add child';
+        btn.disabled = false; btn.textContent = 'Add';
       }
     }
 
@@ -3560,6 +3539,7 @@
 
     function renderShareScopePicks() {
       const el = document.getElementById('share-scope-picks');
+      if (!el) return; // sharing UI hidden ("Coming soon")
       const opts = [{ id: 'all', label: 'Both/all' }, ...children.map(c => ({ id: c.id, label: c.name }))];
       el.innerHTML = opts.map(o => `<span class="pick-chip${shareScope === o.id ? ' selected' : ''}" data-cat="milestone" onclick="pickShareScope('${o.id}')">${escapeHtml(o.label)}</span>`).join('');
     }
@@ -3567,6 +3547,7 @@
 
     function renderAdminShares() {
       const el = document.getElementById('admin-shares');
+      if (!el) return; // sharing UI hidden ("Coming soon")
       el.innerHTML = '';
       if (!shares.length) {
         el.innerHTML = '<div style="padding:14px; font-size:11px; color:var(--ink-mute);">No one else has access yet.</div>';
