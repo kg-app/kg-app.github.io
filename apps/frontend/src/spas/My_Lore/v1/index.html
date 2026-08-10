@@ -54,13 +54,13 @@
       --c-moment: #93cc57;
       --c-moment-bg: #ebf5e0;
 
-      --c-child-margot: #e67b39;
+      --c-child-margot: #ea732a;
       --c-child-margot-text: #2e2620;
-      --c-child-nayna: #3a54b5;
+      --c-child-nayna: #264ac9;
       --c-child-nayna-text: #ffffff;
-      --c-child-nishka: #a03fa6;
+      --c-child-nishka: #b727be;
       --c-child-nishka-text: #ffffff;
-      --c-child-default: #9f9a63;
+      --c-child-default: #b99e31;
       --c-child-default-text: #2e2620;
 
       /* Same dot-quilt background used across the landing page, the app, and admin. */
@@ -1983,8 +1983,8 @@
 
     <main>
       <div class="lp-copy">
-        <p class="lp-eyebrow">A private family journal</p>
-        <h1 class="lp-headline">Every little thing,<br>kept safe.</h1>
+        <p class="lp-eyebrow">A private micro journal</p>
+        <h1 class="lp-headline">Every little thing,<br>becomes a lore.</h1>
         <p class="lp-subhead">
           My Lore is an unfolding life stream — save moments as they happen,
           then turn them into a time capsule, a resume, or a story worth telling.
@@ -2083,7 +2083,7 @@
       </p>
       <p>Type <span class="challenge-code" id="delete-challenge-code">DELETE</span> to confirm.</p>
       <input id="delete-challenge-input" autocomplete="off" oninput="onDeleteChallengeInput()">
-      <button class="btn btn-block btn-danger" id="delete-confirm-btn" onclick="confirmBulkDelete()"
+      <button class="btn btn-block btn-danger" id="delete-confirm-btn" onclick="runDeleteModalConfirm()"
         disabled>Delete</button>
       <button class="btn btn-block" style="margin-top:8px;" onclick="closeOverlay('delete-modal')">Cancel</button>
     </div>
@@ -2135,7 +2135,7 @@
         </div>
       </div>
 
-      <div class="field">
+      <div class="field" hidden>
         <label class="field-label">Photos</label>
         <div id="image-preview-row"></div>
         <button class="btn btn-sm" onclick="document.getElementById('image-input').click()">&#128247; Add photo</button>
@@ -2841,6 +2841,12 @@
       document.getElementById('select-count').textContent = `${selectedIds.size} selected`;
     }
 
+    // The delete-modal markup is shared by every "type the code to confirm"
+    // destructive action (bulk entry delete, child delete, ...). Whoever opens
+    // it points pendingDeleteAction at the function that should run on confirm.
+    let pendingDeleteAction = null;
+    function runDeleteModalConfirm() { if (pendingDeleteAction) pendingDeleteAction(); }
+
     function openDeleteConfirm() {
       if (!selectedIds.size) { toast('Select at least one entry.'); return; }
       const n = selectedIds.size;
@@ -2851,6 +2857,7 @@
       const input = document.getElementById('delete-challenge-input');
       input.value = '';
       document.getElementById('delete-confirm-btn').disabled = true;
+      pendingDeleteAction = confirmBulkDelete;
       openOverlay('delete-modal');
     }
 
@@ -3416,9 +3423,13 @@
           <div class="child-meta">${count} ${count === 1 ? 'entry' : 'entries'}</div>
         </div>
       </div>
-      <div class="toggle${hidden ? '' : ' on'}" title="${hidden ? 'Unhide' : 'Hide'} ${escapeHtml(c.name)}"><div class="knob"></div></div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="toggle${hidden ? '' : ' on'}" title="${hidden ? 'Unhide' : 'Hide'} ${escapeHtml(c.name)}"><div class="knob"></div></div>
+        <button class="icon-btn" title="Delete ${escapeHtml(c.name)} permanently">&#128465;</button>
+      </div>
     `;
         row.querySelector('.toggle').onclick = () => hidden ? unhideChild(c.id, c.name) : removeChild(c.id, c.name);
+        row.querySelector('.icon-btn').onclick = () => openDeleteChildConfirm(c.id, c.name);
         el.appendChild(row);
       });
     }
@@ -3476,6 +3487,57 @@
       } catch (err) {
         console.error('unhideChild failed:', err.code, err.message);
         toast(`Couldn't unhide: ${err.code || err.message}`);
+      }
+    }
+
+    // Permanently deletes a child plus every entry (and photo) tied to them.
+    // Unlike removeChild (which just hides), there's no undo — so this makes
+    // the user type the child's exact name, not just the word "DELETE", to
+    // guard against a mis-tap wiping out a whole child's history.
+    function openDeleteChildConfirm(childId, name) {
+      const count = entries.filter(e => e.childId === childId).length;
+      document.getElementById('delete-count-label').textContent = name;
+      document.getElementById('delete-modal-warning').textContent =
+        `This permanently deletes ${name} and ${count ? `all ${count} ${count === 1 ? 'entry' : 'entries'}` : 'their entries'} and photos. This can't be undone.`;
+      document.getElementById('delete-challenge-code').textContent = name;
+      const input = document.getElementById('delete-challenge-input');
+      input.value = '';
+      document.getElementById('delete-confirm-btn').disabled = true;
+      pendingDeleteAction = () => confirmDeleteChild(childId, name);
+      openOverlay('delete-modal');
+    }
+
+    async function confirmDeleteChild(childId, name) {
+      const btn = document.getElementById('delete-confirm-btn');
+      btn.disabled = true; btn.textContent = 'Deleting...';
+      try {
+        const childEntries = entries.filter(e => e.childId === childId);
+        for (const entry of childEntries) {
+          if (entry.mediaPaths) {
+            await Promise.all(entry.mediaPaths.map(p => storage.ref(p).delete().catch(e => console.warn('delete failed', p, e.code))));
+          }
+        }
+        // Firestore batches cap at 500 writes; chunk in case a child has a lot of entries.
+        const ids = childEntries.map(e => e.id);
+        for (let i = 0; i < ids.length; i += 450) {
+          const batch = db.batch();
+          ids.slice(i, i + 450).forEach(id => batch.delete(entriesCol().doc(id)));
+          await batch.commit();
+        }
+        await childrenCol().doc(childId).delete();
+        toast(`${name} and their data deleted`);
+        closeOverlay('delete-modal');
+        if (activeChildFilter === childId) activeChildFilter = 'all';
+        await loadChildren();
+        await loadEntries();
+        renderAdminChildren(); renderChildToggle(); renderAdminOverview();
+        renderTimeline();
+        updateStoryBtnVisibility();
+      } catch (err) {
+        console.error('confirmDeleteChild failed:', err.code, err.message);
+        toast(`Couldn't delete: ${err.code || err.message}`);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Delete';
       }
     }
 
