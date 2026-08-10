@@ -395,6 +395,14 @@
       color: #fff;
     }
 
+    #child-toggle .seg-add {
+      border-style: dashed;
+      color: var(--ink-mute);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 5px 12px;
+    }
+
     #category-chips {
       display: flex;
       flex-wrap: nowrap;
@@ -2185,7 +2193,7 @@
     <div class="sheet">
       <div class="sheet-grab"></div>
       <div class="sheet-head">
-        <h2>Add child</h2>
+        <h2>Add child, pet, your workout, or anything else you want to track</h2>
         <button class="sheet-close" onclick="closeOverlay('child-overlay')">&#10005;</button>
       </div>
 
@@ -2234,9 +2242,9 @@
       <div class="section-label">Overview</div>
       <div class="stat-grid" id="admin-stats"></div>
 
-      <div class="section-label">Children</div>
+      <div class="section-label">Personas</div>
       <div class="list-card" id="admin-children"></div>
-      <button class="btn btn-block" style="margin-bottom:22px;" onclick="openAddChild()">+ Add child</button>
+      <button class="btn btn-block" style="margin-bottom:22px;" onclick="openAddChild()">+ Add persona</button>
 
       <div class="section-label">Bulk import entries</div>
       <button class="btn btn-block" style="margin-bottom:22px;" onclick="openBulkImport()">&#128228; Bulk
@@ -2668,6 +2676,15 @@
         d.onclick = () => { activeChildFilter = s.id; renderChildToggle(); onFilterChanged(); };
         el.appendChild(d);
       });
+
+      if (isOwnerView) {
+        const addSeg = document.createElement('div');
+        addSeg.className = 'seg seg-add';
+        addSeg.title = 'Add a child';
+        addSeg.textContent = '+';
+        addSeg.onclick = () => openAddChild();
+        el.appendChild(addSeg);
+      }
     }
 
     function renderCategoryChips() {
@@ -2728,8 +2745,8 @@
         <h3>Welcome to My Lore!</h3>
         <p>A few quick steps to start capturing your family's story.</p>
         <div class="empty-steps">
-          <div class="empty-step"><span class="num">1</span><span>Tap the <strong>&#9881; gear icon</strong> in the top right to open Admin.</span></div>
-          <div class="empty-step"><span class="num">2</span><span>Add a <strong>child or pet</strong> there.</span></div>
+          <div class="empty-step"><span class="num">1</span><span>Create a new <strong>persona</strong> (child, pet, or anything else you want to track).</span></div>
+          <div class="empty-step"><span class="num">2</span><span>To add a persona, click the <strong>'+' icon</strong> above, or go to the admin panel via the <strong>&#9881; gear icon</strong>.</span></div>
           <div class="empty-step"><span class="num">3</span><span>Come back here and tap the <strong>+ button</strong> to add your first life event.</span></div>
         </div>
       </div>`;
@@ -3406,7 +3423,7 @@
       const el = document.getElementById('admin-children');
       el.innerHTML = '';
       if (!childrenAll.length) {
-        el.innerHTML = '<div style="padding:14px; font-size:11px; color:var(--ink-mute);">No children added yet.</div>';
+        el.innerHTML = '<div style="padding:14px; font-size:11px; color:var(--ink-mute);">No personas added yet.</div>';
         return;
       }
       childrenAll.forEach(c => {
@@ -3435,7 +3452,7 @@
     }
 
     function openAddChild() {
-      document.getElementById('c-name').value = '';
+      document.getElementById('c-name').value = 'Margot puppy';
       document.getElementById('c-birthdate').value = '';
       openOverlay('child-overlay');
     }
