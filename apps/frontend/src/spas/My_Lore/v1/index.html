@@ -62,6 +62,10 @@
       --c-child-nishka-text: #ffffff;
       --c-child-default: #1F7A5C;
       --c-child-default-text: #ffffff;
+      --c-child-lucas: #3B4CC8;
+      --c-child-lucas-text: #ffffff;
+      --c-child-mia: #D98A3D;
+      --c-child-mia-text: #2e2620;
 
       /* Same dot-quilt background used across the landing page, the app, and admin. */
       --bg-texture-color: #FBF7E9;
@@ -205,6 +209,10 @@
       align-items: center;
       gap: 9px;
       color: var(--ink);
+    }
+
+    #topbar .brand.brand-demo {
+      cursor: pointer;
     }
 
     .brand-logo {
@@ -1761,6 +1769,31 @@
       font-family: 'Baloo 2', sans-serif;
     }
 
+    #demo-bar {
+      display: none;
+      position: sticky;
+      top: 56px;
+      z-index: 18;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 14px;
+      padding: 9px 14px;
+      background: linear-gradient(0deg, rgba(61, 42, 99, .08), rgba(61, 42, 99, .08)), var(--bg-surface);
+      border-bottom: 1px solid var(--accent);
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    #demo-bar:not([hidden]) {
+      display: flex;
+    }
+
+    .demo-bar-actions {
+      display: flex;
+      gap: 8px;
+    }
+
     /* ---------- toast ---------- */
     #toast {
       position: fixed;
@@ -2103,6 +2136,7 @@
             </svg>
             Sign in with Google
           </button>
+          <button class="lp-btn lp-btn-ghost" type="button" onclick="enterDemoMode()">&#9654; See a live demo</button>
           <div class="lp-trust-line">&#128274; Private and secure. Only you can see it.</div>
         </div>
 
@@ -2124,7 +2158,7 @@
   </div>
 
   <div id="topbar">
-    <div class="brand">
+    <div class="brand" id="brand" onclick="handleBrandClick()">
       <span class="brand-logo" aria-hidden="true">&#129716;</span>
       <span>My Lore</span>
     </div>
@@ -2133,7 +2167,7 @@
     <div id="auth-area">
       <button class="btn btn-icon btn-sm" id="btn-admin" title="Admin" onclick="openAdmin()" hidden>&#9881;</button>
       <button class="btn btn-icon btn-sm" id="btn-story" title="Your story" onclick="openStoryView()"
-        hidden>&#10024;</button>
+        hidden>&#128202;</button>
       <button class="btn btn-sm" id="btn-signin" onclick="signInWithGoogle()">Sign in</button>
       <div id="user-menu-wrap" hidden>
         <button id="user-avatar" onclick="toggleUserMenu()" title="Account"></button>
@@ -2149,6 +2183,14 @@
     <span class="count" id="select-count">0 selected</span>
     <button class="btn btn-sm" onclick="toggleSelectMode()">Cancel</button>
     <button class="btn btn-sm btn-danger" onclick="openDeleteConfirm()">&#128465; Delete</button>
+  </div>
+
+  <div id="demo-bar" hidden>
+    <span>&#128064; Demo mode &mdash; nothing you do here is saved.</span>
+    <div class="demo-bar-actions">
+      <button class="btn btn-sm btn-primary" onclick="signInWithGoogle()">Sign in with Google</button>
+      <button class="btn btn-sm" onclick="exitDemoMode()">Exit demo</button>
+    </div>
   </div>
 
   <div id="shell">
@@ -2310,7 +2352,7 @@
     <div class="sheet">
       <div class="sheet-grab"></div>
       <div class="sheet-head">
-        <h2>Your story</h2>
+        <h2>Journal Entries - visualized</h2>
         <button class="sheet-close" onclick="closeOverlay('story-overlay')">&#10005;</button>
       </div>
       <div class="story-note" id="story-loaded-note" hidden>Based on your most recently loaded entries</div>
@@ -2396,6 +2438,107 @@
       health: 'Medical or wellness',
       moment: 'A memory worth keeping',
     };
+
+    /* ---------- demo mode (signed-out visitors, no account, nothing persisted) ---------- */
+    // Lets a visitor click around a populated journal — two kids, a dog, and a
+    // workout routine — without signing in. Reads run entirely off these local
+    // arrays; add/edit/delete just mutate `entries` in memory (see the
+    // `demoMode` branches in saveEntry/deleteEntry/confirmBulkDelete) so
+    // nothing ever touches Firestore.
+    let demoMode = false;
+    const DEMO_CHILDREN = [
+      { id: 'demo-mia', name: 'Mia' },
+      { id: 'demo-lucas', name: 'Lucas' },
+      { id: 'demo-margot', name: 'Margot puppy' },
+      { id: 'demo-workout', name: 'Workout Routine' },
+    ];
+    const DEMO_ENTRIES = [
+      // Mia — kid
+      { id: 'demo-e1', childId: 'demo-mia', date: '2026-08-02', category: 'milestone', title: 'Lost her first tooth', description: 'Wiggled it all week, then it finally came out during breakfast. She insisted on putting it under her pillow that same night.', tags: ['tooth fairy', 'first'] },
+      { id: 'demo-e2', childId: 'demo-mia', date: '2026-06-14', category: 'achievement', title: 'Learned to swim without floaties', description: 'Jumped off the low dive on her own and paddled the whole way across. We cheered so loud the lifeguard laughed.', tags: ['swimming', 'summer'] },
+      { id: 'demo-e3', childId: 'demo-mia', date: '2026-04-03', category: 'learning', title: 'Read her first full book alone', description: "Sat down with 'Green Eggs and Ham' and read every page herself, no help. So proud she made us watch.", tags: ['reading'] },
+      { id: 'demo-e4', childId: 'demo-mia', date: '2026-02-20', category: 'moment', title: 'Made her baby brother laugh for the first time', description: "Kept making silly faces at breakfast until he finally cracked up. Mia was thrilled she'd 'unlocked' him.", tags: ['siblings'] },
+      // Lucas — kid, boy
+      { id: 'demo-e5', childId: 'demo-lucas', date: '2026-07-19', category: 'achievement', title: 'Won the school spelling bee', description: "Spelled 'chrysanthemum' correctly in the final round. He'd been practicing every night for a month.", tags: ['school', 'spelling'] },
+      { id: 'demo-e6', childId: 'demo-lucas', date: '2026-05-11', category: 'milestone', title: 'First day of middle school', description: "Nervous on the drive over, but texted us at lunch to say he'd already made a new friend.", tags: ['school'] },
+      { id: 'demo-e7', childId: 'demo-lucas', date: '2026-03-08', category: 'achievement', title: 'Finished his first 5K', description: 'Trained with us on weekends all winter. Crossed the finish line and immediately asked when the next race was.', tags: ['running'] },
+      { id: 'demo-e8', childId: 'demo-lucas', date: '2026-01-15', category: 'learning', title: 'Started guitar lessons', description: "Picked his favorite rock song as the goal on day one. Ambitious, but he's not backing down.", tags: ['guitar', 'music'] },
+      // Margot puppy — dog
+      { id: 'demo-e9', childId: 'demo-margot', date: '2026-07-30', category: 'health', title: 'Vet check-up: all clear', description: "Annual check-up — weight, teeth, and vitals all normal. Vet says she's in great shape for her age.", tags: ['vet', 'health'] },
+      { id: 'demo-e10', childId: 'demo-margot', date: '2026-06-05', category: 'achievement', title: 'Learned to shake', description: 'Three weeks of treat-bribery finally paid off. Now she offers a paw before we even ask.', tags: ['training'] },
+      { id: 'demo-e11', childId: 'demo-margot', date: '2026-04-22', category: 'milestone', title: 'Survived her first thunderstorm calmly', description: 'Usually hides under the bed, but this time she just curled up next to us on the couch. Growth!', tags: ['behavior'] },
+      { id: 'demo-e12', childId: 'demo-margot', date: '2026-02-09', category: 'moment', title: 'Adoption day anniversary', description: 'Two years since we brought her home from the shelter. Still the best decision we ever made.', tags: ['adoption', 'anniversary'] },
+      // Workout Routine — activity
+      { id: 'demo-e13', childId: 'demo-workout', date: '2026-08-05', category: 'achievement', title: 'Hit a new deadlift PR', description: 'Pulled 225 lbs for the first time — 15 lbs over my old best. Form felt solid the whole way up.', tags: ['strength', 'PR'] },
+      { id: 'demo-e14', childId: 'demo-workout', date: '2026-06-28', category: 'milestone', title: 'Ran first half marathon', description: 'Finished in 2:04, well under my goal of 2:15. Legs are toast but worth it.', tags: ['running', 'race'] },
+      { id: 'demo-e15', childId: 'demo-workout', date: '2026-05-02', category: 'achievement', title: '30-day streak of morning workouts', description: "Didn't miss a single day this month, even on the two trips out of town. Habit's finally sticking.", tags: ['consistency'] },
+      { id: 'demo-e16', childId: 'demo-workout', date: '2026-03-11', category: 'learning', title: 'Started a structured lifting program', description: 'Switched from random gym days to an actual 4-day split. Already feels more intentional.', tags: ['strength', 'program'] },
+    ];
+
+    function enterDemoMode() {
+      demoMode = true;
+      // A stand-in "signed in" user so the write-gated UI (fab, select mode, ...)
+      // behaves as if signed in. Never used to touch Firestore — every path that
+      // could (saveEntry/deleteEntry/confirmBulkDelete) short-circuits on demoMode first.
+      currentUser = { uid: 'demo-user', email: '', displayName: 'Demo' };
+      ownerId = 'demo-owner';
+      isOwnerView = true;
+      contexts = [{ id: ownerId, label: 'Demo journal', role: 'owner' }];
+      children = DEMO_CHILDREN.map(c => ({ ...c }));
+      childrenAll = children;
+      entries = DEMO_ENTRIES.map(e => ({ ...e, tags: [...e.tags] }))
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      entriesCursor = null; entriesHasMore = false; entriesAllLoaded = true; entriesLoadingMore = false;
+      selectMode = false; selectedIds = new Set();
+      activeChildFilter = 'all'; activeCategoryFilter = 'all';
+
+      document.body.classList.remove('landing-mode');
+      document.getElementById('landing-page').hidden = true;
+      document.getElementById('topbar').hidden = false;
+      document.getElementById('shell').hidden = false;
+      document.getElementById('controls').hidden = false;
+      document.getElementById('signed-out-msg').hidden = true;
+      document.getElementById('btn-signin').hidden = true;
+      document.getElementById('user-menu-wrap').hidden = true;
+      document.getElementById('btn-admin').hidden = true; // admin/sharing aren't part of the demo
+      document.getElementById('context-switch').hidden = true;
+      document.getElementById('fab').hidden = false;
+      document.getElementById('select-toggle').hidden = false;
+      document.getElementById('demo-bar').hidden = false;
+      const brand = document.getElementById('brand');
+      brand.classList.add('brand-demo');
+      brand.title = 'Exit demo';
+      updateSelectBar();
+
+      renderChildToggle();
+      renderCategoryChips();
+      renderTimeline();
+      updateStoryBtnVisibility();
+    }
+
+    function exitDemoMode() {
+      demoMode = false;
+      currentUser = null;
+      ownerId = null; isOwnerView = false; contexts = [];
+      children = []; childrenAll = []; entries = [];
+      document.getElementById('demo-bar').hidden = true;
+      document.getElementById('topbar').hidden = true;
+      document.getElementById('shell').hidden = true;
+      document.getElementById('fab').hidden = true;
+      const brand = document.getElementById('brand');
+      brand.classList.remove('brand-demo');
+      brand.title = '';
+      document.body.classList.add('landing-mode');
+      document.getElementById('landing-page').hidden = false;
+      renderLandingStream();
+      renderLandingChips();
+    }
+
+    // Clicking the logo/wordmark only does something in demo mode — it's the
+    // quickest way out, alongside the "Exit demo" button in the demo banner.
+    function handleBrandClick() {
+      if (demoMode) exitDemoMode();
+    }
 
     // "What can this become" pills above the landing page's stream. The first
     // one is shown open by default; hovering (or focusing, for keyboard/touch)
@@ -2537,8 +2680,11 @@
 
     const CHILD_BADGE_VARS = {
       margot: ['--c-child-margot', '--c-child-margot-text'],
+      'margot puppy': ['--c-child-margot', '--c-child-margot-text'],
       nayna: ['--c-child-nayna', '--c-child-nayna-text'],
       nishka: ['--c-child-nishka', '--c-child-nishka-text'],
+      lucas: ['--c-child-lucas', '--c-child-lucas-text'],
+      mia: ['--c-child-mia', '--c-child-mia-text'],
     };
     function childAvatarColor(name) {
       const key = (name || '').trim().toLowerCase();
@@ -2787,7 +2933,7 @@
         el.appendChild(d);
       });
 
-      if (isOwnerView) {
+      if (isOwnerView && !demoMode) { // adding personas isn't part of the demo
         const addSeg = document.createElement('div');
         addSeg.className = 'seg seg-add';
         addSeg.title = 'Add a child';
@@ -2998,6 +3144,18 @@
       if (!ids.length) return;
       const btn = document.getElementById('delete-confirm-btn');
       btn.disabled = true; btn.textContent = 'Deleting...';
+
+      if (demoMode) {
+        entries = entries.filter(e => !ids.includes(e.id));
+        toast(`Demo only — nothing was actually deleted.`);
+        closeOverlay('delete-modal');
+        toggleSelectMode();
+        renderTimeline();
+        updateStoryBtnVisibility();
+        btn.disabled = false; btn.textContent = 'Delete';
+        return;
+      }
+
       try {
         for (const id of ids) {
           const entry = entries.find(e => e.id === id);
@@ -3233,6 +3391,28 @@
       const btn = document.getElementById('f-save-btn');
       btn.disabled = true; btn.textContent = 'Saving...'; btn.dataset.saving = '1';
 
+      if (demoMode) {
+        const existing = editingEntryId ? entries.find(e => e.id === editingEntryId) : null;
+        const mediaUrls = existing ? [...(existing.mediaUrls || [])] : [];
+        const baseData = { title, date, category, description, tags, mediaUrls, mediaPaths: [] };
+        const [primaryChildId, ...extraChildIds] = selectedWhoIds;
+        if (editingEntryId) {
+          const idx = entries.findIndex(e => e.id === editingEntryId);
+          if (idx !== -1) entries[idx] = { ...entries[idx], ...baseData, childId: primaryChildId };
+        } else {
+          entries.unshift({ id: `demo-${Date.now()}`, ...baseData, childId: primaryChildId });
+        }
+        extraChildIds.forEach((childId, i) => entries.unshift({ id: `demo-${Date.now()}-${i}`, ...baseData, childId }));
+        entries.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        toast('Demo only — nothing was actually saved.');
+        closeOverlay('entry-overlay');
+        renderTimeline();
+        updateStoryBtnVisibility();
+        delete btn.dataset.saving;
+        updateSaveBtnState();
+        return;
+      }
+
       try {
         // The entry being edited (or the first person picked, on create) keeps
         // its own doc id; every additional person picked gets a brand-new,
@@ -3381,6 +3561,16 @@
       if (!editingEntryId || !isOwnerView) return;
       const ok = await confirmDialog("This permanently removes the entry and its photos. This can't be undone.", { title: 'Delete this entry?', confirmLabel: 'Delete', danger: true });
       if (!ok) return;
+
+      if (demoMode) {
+        entries = entries.filter(e => e.id !== editingEntryId);
+        toast('Demo only — nothing was actually deleted.');
+        closeOverlay('entry-overlay');
+        renderTimeline();
+        updateStoryBtnVisibility();
+        return;
+      }
+
       try {
         const entry = entries.find(e => e.id === editingEntryId);
         if (entry && entry.mediaPaths) {
@@ -3403,7 +3593,7 @@
     let storyBreakdownChild = 'all'; // local to the modal, resets each time it opens
 
     function updateStoryBtnVisibility() {
-      document.getElementById('btn-story').hidden = document.getElementById('btn-admin').hidden || !entries.length;
+      document.getElementById('btn-story').hidden = !isOwnerView || !entries.length;
     }
 
     function openStoryView() {
