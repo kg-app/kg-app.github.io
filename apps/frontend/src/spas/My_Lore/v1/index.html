@@ -887,6 +887,23 @@
       border: 1px solid var(--lp-line);
       padding: 7px 14px;
       border-radius: var(--lp-radius-pill);
+      cursor: pointer;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+
+    #landing-page .lp-chip.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    #landing-page .lp-chip-desc {
+      max-width: 420px;
+      margin: 10px 0 0;
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--lp-ink-soft);
+      min-height: 2.7em;
     }
 
     #landing-page .lp-stream-wrap {
@@ -2089,11 +2106,8 @@
           <div class="lp-trust-line">&#128274; Private and secure. Only you can see it.</div>
         </div>
 
-        <div class="lp-chips">
-          <span class="lp-chip">&#127873; Time capsule</span>
-          <span class="lp-chip">&#128196; Resume fodder</span>
-          <span class="lp-chip">&#9997;&#65039; College essay</span>
-        </div>
+        <div class="lp-chips" id="lp-chips"></div>
+        <p class="lp-chip-desc" id="lp-chip-desc"></p>
       </div>
 
       <div class="lp-stream-wrap">
@@ -2383,6 +2397,29 @@
       moment: 'A memory worth keeping',
     };
 
+    // "What can this become" pills above the landing page's stream. The first
+    // one is shown open by default; hovering (or focusing, for keyboard/touch)
+    // another pill swaps the description below it.
+    const LANDING_CHIPS = [
+      { icon: '&#127873;', label: 'Time capsule', desc: 'Look back at the small moments that led to this day! Reminisce and enjoy the journey.' },
+      { icon: '&#128196;', label: 'Resume fodder', desc: 'Budding artist, job seeker, speaker? Turn small wins into proof of what you can do.' },
+      { icon: '&#9997;&#65039;', label: 'College essay', desc: 'When it\'s time to write, feed your chat agent your real life events — and stand out for the details only you\'d remember.' },
+    ];
+    function renderLandingChips() {
+      const wrap = document.getElementById('lp-chips');
+      if (!wrap || wrap.dataset.rendered) return;
+      wrap.innerHTML = LANDING_CHIPS.map((c, i) =>
+        `<span class="lp-chip" tabindex="0" onmouseenter="setLandingChip(${i})" onfocus="setLandingChip(${i})">${c.icon} ${escapeHtml(c.label)}</span>`
+      ).join('');
+      wrap.dataset.rendered = '1';
+      setLandingChip(0);
+    }
+    function setLandingChip(i) {
+      document.querySelectorAll('#lp-chips .lp-chip').forEach((el, idx) => el.classList.toggle('active', idx === i));
+      const descEl = document.getElementById('lp-chip-desc');
+      if (descEl) descEl.textContent = LANDING_CHIPS[i].desc;
+    }
+
     // Shown in the landing page's animated stream (signed-out visitors only).
     const LANDING_ENTRIES = [
       {
@@ -2567,6 +2604,7 @@
         document.getElementById('timeline').innerHTML = '';
         document.getElementById('load-more-row').hidden = true;
         renderLandingStream();
+        renderLandingChips();
       }
     });
 
