@@ -54,14 +54,14 @@
       --c-moment: #93cc57;
       --c-moment-bg: #ebf5e0;
 
-      --c-child-margot: #ea732a;
-      --c-child-margot-text: #2e2620;
-      --c-child-nayna: #264ac9;
+      --c-child-margot: #B23A61;
+      --c-child-margot-text: #ffffff;
+      --c-child-nayna: #3B4CC8;
       --c-child-nayna-text: #ffffff;
-      --c-child-nishka: #b727be;
+      --c-child-nishka: #6B3FA0;
       --c-child-nishka-text: #ffffff;
-      --c-child-default: #b99e31;
-      --c-child-default-text: #2e2620;
+      --c-child-default: #1F7A5C;
+      --c-child-default-text: #ffffff;
 
       /* Same dot-quilt background used across the landing page, the app, and admin. */
       --bg-texture-color: #FBF7E9;
@@ -143,6 +143,17 @@
 
     .btn-primary:hover {
       background: #2e1f4d;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: .5;
+    }
+
+    .btn-primary:disabled,
+    .btn-primary:disabled:hover {
+      background: var(--ink-mute);
+      border-color: var(--ink-mute);
     }
 
     .btn-sm {
@@ -2116,7 +2127,7 @@
         </div>
         <div class="field">
           <label class="field-label">Who</label>
-          <select id="f-child"></select>
+          <div class="pick-row" id="f-who-picks"></div>
         </div>
       </div>
 
@@ -2345,6 +2356,7 @@
     let pendingImages = [];   // [{file, previewUrl}] queued for the entry being edited
     let editingEntryId = null;
     let entryTags = [];       // tags picked for the entry sheet currently open
+    let selectedWhoIds = [];  // children/personas picked in the entry sheet's "Who" multi-select
     let shareScope = 'all';
     let selectMode = false;
     let selectedIds = new Set();
@@ -2908,9 +2920,6 @@
       // dropdown can suggest every tag used so far, not just what's paged in.
       ensureAllEntriesLoaded();
 
-      const childSelect = document.getElementById('f-child');
-      childSelect.innerHTML = children.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
-
       const picks = document.getElementById('f-category-picks');
       picks.innerHTML = CATEGORIES.map(c => `
         <span class="pick-chip" data-cat="${c}" onclick="pickCategory('${c}')">
@@ -2929,7 +2938,8 @@
       document.getElementById('f-tags').value = '';
       renderTagChips();
       hideTagDropdown();
-      if (entry) childSelect.value = entry.childId;
+      selectedWhoIds = entry ? [entry.childId] : [];
+      renderWhoPicks();
       pickCategory(entry ? entry.category : CATEGORIES[0]);
 
       if (entry && entry.mediaUrls) {
@@ -3020,6 +3030,33 @@
       });
     }
 
+    // "Who" is a multi-select: tap a chip to toggle it on/off. Saving duplicates
+    // the entry once per selected person so it shows up in each of their streams.
+    function renderWhoPicks() {
+      const el = document.getElementById('f-who-picks');
+      el.innerHTML = children.map(c => {
+        const sel = selectedWhoIds.includes(c.id);
+        const { bg, fg } = childAvatarColor(c.name);
+        const style = sel ? `background:${bg}; color:${fg}; border-color:transparent;` : '';
+        return `<span class="pick-chip${sel ? ' selected' : ''}" style="${style}" onclick="toggleWhoPick('${c.id}')">${escapeHtml(c.name)}</span>`;
+      }).join('');
+      updateSaveBtnState();
+    }
+    function toggleWhoPick(id) {
+      selectedWhoIds = selectedWhoIds.includes(id)
+        ? selectedWhoIds.filter(x => x !== id)
+        : [...selectedWhoIds, id];
+      renderWhoPicks();
+    }
+    // Save entry is disabled until at least one person is picked under "Who".
+    function updateSaveBtnState() {
+      const btn = document.getElementById('f-save-btn');
+      if (btn.disabled && btn.dataset.saving) return; // don't fight the in-flight "Saving..." label
+      const ok = selectedWhoIds.length > 0;
+      btn.disabled = !ok;
+      btn.textContent = ok ? 'Save entry' : "Save entry - select one or more entries under 'Who'";
+    }
+
     function onImageFileChosen(e) {
       const file = e.target.files[0];
       if (file) { pendingImages.push({ file, previewUrl: URL.createObjectURL(file) }); addImagePreview(pendingImages[pendingImages.length - 1].previewUrl, pendingImages.length - 1); }
@@ -3064,7 +3101,7 @@
     async function saveEntry() {
       const title = val('f-title');
       if (!title) { toast('Give the entry a title.'); return; }
-      const childId = document.getElementById('f-child').value;
+      if (!selectedWhoIds.length) { toast('Pick at least one person.'); return; }
       const category = (document.querySelector('#f-category-picks .pick-chip.selected') || {}).dataset ? document.querySelector('#f-category-picks .pick-chip.selected').dataset.cat : CATEGORIES[0];
       const date = document.getElementById('f-date').value || todayStr();
       const description = val('f-description');
@@ -3073,9 +3110,12 @@
       const tags = entryTags.slice();
 
       const btn = document.getElementById('f-save-btn');
-      btn.disabled = true; btn.textContent = 'Saving...';
+      btn.disabled = true; btn.textContent = 'Saving...'; btn.dataset.saving = '1';
 
       try {
+        // The entry being edited (or the first person picked, on create) keeps
+        // its own doc id; every additional person picked gets a brand-new,
+        // independent copy of the entry so it shows up in their stream too.
         const ref = editingEntryId ? entriesCol().doc(editingEntryId) : entriesCol().doc();
         const existing = editingEntryId ? entries.find(e => e.id === editingEntryId) : null;
         const mediaUrls = existing ? [...(existing.mediaUrls || [])] : [];
@@ -3090,15 +3130,27 @@
           mediaUrls.push(url); mediaPaths.push(path);
         }
 
-        const data = {
-          title, date, childId, category, description, tags, mediaUrls, mediaPaths,
+        const baseData = {
+          title, date, category, description, tags, mediaUrls, mediaPaths,
           addedByUid: currentUser.uid, addedByEmail: currentUser.email || '',
           updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         };
-        if (!editingEntryId) data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
 
-        await ref.set(data, { merge: true });
-        toast('Entry saved');
+        const batch = db.batch();
+        const [primaryChildId, ...extraChildIds] = selectedWhoIds;
+        const primaryData = { ...baseData, childId: primaryChildId };
+        if (!editingEntryId) primaryData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        batch.set(ref, primaryData, { merge: true });
+
+        extraChildIds.forEach(childId => {
+          batch.set(entriesCol().doc(), {
+            ...baseData, childId,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+        });
+
+        await batch.commit();
+        toast(selectedWhoIds.length > 1 ? `Entry saved for ${selectedWhoIds.length} people` : 'Entry saved');
         closeOverlay('entry-overlay');
         await loadEntries();
         renderTimeline();
@@ -3107,7 +3159,8 @@
         console.error('saveEntry failed:', err.code, err.message);
         toast(`Couldn't save: ${err.code || err.message}`);
       } finally {
-        btn.disabled = false; btn.textContent = 'Save entry';
+        delete btn.dataset.saving;
+        updateSaveBtnState();
       }
     }
 
@@ -3404,25 +3457,21 @@
         return;
       }
       childrenAll.forEach(c => {
-        const hidden = c.status === 'removed';
         const row = document.createElement('div');
         row.className = 'child-row';
-        if (hidden) row.style.opacity = '0.55';
         const count = entries.filter(e => e.childId === c.id).length;
         row.innerHTML = `
       <div class="child-left">
         ${avatarHtml(c)}
         <div>
-          <div class="child-name">${escapeHtml(c.name)}${hidden ? ' <span class="share-badge" style="margin-left:4px;">Hidden</span>' : ''}</div>
+          <div class="child-name">${escapeHtml(c.name)}</div>
           <div class="child-meta">${count} ${count === 1 ? 'entry' : 'entries'}</div>
         </div>
       </div>
       <div style="display:flex; align-items:center; gap:12px;">
-        <div class="toggle${hidden ? '' : ' on'}" title="${hidden ? 'Unhide' : 'Hide'} ${escapeHtml(c.name)}"><div class="knob"></div></div>
         <button class="icon-btn" title="Delete ${escapeHtml(c.name)} permanently">&#128465;</button>
       </div>
     `;
-        row.querySelector('.toggle').onclick = () => hidden ? unhideChild(c.id, c.name) : removeChild(c.id, c.name);
         row.querySelector('.icon-btn').onclick = () => openDeleteChildConfirm(c.id, c.name);
         el.appendChild(row);
       });
@@ -3452,35 +3501,6 @@
         toast(`Couldn't add child: ${err.code || err.message}`);
       } finally {
         btn.disabled = false; btn.textContent = 'Add';
-      }
-    }
-
-    async function removeChild(childId, name) {
-      const count = entries.filter(e => e.childId === childId).length;
-      const warn = `Their ${count} ${count === 1 ? 'entry stays' : 'entries stay'} saved, but ${name} won't show in the toggle or add-entry form until re-added.`;
-      const ok = await confirmDialog(warn, { title: `Hide ${name} from the app?`, confirmLabel: 'Hide', danger: true });
-      if (!ok) return;
-      try {
-        await childrenCol().doc(childId).update({ status: 'removed' });
-        toast(`${name} hidden`);
-        await loadChildren();
-        renderAdminChildren(); renderChildToggle(); renderAdminOverview();
-        if (activeChildFilter === childId) { activeChildFilter = 'all'; renderChildToggle(); onFilterChanged(); }
-      } catch (err) {
-        console.error('removeChild failed:', err.code, err.message);
-        toast(`Couldn't remove: ${err.code || err.message}`);
-      }
-    }
-
-    async function unhideChild(childId, name) {
-      try {
-        await childrenCol().doc(childId).update({ status: 'active' });
-        toast(`${name} unhidden`);
-        await loadChildren();
-        renderAdminChildren(); renderChildToggle(); renderAdminOverview();
-      } catch (err) {
-        console.error('unhideChild failed:', err.code, err.message);
-        toast(`Couldn't unhide: ${err.code || err.message}`);
       }
     }
 
