@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Alpha·Val — Scope Intake</title>
+<style>
+  :root{
+    --ink:#0C1013;
+    --panel:#141A1F;
+    --panel2:#1A2229;
+    --line:#27323B;
+    --lineSoft:#1F282F;
+    --steel:#7A8D9C;
+    --chalk:#E4EBF0;
+    --amber:#F0B429;
+    --amberDim:#6B5217;
+    --green:#57B894;
+    --greenDim:#1C4438;
+    --red:#D2694B;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--ink);
+    color:var(--chalk);
+    font-family:var(--sans);
+    min-height:100vh;
+  }
+  button{ font-family:inherit; }
+  input{ font-family:inherit; }
+
+  /* header */
+  header{
+    border-bottom:1px solid var(--lineSoft);
+    padding:16px 24px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--panel);
+  }
+  .brand{
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:0.16em;
+    color:var(--amber);
+  }
+  .divider{ width:1px; height:16px; background:var(--line); }
+  .subtitle{ font-size:13px; color:var(--steel); }
+  .grow{ flex:1; }
+  .proj{ font-family:var(--mono); font-size:11px; color:var(--steel); }
+
+  /* layout */
+  .shell{
+    display:flex;
+    align-items:stretch;
+    min-height:calc(100vh - 53px);
+  }
+  aside.ledger{
+    border-right:1px solid var(--lineSoft);
+    background:var(--panel);
+    padding:28px 20px;
+    min-width:232px;
+    flex-shrink:0;
+  }
+  @media (max-width: 900px){
+    aside.ledger{ display:none; }
+  }
+  main{
+    flex:1;
+    padding:40px 28px 64px;
+    min-width:0;
+  }
+
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--steel);
+  }
+  .eyebrow.amber{ color:var(--amber); }
+  .eyebrow.green{ color:var(--green); }
+
+  .chip{
+    font-family:var(--mono);
+    font-size:11px;
+    padding:3px 7px;
+    border-radius:3px;
+    white-space:nowrap;
+    display:inline-block;
+  }
+  .chip.open{
+    border:1px solid var(--amberDim);
+    color:var(--amber);
+    background:rgba(240,180,41,0.06);
+  }
+  .chip.closed{
+    border:1px solid var(--greenDim);
+    color:var(--green);
+    background:rgba(87,184,148,0.07);
+  }
+
+  .btn{
+    font-size:13px;
+    letter-spacing:0.01em;
+    padding:10px 18px;
+    border-radius:4px;
+    cursor:pointer;
+    transition:opacity 120ms ease;
+    border:1px solid transparent;
+  }
+  .btn.primary{
+    background:var(--amber);
+    color:var(--ink);
+    border-color:var(--amber);
+    font-weight:600;
+  }
+  .btn.ghost{
+    background:transparent;
+    color:var(--steel);
+    border-color:var(--line);
+    font-weight:500;
+  }
+  .btn:disabled{
+    opacity:0.35;
+    cursor:not-allowed;
+  }
+
+  .link-btn{
+    font-size:13px;
+    color:var(--steel);
+    background:none;
+    border:none;
+    cursor:pointer;
+    margin-left:4px;
+  }
+
+  /* ledger */
+  .ledger-count{
+    font-family:var(--mono);
+    font-size:30px;
+    color:var(--chalk);
+    margin-top:10px;
+    letter-spacing:-0.02em;
+  }
+  .ledger-count span{ color:var(--steel); font-size:16px; }
+  .ledger-label{
+    font-size:11px;
+    color:var(--steel);
+    margin-bottom:20px;
+  }
+  .ledger-bar{
+    height:3px;
+    background:var(--lineSoft);
+    border-radius:2px;
+    overflow:hidden;
+    margin-bottom:24px;
+  }
+  .ledger-bar-fill{
+    height:100%;
+    background:var(--amber);
+    transition:width 300ms ease, background-color 300ms ease;
+  }
+  .ledger-items{ display:flex; flex-direction:column; gap:9px; }
+  .ledger-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    opacity:0.45;
+    transition:opacity 200ms ease;
+  }
+  .ledger-item.active, .ledger-item.closed{ opacity:1; }
+  .ledger-item .bar{
+    width:3px; height:18px; border-radius:2px;
+    background:var(--line);
+  }
+  .ledger-item.closed .bar{ background:var(--green); }
+  .ledger-item.active .bar{ background:var(--amber); }
+  .ledger-item .gapid{
+    font-family:var(--mono); font-size:10px; color:var(--steel); width:54px;
+  }
+  .ledger-item .sym{
+    font-family:var(--mono); font-size:11px; color:var(--chalk);
+  }
+  .ledger-item.closed .sym{ color:var(--green); }
+
+  /* upload screen */
+  .maxw-620{ max-width:620px; }
+  .maxw-720{ max-width:720px; }
+
+  h1{
+    font-family:var(--sans);
+    font-weight:300;
+    color:var(--chalk);
+    letter-spacing:-0.02em;
+    margin:14px 0 12px;
+    line-height:1.15;
+  }
+  h1.size-34{ font-size:34px; }
+  h1.size-30{ font-size:30px; margin:14px 0 10px; }
+  h1.size-32{ font-size:32px; margin:14px 0 10px; line-height:1.2; }
+  h1.size-28{ font-size:28px; margin:0 0 14px; line-height:1.25; }
+
+  p.lead{
+    font-size:14px;
+    color:var(--steel);
+    line-height:1.6;
+    margin-bottom:28px;
+  }
+
+  .dropzone{
+    border:1px dashed var(--line);
+    border-radius:6px;
+    padding:38px 28px;
+    text-align:center;
+    background:var(--panel);
+    margin-bottom:20px;
+  }
+  .dropzone .status{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--amber);
+    margin-bottom:8px;
+  }
+  .dropzone .detail{
+    font-size:13px;
+    color:var(--steel);
+  }
+  .dropzone .filename{
+    font-size:14px;
+    color:var(--chalk);
+    margin-bottom:6px;
+  }
+  .dropzone .filemeta{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--steel);
+  }
+
+  .row-actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+  /* extract screen */
+  .extract-table{
+    border:1px solid var(--lineSoft);
+    border-radius:6px;
+    overflow:hidden;
+    margin-bottom:22px;
+  }
+  .extract-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:13px 16px;
+    border-bottom:1px solid var(--lineSoft);
+  }
+  .extract-row:last-child{ border-bottom:none; }
+  .extract-row:nth-child(odd){ background:var(--panel2); }
+  .extract-row:nth-child(even){ background:var(--panel); }
+  .extract-row .chipwrap{ width:96px; flex-shrink:0; }
+  .extract-row .val{
+    flex:1; min-width:0;
+  }
+  .extract-row .val .value{ font-size:14px; color:var(--chalk); }
+  .extract-row .val .meta{
+    font-family:var(--mono); font-size:10px; color:var(--steel); margin-top:2px;
+  }
+  .edit-btn{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.1em;
+    color:var(--steel);
+    background:none;
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:5px 9px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .edit-btn.editing{
+    color:var(--amber);
+    border-color:var(--amberDim);
+  }
+
+  .equip-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:9px 0;
+    border-bottom:1px solid var(--lineSoft);
+  }
+  .equip-dot{
+    width:5px; height:5px; border-radius:5px; flex-shrink:0;
+    background:var(--green);
+  }
+  .equip-dot.gap{ background:var(--amber); }
+  .equip-tag{
+    font-family:var(--mono); font-size:11px; color:var(--steel); width:60px; flex-shrink:0;
+  }
+  .equip-name{
+    font-size:13px; color:var(--chalk); flex:1;
+  }
+  .equip-note{
+    font-family:var(--mono); font-size:10px; color:var(--steel); text-align:right;
+  }
+  .equip-note.gap{ color:var(--amber); }
+  .more-items{
+    font-size:12px; color:var(--steel); padding-top:12px;
+  }
+
+  .callout{
+    border-left:2px solid var(--amber);
+    padding-left:14px;
+    margin-bottom:24px;
+  }
+  .callout .text{
+    font-size:13px; color:var(--chalk); line-height:1.6;
+  }
+
+  /* question screen */
+  .qhead{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:18px;
+  }
+  .qprogress{
+    flex:1; height:2px; background:var(--lineSoft); border-radius:2px;
+  }
+  .qprogress-fill{
+    height:100%; background:var(--amber); transition:width 250ms ease; border-radius:2px;
+  }
+  .qgap{
+    font-family:var(--mono); font-size:10px; color:var(--steel); white-space:nowrap;
+  }
+  .symbols-row{
+    display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;
+  }
+  p.background{
+    font-size:14px; color:var(--steel); line-height:1.7; margin-bottom:26px;
+  }
+
+  .options{ display:flex; flex-direction:column; gap:9px; margin-bottom:20px; }
+  .option{
+    text-align:left;
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:14px 16px;
+    border-radius:5px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    cursor:pointer;
+    transition:border-color 120ms ease, background-color 120ms ease;
+    width:100%;
+  }
+  .option.selected{
+    border-color:var(--amber);
+    background:rgba(240,180,41,0.06);
+  }
+  .option .radio{
+    width:14px; height:14px; border-radius:14px;
+    border:1px solid var(--line);
+    margin-top:2px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .option.selected .radio{ border-color:var(--amber); }
+  .option .radio .dot{
+    width:6px; height:6px; border-radius:6px; background:var(--amber);
+    display:none;
+  }
+  .option.selected .radio .dot{ display:block; }
+  .option .optext{
+    font-size:14px; color:var(--chalk); line-height:1.5;
+  }
+
+  .textfield{ margin-bottom:22px; }
+  .textfield label{
+    display:block;
+    font-family:var(--mono); font-size:10px; color:var(--steel);
+    letter-spacing:0.12em; margin-bottom:7px; text-transform:uppercase;
+  }
+  .textfield input{
+    font-family:var(--mono); font-size:13px; color:var(--chalk);
+    background:var(--panel); border:1px solid var(--line); border-radius:4px;
+    padding:10px 12px; width:220px; outline:none;
+  }
+  .textfield input:focus{ border-color:var(--amber); }
+
+  .table-wrap{ margin-bottom:24px; overflow-x:auto; }
+  .table-head, .table-row{
+    display:grid;
+    grid-template-columns:70px 1fr 90px 90px;
+    gap:10px;
+    align-items:center;
+  }
+  .table-head{
+    padding:0 0 8px;
+    border-bottom:1px solid var(--line);
+  }
+  .table-head div{
+    font-family:var(--mono); font-size:10px; color:var(--steel); letter-spacing:0.1em;
+  }
+  .table-row{
+    padding:10px 0;
+    border-bottom:1px solid var(--lineSoft);
+  }
+  .table-row .tag{ font-family:var(--mono); font-size:11px; color:var(--amber); }
+  .table-row .route{ font-size:13px; color:var(--chalk); }
+  .table-row input{
+    font-family:var(--mono); font-size:12px; color:var(--chalk);
+    background:var(--panel); border:1px solid var(--line); border-radius:3px;
+    padding:7px 9px; width:100%; outline:none;
+  }
+  .table-row input:focus{ border-color:var(--amber); }
+
+  .infobox{
+    background:var(--panel);
+    border:1px solid var(--lineSoft);
+    border-radius:5px;
+    padding:14px 16px;
+    margin-bottom:26px;
+  }
+  .infobox .block{ margin-bottom:10px; }
+  .infobox .block:last-child{ margin-bottom:0; }
+  .infobox .block .content{
+    font-size:13px; color:var(--chalk); margin-top:4px; line-height:1.5;
+  }
+  .infobox .block.impact .content{ color:var(--steel); }
+
+  /* summary screen */
+  .stat-row{
+    display:flex; gap:12px; margin-bottom:26px; flex-wrap:wrap;
+  }
+  .stat-card{
+    flex:1 1 140px;
+    background:var(--panel);
+    border:1px solid var(--lineSoft);
+    border-radius:5px;
+    padding:16px 16px;
+  }
+  .stat-card .num{
+    font-family:var(--mono); font-size:18px; letter-spacing:-0.01em;
+  }
+  .stat-card .lbl{
+    font-size:11px; color:var(--steel); margin-top:5px;
+  }
+
+  .audit-row{
+    display:flex; align-items:flex-start; gap:12px;
+    padding:11px 0; border-bottom:1px solid var(--lineSoft);
+  }
+  .audit-row .chipwrap{ width:96px; flex-shrink:0; }
+  .audit-row .body{ flex:1; min-width:0; }
+  .audit-row .body .text{ font-size:13px; color:var(--chalk); line-height:1.5; }
+  .audit-row .body .meta{
+    font-family:var(--mono); font-size:10px; color:var(--steel); margin-top:3px;
+  }
+
+  .hidden{ display:none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">ALPHA·VAL</div>
+  <div class="divider"></div>
+  <div class="subtitle">Scope intake</div>
+  <div class="grow"></div>
+  <div class="proj">Lake Giles Iron Project</div>
+</header>
+
+<div class="shell">
+  <aside class="ledger" id="ledger">
+    <div class="eyebrow">Gap ledger</div>
+    <div class="ledger-count" id="ledgerCount">0<span> / 9</span></div>
+    <div class="ledger-label">blocking gaps closed</div>
+    <div class="ledger-bar"><div class="ledger-bar-fill" id="ledgerBarFill" style="width:0%"></div></div>
+    <div class="ledger-items" id="ledgerItems"></div>
+  </aside>
+
+  <main>
+    <!-- UPLOAD SCREEN -->
+    <section id="screen-upload" class="maxw-620">
+      <div class="eyebrow">Step 1 — Source document</div>
+      <h1 class="size-34">Upload the study. I'll pull the scope out of it.</h1>
+      <p class="lead">Feasibility study, prefeasibility, or an internal scoping report. I read the flowsheet and equipment list, then walk you through the handful of design details the document doesn't pin down.</p>
+
+      <div class="dropzone" id="dropzone">
+        <div class="filename">LakeGiles_NI43-101_FS_2022.pdf</div>
+        <div class="filemeta">330 pp · 18.4 MB · loaded</div>
+      </div>
+
+      <div class="row-actions">
+        <button class="btn primary" id="extractBtn">Extract scope</button>
+        <button class="btn ghost" id="manualBtn">Enter scope manually</button>
+      </div>
+    </section>
+
+    <!-- EXTRACT SCREEN -->
+    <section id="screen-extract" class="maxw-720 hidden">
+      <div class="eyebrow">Step 2 — Confirm what I found</div>
+      <h1 class="size-30">Here's your scope as I read it.</h1>
+      <p class="lead">Everything below came out of the document. Correct anything that's wrong before we go further — a wrong value here propagates into every size and cost downstream.</p>
+
+      <div class="extract-table" id="extractTable"></div>
+
+      <div class="eyebrow">Equipment list — 26 items</div>
+      <div id="equipList" style="margin-top:12px; margin-bottom:24px;"></div>
+
+      <div class="callout">
+        <div class="text">Nine design details aren't stated in the document. I'll ask about them next — about ten minutes. Each one has a default I'll use if you'd rather skip it.</div>
+      </div>
+
+      <button class="btn primary" id="startQuestionsBtn">Start the nine questions</button>
+    </section>
+
+    <!-- QUESTION SCREEN -->
+    <section id="screen-question" class="maxw-720 hidden">
+      <div class="qhead">
+        <div class="eyebrow amber" id="qCounter">Question 1 of 9</div>
+        <div class="qprogress"><div class="qprogress-fill" id="qProgressFill" style="width:11%"></div></div>
+        <div class="qgap" id="qGapId"></div>
+      </div>
+
+      <div class="symbols-row" id="qSymbols"></div>
+
+      <h1 class="size-28" id="qTitle"></h1>
+      <p class="background" id="qBackground"></p>
+
+      <div id="qOptionsWrap"></div>
+      <div id="qTableWrap"></div>
+      <div id="qTextWrap"></div>
+
+      <div class="infobox">
+        <div class="block">
+          <div class="eyebrow">If you skip this</div>
+          <div class="content" id="qFallback"></div>
+        </div>
+        <div class="block impact">
+          <div class="eyebrow">Why it matters</div>
+          <div class="content" id="qImpact"></div>
+        </div>
+      </div>
+
+      <div class="row-actions">
+        <button class="btn primary" id="qNextBtn">Next question</button>
+        <button class="btn ghost" id="qDefaultBtn">Use the default</button>
+        <button class="link-btn hidden" id="qBackBtn">Back</button>
+      </div>
+    </section>
+
+    <!-- SUMMARY SCREEN -->
+    <section id="screen-summary" class="maxw-720 hidden">
+      <div class="eyebrow green">Scope resolved</div>
+      <h1 class="size-32">Your scope of work is ready to size.</h1>
+      <p class="lead">All nine blocking gaps are closed. Twenty-one of twenty-six items have sizing modules; the remaining five sit outside the current library and are carried through as scope-reduced with the reason recorded.</p>
+
+      <div class="stat-row" id="statRow"></div>
+
+      <div class="eyebrow">Audit trail</div>
+      <div id="auditTrail" style="margin-top:12px; margin-bottom:28px;"></div>
+
+      <div class="row-actions">
+        <button class="btn primary" id="sizeCircuitBtn">Size the circuit</button>
+        <button class="btn ghost" id="restartBtn">Start over</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ---------------------------- data ---------------------------- */
+
+const EXTRACTED = [
+  { sym: "PRJ.NAME", label: "Project", value: "Lake Giles Iron Project", src: "Cover page" },
+  { sym: "MT.COMM", label: "Commodity", value: "Iron ore — magnetite BIF", src: "§4.1, p.42" },
+  { sym: "CIR.TYPE", label: "Circuit", value: "MH-STANDARD — ROM to mill feed", src: "§17.2, p.201" },
+  { sym: "FD.TPA", label: "Design throughput", value: "9.7 Mtpa", src: "Sponsor declared" },
+  { sym: "EQ.COUNT", label: "Equipment items", value: "26 items", src: "§17 equipment list" },
+  { sym: "MT.RHO", label: "In-situ bulk density", value: "3.2–3.3 t/m³", src: "Table 13-7" },
+];
+
+const EQUIPMENT = [
+  { tag: "CR-01", name: "Primary crusher — gyratory 50\" × 65\"", ok: true },
+  { tag: "CR-02", name: "Secondary crusher — cone, 3 units", ok: true },
+  { tag: "SC-08", name: "Scalping screen — 40 mm cut", ok: false, gap: "SC.EFF absent" },
+  { tag: "SC-22", name: "Classification screen — 12 mm", ok: false, gap: "SC.EFF absent" },
+  { tag: "BC-05", name: "Conveyor — scalp screen to surge bin", ok: false, gap: "BC.LEN, BC.LIFT absent" },
+  { tag: "BIN-06", name: "Primary crusher surge bin — 447 t", ok: false, gap: "Live capacity basis absent" },
+  { tag: "SP-13", name: "HPGR feed stockpile", ok: false, gap: "SP.TYPE, SP.CAP.HRS absent" },
+  { tag: "HPGR-19", name: "High pressure grinding roll", ok: true, note: "No sizing module — out of scope" },
+];
+
+const QUESTIONS = [
+  {
+    gap: "G4-01",
+    symbols: ["FD.TPA", "FD.TPH.DES", "FD.HRS"],
+    title: "Which throughput figures are firm?",
+    background: "Your document states 9.7 Mtpa annual capacity, 1,265 t/hr, and 21.7 operating hours per day. Multiplied out over 365 days those give 10.0 Mtpa, not 9.7. Two of the three are firm and the third has to be derived — tell me which two.",
+    type: "radio+text",
+    options: [
+      "9.7 Mtpa and 1,265 t/hr are firm — derive operating days",
+      "9.7 Mtpa and 21.7 h/d are firm — derive hourly rate",
+      "1,265 t/hr and 21.7 h/d are firm — annual figure is superseded",
+    ],
+    textLabel: "Operating days per year",
+    textPlaceholder: "365",
+    fallback: "9.7 Mtpa held firm, 353 operating days derived",
+    impact: "Shifts crusher and screen selection by 5–15%; bin capacities move proportionally.",
+  },
+  {
+    gap: "G2-02 / G6-02",
+    symbols: ["FD.RATE.BASIS"],
+    title: "Is the feed rate wet or dry?",
+    background: "The report uses 'nominal' throughout, which doesn't map to design, nameplate, or average. It also never says whether 1,265 t/hr is wet or dry tonnes. Both matter — a 3% moisture difference is a 3% sizing difference on every item downstream.",
+    type: "radio",
+    options: [
+      "Dry basis — design rate",
+      "Wet basis — design rate, as-mined moisture",
+      "Dry basis — nameplate (not design)",
+    ],
+    fallback: "Dry basis, design rate, 3.0% moisture for surcharge calculations",
+    impact: "Wet basis raises conveyor and bin sizing roughly 3–5% at stated moisture.",
+  },
+  {
+    gap: "G2-01",
+    symbols: ["MT.SG"],
+    title: "Which ore domain controls the design?",
+    background: "Table 13-7 carries four specific gravity values across two resource domains with no blend ratio. Comminution equipment has to be sized against one controlling case, or against a stated blend.",
+    type: "radio+text",
+    options: [
+      "Moonshine North controls — harder ore, conservative design",
+      "Moonshine controls",
+      "Blended feed — specify ratio",
+    ],
+    textLabel: "Blend ratio, % Moonshine North",
+    textPlaceholder: "e.g. 60",
+    fallback: "Moonshine North controlling, MT.SG = 3.46 (composite common to both domains)",
+    impact: "Domain choice moves comminution power demand by 8–12%.",
+  },
+  {
+    gap: "G1-01",
+    symbols: ["FD.TOPSIZE"],
+    title: "What is the ROM top size?",
+    background: "The study publishes the gyratory selection but not the blast fragmentation that drove it. Back-derived from the 50\" × 65\" gape at 80% of opening, I estimate 1,000 mm. Confirm or correct — this parameter sets the entire crushing train.",
+    type: "radio+text",
+    options: [
+      "1,000 mm — accept the derived estimate",
+      "Different value — specify below",
+    ],
+    textLabel: "ROM top size, mm",
+    textPlaceholder: "1000",
+    fallback: "1,000 mm derived from crusher gape",
+    impact: "Primary crusher power moves 15–25% across the plausible range.",
+  },
+  {
+    gap: "G1-02",
+    symbols: ["SC.EFF"],
+    title: "What screen efficiency should we design to?",
+    background: "Three screens carry no efficiency target. Item 8 is a dry scalp at 40 mm; items 22 and 23 are wet classification at 12 mm and 3 mm. Wet screens run higher than dry ones, so these get different numbers.",
+    type: "radio",
+    options: [
+      "Standard practice — 90% dry scalp, 95% wet classification",
+      "Conservative — 85% dry, 90% wet",
+      "High efficiency — 95% across all decks",
+    ],
+    fallback: "90% on item 8, 95% on items 22 and 23",
+    impact: "Efficiency drives recirculating load; ±5% here moves secondary crusher duty by ~10%.",
+  },
+  {
+    gap: "G1-03 / G1-04",
+    symbols: ["BC.LEN", "BC.LIFT"],
+    title: "Confirm conveyor lengths and lifts",
+    background: "Five conveyors are listed with no geometry. I've laid in nominal values from typical circuit spacing. Correct any that are materially off — anything within about 20% won't change the belt selection.",
+    type: "table",
+    rows: [
+      { tag: "BC-05", route: "Scalp screen → surge bin", len: "150", lift: "25" },
+      { tag: "BC-09", route: "Cone crusher → hopper", len: "60", lift: "12" },
+      { tag: "BC-12", route: "Hopper → HPGR stockpile", len: "40", lift: "10" },
+      { tag: "BC-17", route: "Reclaim → HPGR feed bin", len: "80", lift: "15" },
+      { tag: "BC-24", route: "Screen oversize → recycle", len: "60", lift: "12" },
+    ],
+    fallback: "Nominal values as shown, flagged CLIENT_JUDGMENT in the audit trail",
+    impact: "Length and lift set belt power and take-up; errors above 20% change the drive selection.",
+  },
+  {
+    gap: "G1-05 / G1-07 / G1-09",
+    symbols: ["BC.TPH", "FR.TPH", "BIN.TPH"],
+    title: "What rate does the recycle stream carry?",
+    background: "Items on the R-B side have no stated rate. The fresh feed leg should match R-A at 1,265 t/hr, and the recirculating leg carries the circulating load on top of it. Confirm the circulating load factor.",
+    type: "radio+text",
+    options: [
+      "Circulating load 2.16 — recycle stream at 2,732 t/hr",
+      "Different circulating load — specify below",
+    ],
+    textLabel: "Circulating load factor",
+    textPlaceholder: "2.16",
+    fallback: "Fresh leg 1,265 t/hr, recycle leg 2,732 t/hr at CL 2.16",
+    impact: "Circulating load sets the recycle conveyor and screen width directly.",
+  },
+  {
+    gap: "G1-08 / G1-10 / G1-11 / G3-01",
+    symbols: ["BIN.CAP.LIVE", "SP.CAP.HRS"],
+    title: "How much live capacity in bins and stockpiles?",
+    background: "Four bins and two stockpiles state total or geometric capacity, not live capacity. The ROM stockpile is stated as '14 days of feed' — I need that as hours to size the reclaim. Confirm the residence-time basis.",
+    type: "radio",
+    options: [
+      "Standard residence — 15 min R-A bins, 10 min R-B bins, 8 h stockpile",
+      "Extended buffer — 30 min bins, 16 h stockpile",
+      "Minimum surge — 10 min bins, 4 h stockpile",
+    ],
+    fallback: "Standard residence times; ROM fingers at 75.9 h live each",
+    impact: "Residence time sets bin geometry and reclaim feeder count.",
+  },
+  {
+    gap: "G4-02",
+    symbols: ["MT.AI"],
+    title: "Which abrasion index table governs?",
+    background: "Tables 13-3 and 13-33 transpose the abrasion composites between domains. One of them is a typo. Table 13-3 reads Moonshine 0.5285 and Moonshine North 0.5792, which is consistent with the hardness data elsewhere in Section 13.",
+    type: "radio",
+    options: [
+      "Table 13-3 governs — use 0.58 for wear costing",
+      "Table 13-33 governs",
+      "Neither — new testwork pending",
+    ],
+    fallback: "Table 13-3, abrasion index 0.58 on combined feed",
+    impact: "Abrasion index drives liner and wear-part consumption in the operating cost build.",
+  },
+];
+
+/* ---------------------------- state ---------------------------- */
+
+let stage = "upload"; // upload | extract | question | summary
+let qIndex = 0;
+let answers = {}; // { [qIndex]: { choice, text, table, skipped } }
+
+/* ---------------------------- helpers ---------------------------- */
+
+function el(tag, attrs = {}, children = []) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") e.className = v;
+    else if (k === "style") e.style.cssText = v;
+    else if (k.startsWith("on") && typeof v === "function") e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v);
+  }
+  (Array.isArray(children) ? children : [children]).forEach((c) => {
+    if (c == null) return;
+    e.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+  });
+  return e;
+}
+
+function chip(text, closed) {
+  return el("span", { class: "chip " + (closed ? "closed" : "open") }, text);
+}
+
+function show(id) {
+  document.getElementById(id).classList.remove("hidden");
+}
+function hideAll() {
+  ["screen-upload", "screen-extract", "screen-question", "screen-summary"].forEach((id) =>
+    document.getElementById(id).classList.add("hidden")
+  );
+}
+
+/* ---------------------------- ledger ---------------------------- */
+
+function renderLedger() {
+  const items = QUESTIONS.map((q, i) => {
+    let state;
+    if (stage === "summary" || answers[i] !== undefined) state = "closed";
+    else if (stage === "question" && i === qIndex) state = "active";
+    else state = "open";
+    return { gap: q.gap, sym: q.symbols[0], state };
+  });
+  const closed = items.filter((i) => i.state === "closed").length;
+
+  document.getElementById("ledgerCount").innerHTML = `${closed}<span> / ${items.length}</span>`;
+  const fill = document.getElementById("ledgerBarFill");
+  fill.style.width = `${(closed / items.length) * 100}%`;
+  fill.style.backgroundColor = closed === items.length ? "var(--green)" : "var(--amber)";
+
+  const wrap = document.getElementById("ledgerItems");
+  wrap.innerHTML = "";
+  items.forEach((it) => {
+    const row = el("div", { class: "ledger-item " + it.state }, [
+      el("div", { class: "bar" }),
+      el("div", { class: "gapid" }, it.gap.split(" ")[0]),
+      el("div", { class: "sym" }, it.sym),
+    ]);
+    wrap.appendChild(row);
+  });
+}
+
+/* ---------------------------- upload screen ---------------------------- */
+
+function initUploadScreen() {
+  const dropzone = document.getElementById("dropzone");
+  const extractBtn = document.getElementById("extractBtn");
+  const manualBtn = document.getElementById("manualBtn");
+
+  function go() {
+    extractBtn.disabled = true;
+    extractBtn.textContent = "Reading…";
+    dropzone.innerHTML = "";
+    dropzone.appendChild(el("div", { class: "status" }, "READING DOCUMENT"));
+    dropzone.appendChild(
+      el("div", { class: "detail" }, "Resolving 26 equipment items against the parameter registry…")
+    );
+    setTimeout(() => {
+      stage = "extract";
+      renderAll();
+    }, 1400);
+  }
+
+  extractBtn.onclick = go;
+  manualBtn.onclick = go;
+}
+
+/* ---------------------------- extract screen ---------------------------- */
+
+function renderExtractScreen() {
+  const table = document.getElementById("extractTable");
+  table.innerHTML = "";
+  EXTRACTED.forEach((row) => {
+    const editBtn = el("button", { class: "edit-btn" }, "EDIT");
+    let editing = false;
+    editBtn.onclick = () => {
+      editing = !editing;
+      editBtn.textContent = editing ? "EDITING" : "EDIT";
+      editBtn.classList.toggle("editing", editing);
+    };
+    const r = el("div", { class: "extract-row" }, [
+      el("div", { class: "chipwrap" }, chip(row.sym, true)),
+      el("div", { class: "val" }, [
+        el("div", { class: "value" }, row.value),
+        el("div", { class: "meta" }, `${row.label} · ${row.src}`),
+      ]),
+      editBtn,
+    ]);
+    table.appendChild(r);
+  });
+
+  const equipList = document.getElementById("equipList");
+  equipList.innerHTML = "";
+  EQUIPMENT.forEach((e) => {
+    const r = el("div", { class: "equip-row" }, [
+      el("div", { class: "equip-dot" + (e.ok ? "" : " gap") }),
+      el("div", { class: "equip-tag" }, e.tag),
+      el("div", { class: "equip-name" }, e.name),
+      el("div", { class: "equip-note" + (e.ok ? "" : " gap") }, e.gap || e.note || "complete"),
+    ]);
+    equipList.appendChild(r);
+  });
+  equipList.appendChild(el("div", { class: "more-items" }, "+ 18 more items"));
+
+  document.getElementById("startQuestionsBtn").onclick = () => {
+    stage = "question";
+    qIndex = 0;
+    renderAll();
+  };
+}
+
+/* ---------------------------- question screen ---------------------------- */
+
+function renderQuestionScreen() {
+  const q = QUESTIONS[qIndex];
+  const existing = answers[qIndex];
+
+  let choice = existing?.choice ?? null;
+  let text = existing?.text ?? "";
+  let table = existing?.table ?? (q.rows ? q.rows.map((r) => ({ ...r })) : []);
+
+  document.getElementById("qCounter").textContent = `Question ${qIndex + 1} of ${QUESTIONS.length}`;
+  document.getElementById("qProgressFill").style.width = `${((qIndex + 1) / QUESTIONS.length) * 100}%`;
+  document.getElementById("qGapId").textContent = q.gap;
+
+  const symbolsWrap = document.getElementById("qSymbols");
+  symbolsWrap.innerHTML = "";
+  q.symbols.forEach((s) => symbolsWrap.appendChild(chip(s, false)));
+
+  document.getElementById("qTitle").textContent = q.title;
+  document.getElementById("qBackground").textContent = q.background;
+  document.getElementById("qFallback").textContent = q.fallback;
+  document.getElementById("qImpact").textContent = q.impact;
+
+  const nextBtn = document.getElementById("qNextBtn");
+  const defaultBtn = document.getElementById("qDefaultBtn");
+  const backBtn = document.getElementById("qBackBtn");
+
+  nextBtn.textContent = qIndex === QUESTIONS.length - 1 ? "Finish and build scope" : "Next question";
+
+  function isAnswered() {
+    return q.type === "table" ? true : choice !== null;
+  }
+  function updateNextDisabled() {
+    nextBtn.disabled = !isAnswered();
+  }
+
+  const optionsWrap = document.getElementById("qOptionsWrap");
+  const tableWrap = document.getElementById("qTableWrap");
+  const textWrap = document.getElementById("qTextWrap");
+  optionsWrap.innerHTML = "";
+  tableWrap.innerHTML = "";
+  textWrap.innerHTML = "";
+
+  if (q.type === "table") {
+    const wrap = el("div", { class: "table-wrap" });
+    wrap.appendChild(
+      el("div", { class: "table-head" }, ["Tag", "Route", "Length m", "Lift m"].map((h) => el("div", {}, h.toUpperCase())))
+    );
+    table.forEach((r, i) => {
+      const lenInput = el("input", { value: r.len });
+      lenInput.oninput = (e) => { table[i] = { ...table[i], len: e.target.value }; };
+      const liftInput = el("input", { value: r.lift });
+      liftInput.oninput = (e) => { table[i] = { ...table[i], lift: e.target.value }; };
+      wrap.appendChild(
+        el("div", { class: "table-row" }, [
+          el("div", { class: "tag" }, r.tag),
+          el("div", { class: "route" }, r.route),
+          lenInput,
+          liftInput,
+        ])
+      );
+    });
+    tableWrap.appendChild(wrap);
+  } else {
+    const wrap = el("div", { class: "options" });
+    q.options.forEach((opt, i) => {
+      const radio = el("div", { class: "radio" }, el("div", { class: "dot" }));
+      const btn = el(
+        "button",
+        { class: "option" + (choice === i ? " selected" : "") },
+        [radio, el("div", { class: "optext" }, opt)]
+      );
+      btn.onclick = () => {
+        choice = i;
+        Array.from(wrap.children).forEach((c, j) => c.classList.toggle("selected", j === i));
+        updateNextDisabled();
+      };
+      wrap.appendChild(btn);
+    });
+    optionsWrap.appendChild(wrap);
+  }
+
+  if (q.textLabel) {
+    const input = el("input", { placeholder: q.textPlaceholder, value: text });
+    input.oninput = (e) => { text = e.target.value; };
+    textWrap.appendChild(
+      el("div", { class: "textfield" }, [el("label", {}, q.textLabel.toUpperCase()), input])
+    );
+  }
+
+  updateNextDisabled();
+
+  function commit(fn) {
+    answers[qIndex] = { choice, text, table, skipped: !isAnswered() };
+    fn();
+  }
+
+  nextBtn.onclick = () => commit(() => {
+    if (qIndex === QUESTIONS.length - 1) stage = "summary";
+    else qIndex += 1;
+    renderAll();
+  });
+
+  defaultBtn.onclick = () => commit(() => {
+    if (qIndex === QUESTIONS.length - 1) stage = "summary";
+    else qIndex += 1;
+    renderAll();
+  });
+
+  if (qIndex > 0) {
+    backBtn.classList.remove("hidden");
+    backBtn.onclick = () => {
+      qIndex = Math.max(0, qIndex - 1);
+      renderAll();
+    };
+  } else {
+    backBtn.classList.add("hidden");
+  }
+}
+
+/* ---------------------------- summary screen ---------------------------- */
+
+function renderSummaryScreen() {
+  const declared = Object.values(answers).filter((a) => !a.skipped).length;
+  const assumed = QUESTIONS.length - declared;
+
+  const stats = [
+    { n: "LG-20260811-v2", l: "Scope ID", c: "var(--chalk)" },
+    { n: declared, l: "Client declared", c: "var(--green)" },
+    { n: assumed, l: "Assumed with basis", c: "var(--amber)" },
+    { n: "21 / 26", l: "Items sizeable", c: "var(--chalk)" },
+  ];
+  const statRow = document.getElementById("statRow");
+  statRow.innerHTML = "";
+  stats.forEach((s) => {
+    statRow.appendChild(
+      el("div", { class: "stat-card" }, [
+        el("div", { class: "num", style: `color:${s.c}` }, String(s.n)),
+        el("div", { class: "lbl" }, s.l),
+      ])
+    );
+  });
+
+  const audit = document.getElementById("auditTrail");
+  audit.innerHTML = "";
+  QUESTIONS.forEach((q, i) => {
+    const a = answers[i];
+    const skipped = !a || a.skipped;
+    const text = skipped
+      ? q.fallback
+      : q.type === "table"
+      ? "Conveyor geometry confirmed by client"
+      : q.options[a.choice];
+    audit.appendChild(
+      el("div", { class: "audit-row" }, [
+        el("div", { class: "chipwrap" }, chip(q.symbols[0], true)),
+        el("div", { class: "body" }, [
+          el("div", { class: "text" }, text),
+          el("div", { class: "meta" }, `${q.gap} · ${skipped ? "ASSUMED — TIER 2" : "CLIENT DECLARED"}`),
+        ]),
+      ])
+    );
+  });
+
+  document.getElementById("sizeCircuitBtn").onclick = () => {};
+  document.getElementById("restartBtn").onclick = () => {
+    stage = "upload";
+    qIndex = 0;
+    answers = {};
+    resetUploadScreen();
+    renderAll();
+  };
+}
+
+function resetUploadScreen() {
+  const dropzone = document.getElementById("dropzone");
+  dropzone.innerHTML = "";
+  dropzone.appendChild(el("div", { class: "filename" }, "LakeGiles_NI43-101_FS_2022.pdf"));
+  dropzone.appendChild(el("div", { class: "filemeta" }, "330 pp · 18.4 MB · loaded"));
+  const extractBtn = document.getElementById("extractBtn");
+  extractBtn.disabled = false;
+  extractBtn.textContent = "Extract scope";
+}
+
+/* ---------------------------- main render ---------------------------- */
+
+function renderAll() {
+  renderLedger();
+  hideAll();
+  if (stage === "upload") {
+    show("screen-upload");
+  } else if (stage === "extract") {
+    renderExtractScreen();
+    show("screen-extract");
+  } else if (stage === "question") {
+    renderQuestionScreen();
+    show("screen-question");
+  } else if (stage === "summary") {
+    renderSummaryScreen();
+    show("screen-summary");
+  }
+}
+
+initUploadScreen();
+renderAll();
+</script>
+</body>
+</html>
