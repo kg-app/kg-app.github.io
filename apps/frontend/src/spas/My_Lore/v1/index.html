@@ -2232,6 +2232,16 @@
     </div>
   </div>
 
+  <!-- ARCHIVE CONFIRM MODAL (reversible first step of the child delete flow) -->
+  <div class="modal-overlay" id="archive-modal">
+    <div class="modal">
+      <h2>Archive <span id="archive-count-label">this child</span>?</h2>
+      <p>Archiving hides them and their entries from the main view. Nothing is deleted — restore anytime from Admin.</p>
+      <button class="btn btn-block btn-primary" id="archive-confirm-btn" onclick="runArchiveModalConfirm()">Archive</button>
+      <button class="btn btn-block" style="margin-top:8px;" onclick="closeOverlay('archive-modal')">Cancel</button>
+    </div>
+  </div>
+
   <!-- ADD / EDIT ENTRY SHEET -->
   <div class="overlay" id="entry-overlay">
     <div class="sheet">
@@ -2385,6 +2395,10 @@
       <div class="section-label">Bulk import entries</div>
       <button class="btn btn-block" style="margin-bottom:22px;" onclick="openBulkImport()">&#128228; Bulk
         import</button>
+
+      <div class="section-label">Export data</div>
+      <button class="btn btn-block" id="export-entries-btn" style="margin-bottom:22px;" onclick="exportAllEntries()">&#128190; Export all
+        entries</button>
 
       <div class="section-label">Share view-only / editable link</div>
       <div class="list-card" style="padding:12px; text-align:center; color:var(--ink-mute); font-size:12px;">
@@ -2815,7 +2829,10 @@
       try {
         const snap = await childrenCol().get();
         childrenAll = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        children = childrenAll.filter(c => c.status !== 'removed');
+        // Archived children (soft-deleted) stay in childrenAll for the admin
+        // list, but drop out of `children` — the list everything else (the
+        // main timeline, the child toggle, story view, "Who" pickers) reads.
+        children = childrenAll.filter(c => c.status !== 'removed' && c.status !== 'archived');
       } catch (err) {
         console.error('loadChildren failed:', err.code, err.message);
         toast(`Couldn't load children: ${err.code || err.message}`);
@@ -2830,7 +2847,10 @@
       if (entriesCursor) q = q.startAfter(entriesCursor);
       if (pageSize) q = q.limit(pageSize);
       const snap = await q.get();
-      entries = entries.concat(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      // Entries belonging to an archived child are marked status:'archived' —
+      // filter them out here so they're invisible everywhere `entries` is read
+      // (timeline, story view, admin totals) without touching pagination math.
+      entries = entries.concat(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(e => e.status !== 'archived'));
       if (snap.docs.length) entriesCursor = snap.docs[snap.docs.length - 1];
       entriesHasMore = !!pageSize && snap.docs.length === pageSize;
     }
@@ -3557,6 +3577,60 @@
       }
     }
 
+    // Triggers a browser download of `text` as a file named `filename`.
+    function downloadTextFile(filename, text) {
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // Formats a Firestore Timestamp (or already-ISO string, for demo-mode entries)
+    // as YYYY-MM-DD. Returns '' if absent.
+    function fmtTimestamp(ts) {
+      if (!ts) return '';
+      const d = typeof ts.toDate === 'function' ? ts.toDate() : new Date(ts);
+      if (isNaN(d.getTime())) return '';
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
+    async function exportAllEntries() {
+      const btn = document.getElementById('export-entries-btn');
+      if (btn) { btn.disabled = true; btn.textContent = 'Exporting...'; }
+      try {
+        await ensureAllEntriesLoaded();
+        const nameById = {};
+        childrenAll.forEach(c => { nameById[c.id] = c.name; });
+
+        const sorted = entries.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        const blocks = sorted.map(e => [
+          '---',
+          `Created: ${fmtTimestamp(e.createdAt)}`,
+          `Modified: ${fmtTimestamp(e.updatedAt)}`,
+          `Persona: ${nameById[e.childId] || ''}`,
+          `Title: ${e.title || ''}`,
+          `Category: ${e.category || ''}`,
+          `Date: ${e.date || ''}`,
+          `Tags: ${(e.tags || []).join(', ')}`,
+          `Description: ${e.description || ''}`,
+        ].join('\n'));
+
+        const text = blocks.join('\n') + (blocks.length ? '\n' : '');
+        downloadTextFile(`my-lore-export-${todayStr()}.txt`, text);
+        toast(`Exported ${sorted.length} entr${sorted.length === 1 ? 'y' : 'ies'}`);
+      } catch (err) {
+        console.error('exportAllEntries failed:', err.code, err.message);
+        toast(`Couldn't export: ${err.code || err.message}`);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '\u{1F4BE} Export all entries'; }
+      }
+    }
+
     async function deleteEntry() {
       if (!editingEntryId || !isOwnerView) return;
       const ok = await confirmDialog("This permanently removes the entry and its photos. This can't be undone.", { title: 'Delete this entry?', confirmLabel: 'Delete', danger: true });
@@ -3770,20 +3844,37 @@
       childrenAll.forEach(c => {
         const row = document.createElement('div');
         row.className = 'child-row';
-        const count = entries.filter(e => e.childId === c.id).length;
+        const archived = c.status === 'archived';
+        // Archived children have no entries left in `entries` (fetchEntriesPage
+        // filters status:'archived' out), so fall back to the count snapshotted
+        // at archive time.
+        const count = archived
+          ? (typeof c.archivedEntryCount === 'number' ? c.archivedEntryCount : 0)
+          : entries.filter(e => e.childId === c.id).length;
+        const entryWord = count === 1 ? 'entry' : 'entries';
+        const actions = archived
+          ? `<button class="icon-btn" title="Restore ${escapeHtml(c.name)}">&#8635;</button>
+             <button class="icon-btn" title="Delete ${escapeHtml(c.name)} permanently (${count} ${entryWord} will be deleted)">&#128465;</button>`
+          : `<button class="icon-btn" title="Archive ${escapeHtml(c.name)} (${count} ${entryWord} will be archived)">&#128230;</button>`;
         row.innerHTML = `
       <div class="child-left">
         ${avatarHtml(c)}
         <div>
           <div class="child-name">${escapeHtml(c.name)}</div>
-          <div class="child-meta">${count} ${count === 1 ? 'entry' : 'entries'}</div>
+          <div class="child-meta">${count} ${entryWord}${archived ? ' &middot; Archived' : ''}</div>
         </div>
       </div>
       <div style="display:flex; align-items:center; gap:12px;">
-        <button class="icon-btn" title="Delete ${escapeHtml(c.name)} permanently">&#128465;</button>
+        ${actions}
       </div>
     `;
-        row.querySelector('.icon-btn').onclick = () => openDeleteChildConfirm(c.id, c.name);
+        if (archived) {
+          const [restoreBtn, deleteBtn] = row.querySelectorAll('.icon-btn');
+          restoreBtn.onclick = () => restoreChild(c.id, c.name);
+          deleteBtn.onclick = () => openDeleteChildConfirm(c.id, c.name);
+        } else {
+          row.querySelector('.icon-btn').onclick = () => openArchiveChildConfirm(c.id, c.name);
+        }
         el.appendChild(row);
       });
     }
@@ -3815,15 +3906,94 @@
       }
     }
 
-    // Permanently deletes a child plus every entry (and photo) tied to them.
-    // Unlike removeChild (which just hides), there's no undo — so this makes
-    // the user type the child's exact name, not just the word "DELETE", to
-    // guard against a mis-tap wiping out a whole child's history.
-    function openDeleteChildConfirm(childId, name) {
+    // Step 1 of 2 (reversible): hides a child and all their entries from the
+    // main view by flipping status to 'archived', without deleting anything.
+    // See restoreChild for the undo, and confirmDeleteChild for step 2.
+    let pendingArchiveAction = null;
+    function runArchiveModalConfirm() { if (pendingArchiveAction) pendingArchiveAction(); }
+
+    function openArchiveChildConfirm(childId, name) {
       const count = entries.filter(e => e.childId === childId).length;
-      document.getElementById('delete-count-label').textContent = name;
+      const entryWord = count === 1 ? 'entry' : 'entries';
+      document.getElementById('archive-count-label').textContent =
+        count ? `${name} (${count} ${entryWord} will be archived)` : name;
+      pendingArchiveAction = () => confirmArchiveChild(childId, name);
+      openOverlay('archive-modal');
+    }
+
+    async function confirmArchiveChild(childId, name) {
+      const btn = document.getElementById('archive-confirm-btn');
+      btn.disabled = true; btn.textContent = 'Archiving...';
+      try {
+        const ids = entries.filter(e => e.childId === childId).map(e => e.id);
+        // Firestore batches cap at 500 writes; chunk in case a child has a lot of entries.
+        for (let i = 0; i < ids.length; i += 450) {
+          const batch = db.batch();
+          ids.slice(i, i + 450).forEach(id => batch.update(entriesCol().doc(id), { status: 'archived' }));
+          await batch.commit();
+        }
+        await childrenCol().doc(childId).update({
+          status: 'archived',
+          archivedEntryCount: ids.length,
+          archivedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+        toast(`${name} archived — restore anytime from Admin.`);
+        closeOverlay('archive-modal');
+        if (activeChildFilter === childId) activeChildFilter = 'all';
+        await loadChildren();
+        await loadEntries();
+        renderAdminChildren(); renderChildToggle(); renderAdminOverview();
+        renderTimeline();
+        updateStoryBtnVisibility();
+      } catch (err) {
+        console.error('confirmArchiveChild failed:', err.code, err.message);
+        toast(`Couldn't archive: ${err.code || err.message}`);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Archive';
+      }
+    }
+
+    // Undoes confirmArchiveChild: clears status on the child and every entry
+    // of theirs that's still archived, making them active again.
+    async function restoreChild(childId, name) {
+      try {
+        const snap = await entriesCol().where('childId', '==', childId).get();
+        const ids = snap.docs.filter(d => d.data().status === 'archived').map(d => d.id);
+        for (let i = 0; i < ids.length; i += 450) {
+          const batch = db.batch();
+          ids.slice(i, i + 450).forEach(id => batch.update(entriesCol().doc(id), { status: firebase.firestore.FieldValue.delete() }));
+          await batch.commit();
+        }
+        await childrenCol().doc(childId).update({
+          status: firebase.firestore.FieldValue.delete(),
+          archivedEntryCount: firebase.firestore.FieldValue.delete(),
+          archivedAt: firebase.firestore.FieldValue.delete(),
+        });
+        toast(`${name} restored`);
+        await loadChildren();
+        await loadEntries();
+        renderAdminChildren(); renderChildToggle(); renderAdminOverview();
+        renderTimeline();
+        updateStoryBtnVisibility();
+      } catch (err) {
+        console.error('restoreChild failed:', err.code, err.message);
+        toast(`Couldn't restore: ${err.code || err.message}`);
+      }
+    }
+
+    // Step 2 of 2 (permanent): only reachable once a child is archived (see
+    // renderAdminChildren). Deletes the child plus every entry (and photo)
+    // tied to them. There's no undo — so this makes the user type the child's
+    // exact name, not just the word "DELETE", to guard against a mis-tap
+    // wiping out a whole child's history.
+    function openDeleteChildConfirm(childId, name) {
+      const child = childrenAll.find(c => c.id === childId);
+      const count = child && typeof child.archivedEntryCount === 'number' ? child.archivedEntryCount : 0;
+      const entryWord = count === 1 ? 'entry' : 'entries';
+      document.getElementById('delete-count-label').textContent =
+        count ? `${name} (${count} ${entryWord} will be deleted)` : name;
       document.getElementById('delete-modal-warning').textContent =
-        `This permanently deletes ${name} and ${count ? `all ${count} ${count === 1 ? 'entry' : 'entries'}` : 'their entries'} and photos. This can't be undone.`;
+        `This permanently deletes ${name} and ${count ? `all ${count} ${entryWord}` : 'their entries'} and photos. This can't be undone.`;
       document.getElementById('delete-challenge-code').textContent = name;
       const input = document.getElementById('delete-challenge-input');
       input.value = '';
@@ -3836,7 +4006,10 @@
       const btn = document.getElementById('delete-confirm-btn');
       btn.disabled = true; btn.textContent = 'Deleting...';
       try {
-        const childEntries = entries.filter(e => e.childId === childId);
+        // Archived entries are filtered out of the in-memory `entries` array,
+        // so fetch this child's entries straight from Firestore instead.
+        const snap = await entriesCol().where('childId', '==', childId).get();
+        const childEntries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         for (const entry of childEntries) {
           if (entry.mediaPaths) {
             await Promise.all(entry.mediaPaths.map(p => storage.ref(p).delete().catch(e => console.warn('delete failed', p, e.code))));
