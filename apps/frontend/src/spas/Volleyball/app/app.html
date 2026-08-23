@@ -1752,6 +1752,21 @@
       return { bg, text: '#1a1a1a', label: (rawType || '').trim() || 'Event' };
     }
 
+    // Away games are named "... @ Opponent" — flagged so they can render as a
+    // hashed/striped version of their event type's own color instead of solid fill.
+    function isAwayEvent(name) {
+      return /@\s*\S/.test(String(name || ''));
+    }
+    // Darkens a #rrggbb color by `amt` (0-1) for the away-game hash stripes,
+    // so the stripe color is always derived from the event's own base color.
+    function darkenHex(hex, amt) {
+      const n = parseInt(String(hex).replace('#', ''), 16);
+      const r = Math.max(0, Math.round(((n >> 16) & 255) * (1 - amt)));
+      const g = Math.max(0, Math.round(((n >> 8) & 255) * (1 - amt)));
+      const b = Math.max(0, Math.round((n & 255) * (1 - amt)));
+      return `rgb(${r},${g},${b})`;
+    }
+
     // Legend reflects only the types actually present in this schedule's own
     // events — no global/default category list — plus a static Weekend swatch.
     function renderLegend() {
@@ -2008,7 +2023,11 @@
       bar.dataset.id = e.id;
       const st = typeStyle(e.type);
       let bg = `background-color:${st.bg};`;
-      if (st.hatch) {
+      if (isAwayEvent(e.name)) {
+        // Away game: hash the event's own base color rather than the fixed
+        // school-hatch tint, so every event type gets its own away pattern.
+        bg += `background-image:repeating-linear-gradient(45deg, ${darkenHex(st.bg, 0.35)} 0, ${darkenHex(st.bg, 0.35)} 2px, transparent 2px, transparent 6px);`;
+      } else if (st.hatch) {
         bg += `background-image:repeating-linear-gradient(45deg, rgba(65,36,2,0.3) 0, rgba(65,36,2,0.3) 2px, transparent 2px, transparent 6px);`;
       }
       bar.style.cssText = `position:absolute;left:${left}px;top:${top}px;width:${w}px;height:${h}px;${bg}border-radius:3px;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;cursor:${readonlyMode ? 'default' : 'pointer'};padding:1px;transition:opacity 0.15s ease;z-index:2;user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;`;
@@ -2566,19 +2585,20 @@
     function isSafariBrowser() {
       return /^((?!chrome|android|crios|fxios|edg).)*safari/i.test(navigator.userAgent);
     }
-    function preferAuthRedirect() {
-      const h = location.hostname;
-      return h === 'localhost' || h === '127.0.0.1';
-    }
     async function signInGoogle() {
       if (location.protocol === 'file:') { authMsg('Open via http, not a local file.'); return; }
       setAuthBusy(true);
       try {
-        if (preferAuthRedirect()) {
-          sessionStorage.setItem('authRedirect', '1');
-          await auth.signInWithRedirect(googleProvider);
-          return;
-        }
+        // Always try the popup first, including on localhost/127.0.0.1.
+        // signInWithRedirect relies on a storage relay between the app's
+        // origin and the authDomain's origin (sportsquad-hq.firebaseapp.com)
+        // to hand back the credential; Chrome's third-party storage
+        // partitioning blocks that relay for a non-authDomain dev origin
+        // like 127.0.0.1, so getRedirectResult() silently resolves with no
+        // user. Popup doesn't have this problem — it talks back to the
+        // opener directly — so it's used everywhere and redirect is only a
+        // fallback when the popup itself gets blocked.
+        //
         // signInWithPopup opens the popup window synchronously as part of
         // this call, before any internal async work — required for it to
         // count as a direct response to the click in Safari's popup blocker.
@@ -2586,13 +2606,13 @@
         closeModal('modal-auth');
       } catch (e) {
         if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
-          // The signInWithRedirect fallback here depends on this Firebase
-          // project's Hosting site being deployed (it serves the
-          // /__/firebase/init.json the redirect auth-handler page needs) —
-          // which isn't the case yet, so falling back to it on Safari would
-          // just trade a clear "enable pop-ups" message for a confusing
-          // silent failure. Give Safari users an actionable message instead;
-          // other browsers can still fall back to redirect.
+          // signInWithRedirect depends on this Firebase project's Hosting
+          // site serving /__/firebase/init.json for the redirect
+          // auth-handler page (deployed as of 2026-08-19). Safari still
+          // gets a direct "enable pop-ups" message instead of falling back
+          // to redirect, since that's a clearer fix for a popup block than
+          // a full-page redirect round-trip. Other browsers fall back to
+          // redirect.
           if (isSafariBrowser()) {
             authMsg('Safari blocked the sign-in pop-up. Allow pop-ups for this site (Safari menu → Settings for This Website) and try again.');
           } else {
