@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Inline path-fix: redirect app.html/<uuid> → app.html?share=<uuid> before any JS loads -->
+<script>(function(){var m=location.pathname.match(/^(.*\.html)\/([^/]*)\/?$/i);if(!m)return;var base=m[1],rest=(m[2]||'').replace(/\/$/,'');if(rest&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(rest)){location.replace(base+'?share='+encodeURIComponent(rest)+location.search+location.hash);}else{location.replace(base+location.search+location.hash);}})();</script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Kanban</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231a1a1a'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='system-ui,sans-serif' font-size='16' font-weight='700' fill='%23fff'%3EK%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.5/dist/purify.min.js"></script>
+<!-- Google Identity Services: used only to request a Calendar-scoped OAuth
+     access token when "Sync now" is clicked. Separate from Firebase Auth,
+     which handles normal sign-in. -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   RESET + TEMPLATE TOKENS
+   ═══════════════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f5f5;--surf:#fff;--surf-2:#fafafa;--line:#d8d8d8;--line-2:#e8e8e8;
+  --ink:#1a1a1a;--ink-2:#444;--ink-3:#777;--ink-4:#aaa;--ink-5:#ccc;
+  --acc:#2a2a2a;--acc-soft:#666;
+  --warn:#a04020;--warn-soft:#d9a090;--warn-bg:#f5e5e0;
+  --good:#2a6a2e;--good-soft:#90b890;--good-bg:#e5efe2;
+  --info:#3a5a8a;--info-soft:#8898b8;--info-bg:#e0e8f2;
+  --mid:#6c5a98;--mid-soft:#a898c8;--mid-bg:#ebe5f0;
+  --gold:#8a7020;
+  --wip-bg:#fef3c7;--wip-line:#d69e2e;--wip-ink:#7a4b00;
+  --ctx-1:#2f6fdb;--ctx-2:#7a4fc2;--ctx-3:#1f8a70;--ctx-4:#c2467a;--ctx-5:#b7791f;--ctx-6:#5b6770;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);font-size:13px;line-height:1.5;display:flex;flex-direction:column}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+
+/* ── auth-pending: hide content until Firebase resolves ── */
+body.auth-pending #app,
+body.auth-pending #sign-in{visibility:hidden}
+
+/* ─── global top bar ─── */
+.gbar{height:48px;background:var(--ink);color:#fff;display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;z-index:20}
+.gbrand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;letter-spacing:-.3px;color:#fff}
+.gbrand-box{width:24px;height:24px;background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:11px;font-weight:800}
+.gbar-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+#sync-status{font-size:11px;opacity:.7}
+#sync-status.ok{color:#86efac}
+#sync-status.warn{color:#fde68a}
+#sync-status.err{color:#fca5a5}
+
+/* ─── avatar / user menu ─── */
+.gav{width:26px;height:26px;border-radius:50%;background:#555;border:1.5px solid #777;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#ddd;cursor:pointer;user-select:none;flex-shrink:0}
+#user-menu-wrap{position:relative}
+#user-menu-panel{position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid #e0e0e0;border-radius:5px;box-shadow:0 6px 20px rgba(0,0,0,.12);min-width:170px;padding:4px;z-index:50}
+#user-menu-panel[hidden]{display:none}
+.umenu-item{width:100%;padding:7px 11px;text-align:left;background:none;border:none;font-size:12.5px;color:#333;cursor:pointer;border-radius:3px;display:block}
+.umenu-item:hover{background:#f0f0f0}
+.umenu-item.danger{color:#b91c1c}
+#user-name{font-size:11px;padding:6px 11px;color:#777;display:block;border-bottom:1px solid #eee;margin-bottom:3px}
+
+/* ─── readonly banner (scaffolding only, §5.3 — unused while SHARING_ENABLED is false) ─── */
+#ro-banner{background:#1e40af;color:#fff;padding:8px 18px;font-size:12.5px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+#ro-banner[hidden]{display:none}
+body.readonly #ro-banner{display:flex}
+
+/* ─── sign-in empty state ─── */
+#sign-in{flex:1;display:flex;align-items:center;justify-content:center}
+#sign-in[hidden]{display:none!important}
+.signin-card{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:36px 32px;max-width:360px;width:100%;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.signin-card h2{font-size:18px;margin-bottom:6px}
+.signin-card p{font-size:13px;color:#666;margin-bottom:20px;line-height:1.5}
+.btn-google{background:#4285f4;color:#fff;border:none;border-radius:4px;padding:9px 18px;font-size:13px;cursor:pointer;width:100%;margin-bottom:8px}
+.btn-google:hover{background:#3367d6}
+#sign-in-error{font-size:12px;color:#b91c1c;background:#fee2e2;border:1px solid #fecaca;border-radius:4px;padding:8px 10px;margin-bottom:12px;line-height:1.45;text-align:left}
+#sign-in-error[hidden]{display:none}
+
+/* ─── main app shell ─── */
+#app{flex:1;overflow:hidden;display:flex;flex-direction:column}
+#app[hidden]{display:none}
+.shell{flex:1;min-height:0;display:flex}
+
+/* ─── left rail (desktop) ─── */
+.rail{width:88px;flex:none;background:var(--surf);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:4px}
+.nav-btn{width:72px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;border:0;border-radius:8px;font-size:11px;background:transparent;color:var(--ink-2)}
+.nav-btn:hover{background:var(--surf-2)}
+.nav-btn.on{background:var(--ink);color:#fff}
+.nav-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ─── main column ─── */
+.main-col{flex:1;min-width:0;display:flex;flex-direction:column}
+.topheader{flex:none;display:flex;align-items:center;gap:16px;padding:14px 20px;background:var(--surf);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.topheader h1{font-size:18px;font-weight:600;flex:none}
+.back-btn{display:none;background:none;border:0;padding:4px;color:var(--ink)}
+.chips-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1 1 auto;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border:1px solid var(--line);border-radius:15px;background:#fff;font-size:12.5px;white-space:nowrap}
+.chip:hover{background:var(--surf-2)}
+.chip.sel{background:var(--ink);color:#fff;border-color:var(--ink)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none}
+
+/* ─── quick add (desktop) ─── */
+.qa-desktop{display:flex;align-items:center;gap:8px;flex:none;background:var(--surf-2);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.qa-desktop select,.qa-desktop input{height:32px;padding:0 10px;border:1px solid var(--line);border-radius:4px;background:#fff}
+.qa-desktop input{width:300px}
+.qa-desktop select{
+  appearance:none;-webkit-appearance:none;-moz-appearance:none;
+  padding-right:30px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 8px center;
+  background-size:14px 14px;
+}
+
+/* ─── generic buttons ─── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 15px;border:1px solid var(--line);background:#fff;font-size:12.5px;border-radius:3px;color:var(--ink-2);white-space:nowrap}
+.btn:hover{background:var(--surf-2)}
+.btn-p{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn-p:hover{background:var(--acc)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-warn{color:var(--warn);border-color:var(--warn-soft)}
+.btn-warn:hover{background:var(--warn-bg)}
+
+/* ─── board ─── */
+.col-tabs{display:none;flex:none;gap:8px;overflow-x:auto;padding:10px 12px;background:var(--surf);border-bottom:1px solid var(--line)}
+.view-area{flex:1;min-height:0;position:relative;overflow:hidden}
+.view-pane{position:absolute;inset:0;overflow:auto}
+.view-pane[hidden]{display:none}
+.board-cols{position:absolute;inset:0;display:flex;gap:14px;padding:16px 20px;overflow:auto}
+.board-col{flex:1 1 0;min-width:220px;display:flex;flex-direction:column;background:var(--surf-2);border:1px solid var(--line);border-radius:8px;min-height:0}
+.board-col.phone-hidden{display:none}
+.col-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line);border-radius:8px 8px 0 0}
+.col-head h2{font-size:13.5px;font-weight:600}
+.col-count{font-family:ui-monospace,monospace;font-size:10px;padding:1px 6px;border:1px solid var(--line);border-radius:4px;color:var(--ink-3)}
+.col-head.over{border-bottom-color:var(--wip-line);background:var(--wip-bg)}
+.col-head.over .col-count{color:var(--wip-ink);border-color:var(--wip-line)}
+.wip-warn-line{font-size:10.5px;color:var(--wip-ink);display:flex;align-items:center;gap:4px}
+.col-body{flex:1;min-height:0;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.col-body.drag-over{background:var(--line-2)}
+.col-empty{border:1.5px dashed var(--line);border-radius:6px;padding:16px;text-align:center;font-size:11.5px;color:var(--ink-3)}
+.wip-banner{display:none;margin:0 12px 10px;padding:10px 12px;background:var(--wip-bg);border:1px solid var(--wip-line);border-radius:6px;font-size:12.5px;color:var(--wip-ink)}
+
+.kcard{position:relative;background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.kcard:hover{border-color:var(--ink-4)}
+.kcard.dragging{opacity:.4}
+.kcard.overdue,.kcard.expedite{background:var(--warn-bg);border-color:var(--warn-soft)}
+.kcard-open{display:block;width:100%;text-align:left;background:none;border:0;padding:0}
+.kcard-top{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-3);margin-bottom:6px;min-height:16px}
+.kcard-title{display:block;font-size:13.5px;font-weight:500;line-height:1.35}
+.kcard-title.done{text-decoration:line-through;color:var(--ink-3)}
+.kcard-wait{display:block;font-size:11.5px;color:var(--ink-3);margin-top:6px}
+.kcard-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;font-size:11.5px}
+.tag{font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.03em;padding:1px 6px;border:1px solid var(--line);border-radius:4px;color:var(--ink-3);background:#fff;white-space:nowrap}
+.tag.red{color:var(--warn);border-color:var(--warn-soft)}
+.tag.amber{color:var(--wip-ink);border-color:var(--wip-line);background:var(--wip-bg)}
+.due{display:inline-flex;align-items:center;gap:4px;color:var(--ink-3)}
+.due.overdue{color:var(--warn);font-weight:600}
+.kcard-arrows{position:absolute;top:6px;right:6px;display:flex;gap:4px}
+.mini{width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:4px;background:#fff;padding:0}
+.mini:hover{background:var(--surf-2)}
+.mini svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.kcard-foot{display:none}
+
+/* ─── bottom nav + FAB (phone) ─── */
+.bottom-nav{display:none;flex:none;background:var(--surf);border-top:1px solid var(--line)}
+.bottom-nav button{flex:1;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:transparent;font-size:10.5px;color:var(--ink-3)}
+.bottom-nav button.on{color:var(--ink);font-weight:600;box-shadow:inset 0 2px 0 var(--ink)}
+.bottom-nav svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.fab{display:none;position:fixed;right:16px;bottom:76px;width:52px;height:52px;border-radius:50%;background:var(--ink);color:#fff;border:0;align-items:center;justify-content:center;z-index:40}
+.fab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ─── card drawer (desktop) / bottom sheet (phone) ─── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:60}
+.overlay[hidden]{display:none}
+.card-panel{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:92vw;background:#fff;border-left:1px solid var(--line);display:flex;flex-direction:column;z-index:61}
+.card-panel[hidden]{display:none}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+.panel-head .lbl{font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.panel-body{flex:1;min-height:0;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:16px}
+.field-label{font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:6px;display:block}
+.title-input{width:100%;height:40px;padding:0 10px;font-size:15px;font-weight:600;border:1px solid var(--line);border-radius:5px}
+.field-row{display:flex;flex-wrap:wrap;gap:8px}
+.chk{width:26px;height:26px;border:2px solid var(--ink);border-radius:5px;background:#fff;padding:0;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.chk svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.cl-row{display:flex;align-items:center;gap:8px}
+.cl-text{flex:1;height:32px;padding:0 8px;border:1px solid var(--line);border-radius:4px}
+.cl-text.done{text-decoration:line-through;color:var(--ink-3)}
+.notes-ta{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:5px;resize:vertical}
+.panel-foot{position:relative;display:flex;justify-content:space-between;padding:14px 18px;border-top:1px solid var(--line)}
+.due-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.due-row .due-full{font-weight:500;min-width:110px}
+.date-input{height:32px;padding:0 8px;border:1px solid var(--line);border-radius:4px;background:#fff}
+.drop-confirm{position:absolute;left:18px;right:18px;bottom:calc(100% + 10px);background:#fff;border:1px solid var(--warn-soft);border-radius:8px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.drop-confirm[hidden]{display:none}
+.drop-confirm p{font-size:12.5px;color:var(--ink-2);line-height:1.45;margin-bottom:12px}
+.drop-confirm-actions{display:flex;justify-content:flex-end;gap:8px}
+
+/* ─── move / add sheets (phone) ─── */
+.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:14px 14px 0 0;border-top:1px solid var(--ink);z-index:61;max-height:80vh;overflow:auto}
+.sheet[hidden]{display:none}
+.sheet-head{padding:14px 16px 6px}
+.sheet-head .lbl{font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.sheet-head p{font-weight:600;margin-top:4px}
+.sheetrow{display:flex;align-items:center;justify-content:space-between;width:100%;height:50px;padding:0 16px;border:0;border-bottom:1px solid var(--line-2);background:#fff;font-size:14px;text-align:left}
+.sheet-foot{padding:10px 16px 14px}
+
+/* ─── toast ─── */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:5px;font-size:12.5px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:200}
+#toast.show{opacity:1}
+#toast[hidden]{display:none}
+
+/* ─── contexts management ─── */
+.ctx-list{border:1px solid var(--line);border-radius:8px;padding:4px 14px}
+.ctx-row{display:flex;align-items:center;gap:10px;padding:10px 0}
+.ctx-row+.ctx-row{border-top:1px solid var(--line-2)}
+.ctx-name-input{height:32px;padding:0 8px;border:1px solid var(--line);border-radius:4px;flex:1;min-width:0;font-size:13px}
+.mini[disabled]{opacity:.35;cursor:not-allowed}
+.mini[disabled]:hover{background:#fff}
+
+/* ─── card details tooltip ─── */
+.card-tooltip{position:fixed;z-index:120;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:14px;width:280px;max-width:90vw;font-size:12px;line-height:1.5;color:var(--ink-2)}
+.card-tooltip[hidden]{display:none}
+.card-tooltip h4{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:8px}
+.card-tooltip .tip-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.card-tooltip .tip-section{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin:10px 0 4px}
+.card-tooltip ul{margin:0;padding-left:16px}
+.card-tooltip li{margin-bottom:2px}
+.card-tooltip li.done{text-decoration:line-through;color:var(--ink-3)}
+.card-tooltip .tip-notes{white-space:pre-wrap}
+
+/* ═══════════════════════════════════════════════════════════
+   PHONE LAYOUT (<1024px)
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width:1023px){
+  .rail{display:none}
+  .qa-desktop{display:none}
+  .col-tabs{display:flex}
+  .bottom-nav{display:flex}
+  .fab{display:flex}
+  .board-col{display:none;border-radius:0;border:0;background:transparent}
+  .board-col.phone-active{display:flex}
+  .board-cols{padding:0 0 76px}
+  .col-head{display:none}
+  .wip-banner{display:block;margin:10px 12px}
+  .col-body{padding:4px 12px 8px}
+  .kcard-foot{display:flex;border-top:1px solid var(--line-2);margin:10px -12px -10px}
+  .kcard-foot button{flex:1;height:42px;background:none;border:0;font-size:12.5px;font-weight:500;color:var(--ink-2)}
+  .kcard-foot button+button{border-left:1px solid var(--line-2)}
+  .col-arrow{display:none}
+  .card-panel{left:0;right:0;top:auto;height:88%;border-left:0;border-top:1px solid var(--ink);border-radius:14px 14px 0 0}
+  .topheader{padding:10px 12px}
+  .topheader h1{font-size:17px}
+}
+@media (min-width:1024px){
+  .sheet{display:none!important}
+  .back-btn{display:none!important}
+}
+</style>
+</head>
+<body class="auth-pending">
+
+<!-- ═══════════ GLOBAL TOP BAR ═══════════ -->
+<div class="gbar">
+  <div class="gbrand"><div class="gbrand-box">K</div>Kanban</div>
+  <div class="gbar-r">
+    <span id="sync-status"></span>
+    <div id="user-menu-wrap">
+      <div class="gav" id="user-menu-btn">?</div>
+      <div id="user-menu-panel" hidden>
+        <span id="user-name"></span>
+        <button class="umenu-item danger" id="btn-sign-out">Sign out</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ READONLY BANNER (scaffolding only, unused in v1) ═══════════ -->
+<div id="ro-banner" hidden>Viewing a shared board (read-only)</div>
+
+<!-- ═══════════ SIGN-IN ═══════════ -->
+<div id="sign-in" hidden>
+  <div class="signin-card">
+    <h2>Kanban</h2>
+    <p>Sign in to save your board and sync across devices.</p>
+    <div id="sign-in-error" hidden></div>
+    <button class="btn-google" id="btn-google">Continue with Google</button>
+  </div>
+</div>
+
+<!-- ═══════════ MAIN APP ═══════════ -->
+<div id="app" hidden>
+  <div class="shell">
+    <nav class="rail" id="rail">
+      <button class="nav-btn" data-view="board" aria-label="Board"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"></rect><rect x="10" y="4" width="5" height="10" rx="1"></rect><rect x="17" y="4" width="4" height="13" rx="1"></rect></svg><span>Board</span></button>
+      <button class="nav-btn" data-view="today" aria-label="Today"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 3v2M12 19v2M3 12h2M19 12h2"></path></svg><span>Today</span></button>
+      <button class="nav-btn" data-view="calendar" aria-label="Calendar"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>Calendar</span></button>
+      <button class="nav-btn" data-view="review" aria-label="Review"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6l2 2 3-3M4 13l2 2 3-3M12 7h8M12 14h8M4 20h16"></path></svg><span>Review</span></button>
+      <div style="flex-grow:1"></div>
+      <button class="nav-btn" data-view="contexts" aria-label="Contexts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"></path><circle cx="16" cy="7" r="2"></circle><circle cx="8" cy="17" r="2"></circle></svg><span>Contexts</span></button>
+    </nav>
+
+    <div class="main-col">
+      <header class="topheader">
+        <button class="back-btn" id="btn-back-board" aria-label="Back to board"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></button>
+        <h1 id="view-title">Board</h1>
+        <div class="chips-row" id="chips-row"></div>
+        <div class="qa-desktop" id="qa-desktop">
+          <input id="qa-text" type="text" placeholder="Quick add: Call vendor #work !fri" aria-label="Quick add card title">
+          <select id="qa-ctx" aria-label="Context for new card"></select>
+          <button class="btn btn-p" id="qa-add">+ Add</button>
+        </div>
+      </header>
+
+      <div class="col-tabs" id="col-tabs"></div>
+
+      <main class="view-area">
+        <div class="view-pane" id="view-board">
+          <div class="wip-banner" id="wip-banner-phone" hidden></div>
+          <div class="board-cols" id="board-cols"></div>
+        </div>
+        <div class="view-pane" id="view-today" hidden>
+          <div style="max-width:600px;margin:40px auto;text-align:center;color:var(--ink-3)">Today view arrives in Phase 2.</div>
+        </div>
+        <div class="view-pane" id="view-calendar" hidden>
+          <div id="cal-wrap" style="max-width:480px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:14px"></div>
+        </div>
+        <div class="view-pane" id="view-review" hidden>
+          <div style="max-width:600px;margin:40px auto;text-align:center;color:var(--ink-3)">Weekly review arrives in Phase 2.</div>
+        </div>
+        <div class="view-pane" id="view-contexts" hidden>
+          <div id="ctx-wrap" style="max-width:720px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:14px"></div>
+        </div>
+      </main>
+
+      <nav class="bottom-nav" id="bottom-nav">
+        <button data-view="board" aria-label="Board"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"></rect><rect x="10" y="4" width="5" height="10" rx="1"></rect><rect x="17" y="4" width="4" height="13" rx="1"></rect></svg><span>Board</span></button>
+        <button data-view="today" aria-label="Today"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 3v2M12 19v2M3 12h2M19 12h2"></path></svg><span>Today</span></button>
+        <button data-view="calendar" aria-label="Calendar"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>Calendar</span></button>
+        <button data-view="review" aria-label="Review"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6l2 2 3-3M4 13l2 2 3-3M12 7h8M12 14h8M4 20h16"></path></svg><span>Review</span></button>
+      </nav>
+    </div>
+  </div>
+
+  <button class="fab" id="fab-add" aria-label="Quick add card"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+</div>
+
+<!-- ═══════════ CARD DRAWER / SHEET ═══════════ -->
+<div class="overlay" id="card-overlay" hidden></div>
+<aside class="card-panel" id="card-panel" hidden>
+  <div class="panel-head"><span class="lbl">Card detail</span><button class="mini" id="btn-card-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+  <div class="panel-body" id="panel-body"></div>
+  <div class="panel-foot">
+    <div class="drop-confirm" id="drop-confirm" hidden>
+      <p>Drop this card? It will be archived and removed from the board — not permanently deleted.</p>
+      <div class="drop-confirm-actions">
+        <button class="btn btn-sm" id="btn-drop-cancel">Cancel</button>
+        <button class="btn btn-sm btn-warn" id="btn-drop-confirm">Drop card</button>
+      </div>
+    </div>
+    <button class="btn btn-warn" id="btn-card-drop">Drop card</button>
+    <button class="btn btn-p" id="btn-card-done">Mark done</button>
+  </div>
+</aside>
+
+<!-- ═══════════ MOVE SHEET (phone) ═══════════ -->
+<div class="overlay" id="move-overlay" hidden></div>
+<div class="sheet" id="move-sheet" hidden>
+  <div class="sheet-head"><span class="lbl">Move to</span><p id="move-title"></p></div>
+  <div id="move-rows"></div>
+  <div class="sheet-foot"><button class="btn" id="btn-move-cancel" style="width:100%">Cancel</button></div>
+</div>
+
+<!-- ═══════════ ADD SHEET (phone) ═══════════ -->
+<div class="overlay" id="add-overlay" hidden></div>
+<div class="sheet" id="add-sheet" hidden>
+  <div class="panel-body" style="padding:16px">
+    <span class="field-label">New card</span>
+    <input class="title-input" id="add-text" placeholder="Call vendor #work !fri" aria-label="Card title" style="margin:8px 0 14px">
+    <span class="field-label">Context</span>
+    <div class="field-row" id="add-ctx-row" style="margin-bottom:14px"></div>
+    <span class="field-label">Due</span>
+    <div class="field-row" id="add-due-row" style="margin-bottom:16px"></div>
+    <button class="btn btn-p" id="add-submit" style="width:100%">Add to Backlog</button>
+  </div>
+</div>
+
+<div id="toast" hidden></div>
+<div class="card-tooltip" id="card-tooltip" role="tooltip" hidden></div>
+
+<script src="firebase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+<script src="kanban-logic.js"></script>
+<script src="gcal.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+// FIREBASE INIT
+// ═══════════════════════════════════════════════════════════
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// ═══════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════
+const COLUMNS_DEFAULT = [
+  { id:'backlog', name:'Backlog', wipLimit:null },
+  { id:'ready',   name:'Ready',   wipLimit:null },
+  { id:'doing',   name:'Doing',   wipLimit:3 },
+  { id:'waiting', name:'Waiting', wipLimit:null },
+  { id:'done',    name:'Done',    wipLimit:null }
+];
+const CONTEXTS_DEFAULT = [
+  { id:'work',     name:'Work',     color:'#2f6fdb', visible:true },
+  { id:'ventures', name:'Ventures', color:'#7a4fc2', visible:true },
+  { id:'personal', name:'Personal', color:'#1f8a70', visible:true },
+  { id:'kids',     name:'Kids',     color:'#c2467a', visible:true }
+];
+const CTX_PALETTE = ['#2f6fdb','#7a4fc2','#1f8a70','#c2467a','#b7791f','#5b6770'];
+const PRIORITIES = [
+  ['expedite','Expedite'], ['fixed','Fixed date'], ['standard','Standard'], ['someday','Someday']
+];
+const DONE_HIDE_DAYS = 14;
+
+// Sharing scaffolding (§5.3): plumbing only, no UI, no reads/writes while disabled.
+const SHARING_ENABLED = false;
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let currentUser = null;
+let cloudReady  = false;
+let boardId     = null;
+let board       = null;   // board doc data
+let cards       = [];     // in-memory, from onSnapshot
+let unsubBoard  = null;
+let unsubCards  = null;
+const saveTimers = {};    // cardId -> timeout, for debounced text fields
+
+let STATE = {
+  view: 'board',           // board | today | calendar | review | contexts
+  activeContexts: null,    // null = All; else array of context ids
+  phoneCol: 'doing',       // which column the phone board tab shows
+  selId: null,             // open card drawer/sheet
+  sheet: null,             // phone: 'move' | 'add' | null
+  addText: '',
+  addCtx: null,
+  addDue: null,            // phone quick-add: null | 'YYYY-MM-DD'
+  dragId: null
+};
+
+const eid = id => document.getElementById(id);
+function escapeHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function safe(s) {
+  const str = String(s||'');
+  return (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(str) : escapeHtml(str);
+}
+
+// ═══════════════════════════════════════════════════════════
+// UUID / TOKEN HELPERS (sharing scaffolding, §5.3)
+// ═══════════════════════════════════════════════════════════
+function genToken() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16);});
+}
+const TOKEN_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const isToken  = s => typeof s==='string' && TOKEN_RE.test(s);
+function buildShareUrl(token) {
+  const m = location.pathname.match(/^(.*\.html)\/[^/]*\/?$/i);
+  const base = location.origin + (m ? m[1] : location.pathname);
+  const u = new URL(base); u.searchParams.set('share', token); return u.toString();
+}
+function parseShareFromUrl() {
+  const q = new URLSearchParams(location.search).get('share');
+  return (q && isToken(q)) ? q : null;
+}
+async function syncPublic() {
+  // Intentionally inert while SHARING_ENABLED is false — nothing may write to
+  // publicDocuments in v1 (personal data must not be exposed, §5.3).
+  if (!SHARING_ENABLED) return;
+}
+
+// ═══════════════════════════════════════════════════════════
+// FIRESTORE REFS
+// ═══════════════════════════════════════════════════════════
+const privateCol  = uid => db.collection('users').doc(uid).collection('documents');
+const boardRef    = (uid, id) => privateCol(uid).doc(id);
+const cardsCol     = (uid, id) => boardRef(uid, id).collection('cards');
+const cardRef      = (uid, id, cardId) => cardsCol(uid, id).doc(cardId);
+
+// ═══════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════
+async function signInGoogle() {
+  try {
+    await auth.signInWithPopup(googleProvider);
+  } catch(e) {
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
+      try { await auth.signInWithRedirect(googleProvider); return; } catch(e2) { authMsg(fmtAuthErr(e2)); return; }
+    }
+    authMsg(fmtAuthErr(e));
+  }
+}
+async function signOut() {
+  try { await auth.signOut(); } catch(e) { syncStatus('Sign-out failed','err'); }
+}
+function fmtAuthErr(e) {
+  if (e.code === 'auth/unauthorized-domain') {
+    const host = location.hostname;
+    const hint = host === '127.0.0.1' ? ' Add 127.0.0.1 (and localhost) under Firebase Auth → Authorised domains.' : '';
+    return 'Host "'+host+'" not in Firebase authorised domains.'+hint;
+  }
+  return e.message || 'Sign-in failed';
+}
+function authMsg(msg) {
+  const si = eid('sign-in-error');
+  if (si) { si.textContent = msg; si.hidden = !msg; }
+}
+
+auth.onAuthStateChanged(async user => {
+  currentUser = user;
+  setAuthUi(user);
+  if (user) {
+    await initBoard(user.uid);
+  } else {
+    if (unsubBoard) unsubBoard();
+    if (unsubCards) unsubCards();
+    boardId = null; board = null; cards = [];
+    syncStatus('Local only', '');
+  }
+});
+
+function setAuthUi(user) {
+  document.body.classList.remove('auth-pending');
+  showState(user ? 'app' : 'signin');
+  if (user) authMsg('');
+  const un = eid('user-name'); if (un) un.textContent = user ? (user.displayName||user.email||'Signed in') : '';
+  const av = eid('user-menu-btn');
+  if (av) av.textContent = user ? (user.displayName||user.email||'?').charAt(0).toUpperCase() : '?';
+  if (!user) closeMenu();
+}
+function showState(state) {
+  document.body.classList.remove('auth-pending');
+  const app = eid('app'), si = eid('sign-in');
+  if (app) app.hidden = state !== 'app';
+  if (si)  si.hidden  = state !== 'signin';
+}
+
+// ═══════════════════════════════════════════════════════════
+// BOARD INIT / SEEDING
+// ═══════════════════════════════════════════════════════════
+async function initBoard(uid) {
+  syncStatus('Loading…','warn');
+  try {
+    const snap = await privateCol(uid).where('type','==','kanban-board').limit(1).get();
+    if (!snap.empty) {
+      boardId = snap.docs[0].id;
+    } else {
+      boardId = await createDefaultBoard(uid);
+    }
+    attachListeners(uid, boardId);
+  } catch(e) {
+    console.error(e);
+    cloudReady = false;
+    syncStatus('Load failed','err');
+    toast(fmtFirestoreErr(e));
+  }
+}
+function fmtFirestoreErr(e) {
+  if (e && e.code === 'permission-denied') {
+    return 'Firestore access denied. Deploy rules from this folder: firebase deploy --only firestore:rules';
+  }
+  return (e && e.message) || 'Could not load your board';
+}
+async function createDefaultBoard(uid) {
+  const ref = privateCol(uid).doc();
+  await ref.set({
+    type: 'kanban-board',
+    name: 'My Board',
+    schemaVersion: 1,
+    columns: COLUMNS_DEFAULT,
+    contexts: CONTEXTS_DEFAULT,
+    aging: { doingDays: 5, waitingDays: 4 },
+    calendar: { calendarId: null, lastSyncAt: null },
+    shareToken: genToken(),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  return ref.id;
+}
+function attachListeners(uid, id) {
+  if (unsubBoard) unsubBoard();
+  if (unsubCards) unsubCards();
+  unsubBoard = boardRef(uid, id).onSnapshot(snap => {
+    if (!snap.exists) return;
+    board = snap.data();
+    if (!STATE.addCtx && board.contexts && board.contexts.length) STATE.addCtx = board.contexts[0].id;
+    cloudReady = true;
+    syncStatus('Synced','ok');
+    render();
+  }, e => { console.error(e); syncStatus('Sync failed','err'); });
+  unsubCards = cardsCol(uid, id).where('archived','==',false).onSnapshot(snap => {
+    cards = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    render();
+  }, e => { console.error(e); syncStatus('Sync failed','err'); });
+}
+
+// ═══════════════════════════════════════════════════════════
+// BOARD WRITES (contexts array, etc.)
+// ═══════════════════════════════════════════════════════════
+function scheduleBoardSave(fields) {
+  Object.assign(board, fields);
+  clearTimeout(saveTimers['__board']);
+  saveTimers['__board'] = setTimeout(() => saveBoardNow(fields), 600);
+}
+function saveBoardNowOptimistic(fields) {
+  Object.assign(board, fields);
+  render();
+  saveBoardNow(fields);
+}
+async function saveBoardNow(fields) {
+  if (!currentUser || !boardId) return;
+  syncStatus('Saving…','warn');
+  try {
+    await boardRef(currentUser.uid, boardId).set({ ...fields, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+    syncStatus('Saved','ok');
+  } catch(e) { console.error(e); syncStatus('Save failed','err'); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CARD WRITES
+// ═══════════════════════════════════════════════════════════
+function scheduleCardSave(cardId, fields) {
+  writeCardLocal(cardId, fields);
+  clearTimeout(saveTimers[cardId]);
+  saveTimers[cardId] = setTimeout(() => saveCardNow(cardId, fields), 600);
+}
+function writeCardLocal(cardId, fields) {
+  const c = cards.find(x => x.id === cardId);
+  if (c) Object.assign(c, fields);
+}
+async function saveCardNow(cardId, fields) {
+  if (!currentUser || !boardId) return;
+  syncStatus('Saving…','warn');
+  try {
+    await cardRef(currentUser.uid, boardId, cardId).set({
+      ...fields, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge:true });
+    syncStatus('Saved','ok');
+  } catch(e) { console.error(e); syncStatus('Save failed','err'); }
+}
+async function createCard(fields) {
+  if (!currentUser || !boardId) return;
+  const ref = cardsCol(currentUser.uid, boardId).doc();
+  await ref.set({
+    title:'', contextId:null, status:'backlog', rank:1000, dueDate:null,
+    priority:'standard', blocked:false, waitingOn:'', checklist:[], recurrence:null,
+    calendarSync:false, calendarEventId:null, calSig:null, notes:'', completedAt:null, archived:false,
+    statusChangedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    ...fields
+  });
+}
+async function moveCard(cardId, status, rank) {
+  const c = cards.find(x => x.id === cardId);
+  if (!c) return;
+  const now = new Date();
+  const serverFields = { status, rank, statusChangedAt: firebase.firestore.FieldValue.serverTimestamp() };
+  const localFields  = { status, rank, statusChangedAt: now };
+  if (status === 'done') { serverFields.completedAt = firebase.firestore.FieldValue.serverTimestamp(); localFields.completedAt = now; }
+  else if (c.status === 'done') { serverFields.completedAt = null; localFields.completedAt = null; }
+  writeCardLocal(cardId, localFields);
+  render();
+  try {
+    await cardRef(currentUser.uid, boardId, cardId).set({ ...serverFields, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+  } catch(e) { console.error(e); syncStatus('Save failed','err'); }
+}
+async function reorderCard(cardId, status, rank) {
+  const c = cards.find(x => x.id === cardId);
+  if (!c) return;
+  const sameCol = c.status === status;
+  writeCardLocal(cardId, { status, rank });
+  render();
+  const fields = { status, rank, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+  if (!sameCol) fields.statusChangedAt = firebase.firestore.FieldValue.serverTimestamp();
+  try { await cardRef(currentUser.uid, boardId, cardId).set(fields, { merge:true }); }
+  catch(e) { console.error(e); syncStatus('Save failed','err'); }
+}
+async function dropCard(cardId) {
+  try { await cardRef(currentUser.uid, boardId, cardId).set({ archived:true, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true }); }
+  catch(e) { console.error(e); syncStatus('Save failed','err'); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════════
+let _tt;
+function toast(msg) {
+  const t = eid('toast'); if (!t) return;
+  t.textContent = msg; t.hidden = false; t.classList.add('show');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => { t.classList.remove('show'); setTimeout(() => { t.hidden = true; }, 200); }, 2600);
+}
+function syncStatus(txt, type) {
+  const s = eid('sync-status'); if (!s) return;
+  s.textContent = txt; s.className = type || '';
+}
+function toggleMenu(e) { e.stopPropagation(); const p = eid('user-menu-panel'); if (p) p.hidden = !p.hidden; }
+function closeMenu() { const p = eid('user-menu-panel'); if (p) p.hidden = true; }
+document.addEventListener('click', closeMenu);
+
+function ctxOf(id) { return (board && board.contexts || []).find(c => c.id === id) || { name:'?', color:'#999', visible:true }; }
+function colDef(id) { return (board && board.columns || []).find(c => c.id === id) || { id, name:id, wipLimit:null }; }
+function colOrder() { return (board && board.columns || []).map(c => c.id); }
+
+function isVisible(card) {
+  const ctx = ctxOf(card.contextId);
+  if (!ctx.visible) return false;
+  if (STATE.activeContexts == null) return true;
+  return STATE.activeContexts.includes(card.contextId);
+}
+function visibleCards() {
+  const cutoff = KB.addDays(KB.todayLocal(), -DONE_HIDE_DAYS);
+  return cards.filter(c => {
+    if (c.status === 'done') {
+      const completed = c.completedAt && typeof c.completedAt.toDate === 'function' ? c.completedAt.toDate() : (c.completedAt ? new Date(c.completedAt) : null);
+      if (completed && completed < cutoff) return false;
+    }
+    return true;
+  });
+}
+function cardsInCol(colId) {
+  return visibleCards().filter(c => c.status === colId).sort((a,b) => (a.rank||0) - (b.rank||0));
+}
+
+// ═══════════════════════════════════════════════════════════
+// NAV / VIEW SWITCHING
+// ═══════════════════════════════════════════════════════════
+const VIEW_TITLES = { board:'Board', today:'Today', calendar:'Calendar', review:'Weekly review', contexts:'Contexts' };
+function setView(v) {
+  STATE.view = v; STATE.selId = null; STATE.sheet = null;
+  render();
+}
+document.querySelectorAll('[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => setView(btn.dataset.view));
+});
+eid('btn-back-board').addEventListener('click', () => setView('board'));
+
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+function render() {
+  if (!board) return;
+  renderChips();
+  renderQuickAddCtx();
+  renderNav();
+  renderBoard();
+  renderColTabs();
+  renderCardPanel();
+  renderMoveSheet();
+  renderAddSheet();
+  renderContextsView();
+  renderCalendarPanel();
+  eid('view-title').textContent = VIEW_TITLES[STATE.view];
+  eid('btn-back-board').style.display = STATE.view === 'contexts' ? '' : 'none';
+  ['board','today','calendar','review','contexts'].forEach(v => {
+    eid('view-'+v).hidden = STATE.view !== v;
+  });
+}
+
+function renderNav() {
+  document.querySelectorAll('.nav-btn, .bottom-nav button').forEach(btn => {
+    btn.classList.toggle('on', btn.dataset.view === STATE.view);
+  });
+}
+
+function renderChips() {
+  const row = eid('chips-row');
+  const ctxs = (board.contexts || []).filter(c => c.visible);
+  const allOn = STATE.activeContexts == null;
+  let html = `<button class="chip${allOn?' sel':''}" data-chip="all">All</button>`;
+  ctxs.forEach(c => {
+    const on = !allOn && STATE.activeContexts.includes(c.id);
+    html += `<button class="chip${on?' sel':''}" data-chip="${escapeHtml(c.id)}"><span class="dot" style="background:${escapeHtml(c.color)}"></span>${escapeHtml(c.name)}</button>`;
+  });
+  row.innerHTML = html;
+  row.querySelectorAll('[data-chip]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.chip;
+      if (id === 'all') { STATE.activeContexts = null; render(); return; }
+      const allOn2 = STATE.activeContexts == null;
+      if (allOn2) { STATE.activeContexts = [id]; }
+      else {
+        let next = STATE.activeContexts.includes(id) ? STATE.activeContexts.filter(x => x !== id) : STATE.activeContexts.concat([id]);
+        STATE.activeContexts = next.length ? next : null;
+      }
+      render();
+    });
+  });
+}
+
+function renderQuickAddCtx() {
+  const sel = eid('qa-ctx');
+  const ctxs = board.contexts || [];
+  if (!STATE.addCtx && ctxs.length) STATE.addCtx = ctxs[0].id;
+  sel.innerHTML = ctxs.map(c => `<option value="${escapeHtml(c.id)}"${c.id===STATE.addCtx?' selected':''}>${escapeHtml(c.name)}</option>`).join('');
+}
+
+function dueInfo(dueDate, status) {
+  if (!dueDate) return { hasDue:false };
+  const today = KB.todayLocal();
+  const iso = KB.toLocalISODate(today);
+  const overdue = dueDate < iso && status !== 'done';
+  let text;
+  if (dueDate === iso) text = 'Today';
+  else {
+    const d = new Date(dueDate + 'T00:00:00');
+    const diffDays = Math.round((d - today) / 86400000);
+    if (diffDays === 1) text = 'Tomorrow';
+    else text = d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    if (overdue) text += ' (overdue)';
+  }
+  return { hasDue:true, text, overdue };
+}
+
+function cardFaceHtml(c) {
+  const ctx = ctxOf(c.contextId);
+  const due = dueInfo(c.dueDate, c.status);
+  const cl = c.checklist || [];
+  const clDone = cl.filter(x => x.done).length;
+  const age = c.statusChangedAt ? KB.agingOf(c.statusChangedAt) : 0;
+  const agingThreshold = c.status === 'doing' ? (board.aging?.doingDays ?? 5) : (board.aging?.waitingDays ?? 4);
+  const aged = (c.status === 'doing' || c.status === 'waiting') && age >= agingThreshold;
+  const order = colOrder();
+  const idx = order.indexOf(c.status);
+  let html = `<div class="kcard${due.overdue?' overdue':''}${c.priority==='expedite'?' expedite':''}" draggable="true" data-id="${escapeHtml(c.id)}" data-status="${escapeHtml(c.status)}">`;
+  html += `<button class="kcard-open" data-open="${escapeHtml(c.id)}">`;
+  html += `<span class="kcard-top"><span class="dot" style="background:${escapeHtml(ctx.color)}"></span><span>${escapeHtml(ctx.name)}</span>`;
+  if (c.priority === 'expedite') html += `<span class="tag red">EXPEDITE</span>`;
+  else if (c.priority === 'fixed') html += `<span class="tag">FIXED DATE</span>`;
+  html += `</span>`;
+  html += `<span class="kcard-title${c.status==='done'?' done':''}">${escapeHtml(c.title)}</span>`;
+  if (c.status === 'waiting') html += `<span class="kcard-wait">Waiting on ${escapeHtml(c.waitingOn||'someone')} / ${age}d</span>`;
+  html += `<span class="kcard-meta">`;
+  if (due.hasDue) html += `<span class="due${due.overdue?' overdue':''}">${escapeHtml(due.text)}</span>`;
+  if (cl.length) html += `<span class="tag">${clDone}/${cl.length} done</span>`;
+  if (c.recurrence) html += `<span class="tag">REPEATS</span>`;
+  if (c.blocked) html += `<span class="tag red">BLOCKED</span>`;
+  if (aged) html += `<span class="tag amber">${age}d here</span>`;
+  html += `</span></button>`;
+  html += `<div class="kcard-arrows">`;
+  html += `<button class="mini" data-info="${escapeHtml(c.id)}" aria-label="Card details"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>`;
+  if (idx > 0) html += `<button class="mini col-arrow" data-left="${escapeHtml(c.id)}" aria-label="Move left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>`;
+  if (idx < order.length - 1) html += `<button class="mini col-arrow" data-right="${escapeHtml(c.id)}" aria-label="Move right"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>`;
+  html += `</div>`;
+  if (c.status !== 'done') {
+    html += `<div class="kcard-foot"><button data-move="${escapeHtml(c.id)}">Move to…</button><button data-done="${escapeHtml(c.id)}">Mark done</button></div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function renderBoard() {
+  const cols = board.columns || [];
+  const wrap = eid('board-cols');
+  let html = '';
+  let anyOver = false;
+  cols.forEach(col => {
+    const allInCol = cardsInCol(col.id);
+    const visInCol = allInCol.filter(isVisible);
+    const over = col.wipLimit != null && allInCol.length > col.wipLimit;
+    if (over) anyOver = true;
+    const isPhoneActive = STATE.phoneCol === col.id;
+    html += `<section class="board-col${isPhoneActive?' phone-active':''}" data-col="${escapeHtml(col.id)}">`;
+    html += `<div class="col-head${over?' over':''}"><h2>${escapeHtml(col.name)}</h2><span class="col-count">${col.id==='doing'?allInCol.length+'/'+col.wipLimit:visInCol.length}</span>`;
+    if (over) html += `<span class="wip-warn-line">Over limit (warn only)</span>`;
+    html += `</div>`;
+    html += `<div class="col-body" data-col-body="${escapeHtml(col.id)}">`;
+    if (visInCol.length === 0) html += `<div class="col-empty">Nothing here</div>`;
+    else visInCol.forEach(c => { html += cardFaceHtml(c); });
+    html += `</div></section>`;
+  });
+  wrap.innerHTML = html;
+  const banner = eid('wip-banner-phone');
+  const doingCol = cols.find(c => c.id === 'doing');
+  const doingAll = cardsInCol('doing');
+  if (doingCol && doingCol.wipLimit != null && doingAll.length > doingCol.wipLimit) {
+    banner.hidden = false;
+    banner.textContent = `Doing is over its limit (${doingAll.length}/${doingCol.wipLimit}). Warning only.`;
+  } else banner.hidden = true;
+
+  hideCardTooltip();
+  wireBoardEvents(wrap);
+}
+
+// ═══════════════════════════════════════════════════════════
+// CARD DETAILS TOOLTIP
+// ═══════════════════════════════════════════════════════════
+function cardTooltipHtml(c) {
+  const ctx = ctxOf(c.contextId);
+  const col = colDef(c.status);
+  const due = dueInfo(c.dueDate, c.status);
+  const age = c.statusChangedAt ? KB.agingOf(c.statusChangedAt) : 0;
+  const cl = c.checklist || [];
+  const clDone = cl.filter(x => x.done).length;
+  const priEntry = PRIORITIES.find(p => p[0] === c.priority);
+  const priLabel = priEntry ? priEntry[1] : 'Standard';
+  let html = `<h4>${escapeHtml(c.title || '(untitled)')}</h4>`;
+  html += `<div class="tip-row"><span class="dot" style="background:${escapeHtml(ctx.color)}"></span>${escapeHtml(ctx.name)} · ${escapeHtml(col.name)}</div>`;
+  html += `<div class="tip-row">Due: ${due.hasDue ? escapeHtml(due.text) : 'No date'}</div>`;
+  html += `<div class="tip-row">Priority: ${escapeHtml(priLabel)}</div>`;
+  if (c.blocked) html += `<div class="tip-row" style="color:var(--warn)">Blocked</div>`;
+  if (c.status === 'waiting') html += `<div class="tip-row">Waiting on ${escapeHtml(c.waitingOn || 'someone')} · ${age}d</div>`;
+  if (c.recurrence) html += `<div class="tip-row">Repeats ${escapeHtml(c.recurrence.freq || 'weekly')}</div>`;
+  if (c.calendarSync) html += `<div class="tip-row">On calendar</div>`;
+  if (cl.length) {
+    html += `<div class="tip-section">Checklist (${clDone}/${cl.length})</div><ul>`;
+    cl.forEach(item => { html += `<li class="${item.done ? 'done' : ''}">${escapeHtml(item.text)}</li>`; });
+    html += `</ul>`;
+  }
+  if (c.notes) html += `<div class="tip-section">Notes</div><div class="tip-notes">${escapeHtml(c.notes)}</div>`;
+  return html;
+}
+function showCardTooltip(anchorEl, cardId) {
+  const c = findCard(cardId); if (!c) return;
+  const tip = eid('card-tooltip');
+  tip.innerHTML = cardTooltipHtml(c);
+  tip.dataset.for = cardId;
+  tip.hidden = false;
+  const rect = anchorEl.getBoundingClientRect();
+  const tipRect = tip.getBoundingClientRect();
+  let left = rect.right - tipRect.width;
+  let top = rect.bottom + 6;
+  left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
+  if (top + tipRect.height > window.innerHeight - 8) top = rect.top - tipRect.height - 6;
+  tip.style.left = left + 'px';
+  tip.style.top = Math.max(8, top) + 'px';
+}
+function hideCardTooltip() {
+  const tip = eid('card-tooltip');
+  if (tip) { tip.hidden = true; delete tip.dataset.for; }
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('[data-info]') && !e.target.closest('#card-tooltip')) hideCardTooltip();
+});
+
+function wireBoardEvents(wrap) {
+  wrap.querySelectorAll('[data-open]').forEach(el => el.addEventListener('click', () => openCard(el.dataset.open)));
+  wrap.querySelectorAll('[data-left]').forEach(el => el.addEventListener('click', () => arrowMove(el.dataset.left, -1)));
+  wrap.querySelectorAll('[data-right]').forEach(el => el.addEventListener('click', () => arrowMove(el.dataset.right, 1)));
+  wrap.querySelectorAll('[data-move]').forEach(el => el.addEventListener('click', () => openMoveSheet(el.dataset.move)));
+  wrap.querySelectorAll('[data-done]').forEach(el => el.addEventListener('click', () => { markDone(el.dataset.done); }));
+  wrap.querySelectorAll('[data-info]').forEach(el => {
+    el.addEventListener('mouseenter', () => showCardTooltip(el, el.dataset.info));
+    el.addEventListener('mouseleave', hideCardTooltip);
+    el.addEventListener('focus', () => showCardTooltip(el, el.dataset.info));
+    el.addEventListener('blur', hideCardTooltip);
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const tip = eid('card-tooltip');
+      if (!tip.hidden && tip.dataset.for === el.dataset.info) hideCardTooltip();
+      else showCardTooltip(el, el.dataset.info);
+    });
+  });
+
+  wrap.querySelectorAll('.kcard').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      STATE.dragId = card.dataset.id;
+      card.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => { card.classList.remove('dragging'); STATE.dragId = null; });
+  });
+
+  wrap.querySelectorAll('.col-body').forEach(body => {
+    body.addEventListener('dragover', e => {
+      e.preventDefault();
+      body.classList.add('drag-over');
+    });
+    body.addEventListener('dragleave', () => body.classList.remove('drag-over'));
+    body.addEventListener('drop', e => {
+      e.preventDefault();
+      body.classList.remove('drag-over');
+      const id = e.dataTransfer.getData('text/plain') || STATE.dragId;
+      if (!id) return;
+      const colId = body.dataset.colBody;
+      const after = getDragAfterElement(body, e.clientY);
+      const siblings = Array.from(body.querySelectorAll('.kcard')).filter(el => el.dataset.id !== id);
+      let beforeRank = null, afterRank = null;
+      const idx = after ? siblings.indexOf(after) : siblings.length;
+      if (idx > 0) beforeRank = findCard(siblings[idx-1].dataset.id)?.rank ?? null;
+      if (after) afterRank = findCard(after.dataset.id)?.rank ?? null;
+      const rank = KB.rankBetween(beforeRank, afterRank);
+      reorderCard(id, colId, rank);
+    });
+  });
+}
+function getDragAfterElement(container, y) {
+  const els = Array.from(container.querySelectorAll('.kcard:not(.dragging)'));
+  let closest = { offset: -Infinity, element: null };
+  els.forEach(el => {
+    const box = el.getBoundingClientRect();
+    const offset = y - box.top - box.height/2;
+    if (offset < 0 && offset > closest.offset) closest = { offset, element: el };
+  });
+  return closest.element;
+}
+function findCard(id) { return cards.find(c => c.id === id); }
+
+function arrowMove(id, dir) {
+  const c = findCard(id); if (!c) return;
+  const order = colOrder();
+  const idx = order.indexOf(c.status);
+  const next = order[idx+dir];
+  if (!next) return;
+  const dest = cardsInCol(next);
+  const lastRank = dest.length ? dest[dest.length-1].rank : null;
+  moveCard(id, next, KB.rankBetween(lastRank, null));
+}
+function markDone(id) {
+  moveCard(id, 'done', KB.rankBetween(cardsInCol('done').slice(-1)[0]?.rank ?? null, null));
+  toast('Marked done');
+}
+
+function renderColTabs() {
+  const wrap = eid('col-tabs');
+  const cols = board.columns || [];
+  wrap.innerHTML = cols.map(col => {
+    const all = cardsInCol(col.id);
+    const n = all.filter(isVisible).length;
+    const over = col.wipLimit != null && all.length > col.wipLimit;
+    const sel = STATE.phoneCol === col.id;
+    const label = col.id === 'doing' ? `${all.length}/${col.wipLimit}` : String(n);
+    return `<button class="chip${sel?' sel':''}" data-col-tab="${escapeHtml(col.id)}" style="${over&&!sel?'border-color:var(--wip-line);background:var(--wip-bg);color:var(--wip-ink)':''}">${escapeHtml(col.name)} ${label}</button>`;
+  }).join('');
+  wrap.querySelectorAll('[data-col-tab]').forEach(btn => {
+    btn.addEventListener('click', () => { STATE.phoneCol = btn.dataset.colTab; render(); });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// CONTEXTS MANAGEMENT (§6.8)
+// ═══════════════════════════════════════════════════════════
+function renderContextsView() {
+  if (STATE.view !== 'contexts') return;
+  const wrap = eid('ctx-wrap');
+  const ctxs = board.contexts || [];
+  let html = `<p style="color:var(--ink-3)">Rename, recolor, reorder, or hide contexts. Hidden contexts drop off Board, Today and Calendar but keep their cards.</p>`;
+  html += `<div class="ctx-list">`;
+  ctxs.forEach((c, i) => {
+    const count = cards.filter(x => x.contextId === c.id).length;
+    html += `<div class="ctx-row">`;
+    html += `<button class="mini" style="width:30px;height:30px" data-ctx-cycle="${escapeHtml(c.id)}" aria-label="Change color"><span class="dot" style="background:${escapeHtml(c.color)};width:16px;height:16px"></span></button>`;
+    html += `<input class="ctx-name-input" data-ctx-name="${escapeHtml(c.id)}" value="${escapeHtml(c.name)}" aria-label="Context name">`;
+    html += `<span class="tag" style="flex:none">${count} cards</span>`;
+    html += `<button class="mini" data-ctx-up="${escapeHtml(c.id)}" aria-label="Move up"${i===0?' disabled':''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>`;
+    html += `<button class="mini" data-ctx-down="${escapeHtml(c.id)}" aria-label="Move down"${i===ctxs.length-1?' disabled':''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>`;
+    html += `<button class="chip${c.visible?'':''}" style="width:90px;justify-content:center;flex:none;${c.visible?'':'border-style:dashed;color:var(--ink-3)'}" data-ctx-toggle="${escapeHtml(c.id)}">${c.visible?'Shown':'Hidden'}</button>`;
+    html += `</div>`;
+  });
+  html += `</div>`;
+  html += `<div><button class="btn" id="ctx-add">+ New context</button></div>`;
+  wrap.innerHTML = html;
+
+  // Handlers read board.contexts live (not the ctxs snapshot above) so two quick
+  // edits in a row — e.g. typing a name, then toggling another row before the
+  // debounced save lands — don't clobber each other.
+  wrap.querySelectorAll('[data-ctx-cycle]').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.ctxCycle;
+    const next = (board.contexts || []).map(c => {
+      if (c.id !== id) return c;
+      const idx = CTX_PALETTE.indexOf(c.color);
+      return { ...c, color: CTX_PALETTE[(idx + 1 + CTX_PALETTE.length) % CTX_PALETTE.length] };
+    });
+    saveBoardNowOptimistic({ contexts: next });
+  }));
+  wrap.querySelectorAll('[data-ctx-name]').forEach(inp => inp.addEventListener('input', () => {
+    const id = inp.dataset.ctxName;
+    const next = (board.contexts || []).map(c => c.id === id ? { ...c, name: inp.value } : c);
+    scheduleBoardSave({ contexts: next });
+  }));
+  wrap.querySelectorAll('[data-ctx-up]').forEach(btn => btn.addEventListener('click', () => {
+    const live = board.contexts || [];
+    const idx = live.findIndex(c => c.id === btn.dataset.ctxUp);
+    if (idx <= 0) return;
+    const next = live.slice();
+    [next[idx-1], next[idx]] = [next[idx], next[idx-1]];
+    saveBoardNowOptimistic({ contexts: next });
+  }));
+  wrap.querySelectorAll('[data-ctx-down]').forEach(btn => btn.addEventListener('click', () => {
+    const live = board.contexts || [];
+    const idx = live.findIndex(c => c.id === btn.dataset.ctxDown);
+    if (idx < 0 || idx >= live.length - 1) return;
+    const next = live.slice();
+    [next[idx+1], next[idx]] = [next[idx], next[idx+1]];
+    saveBoardNowOptimistic({ contexts: next });
+  }));
+  wrap.querySelectorAll('[data-ctx-toggle]').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.ctxToggle;
+    const next = (board.contexts || []).map(c => c.id === id ? { ...c, visible: !c.visible } : c);
+    saveBoardNowOptimistic({ contexts: next });
+  }));
+  eid('ctx-add').addEventListener('click', () => {
+    const live = board.contexts || [];
+    const next = live.concat([{
+      id: genToken(), name: 'New context',
+      color: CTX_PALETTE[live.length % CTX_PALETTE.length], visible: true
+    }]);
+    saveBoardNowOptimistic({ contexts: next });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// GOOGLE CALENDAR SYNC (Phase 3, one-way push, client-side only)
+// ═══════════════════════════════════════════════════════════
+let calendarSyncing = false;
+let gisTokenClient = null;
+
+// Google Identity Services token client — requests a Calendar-scoped access
+// token directly, independent of Firebase Auth's sign-in session. Used
+// instead of Firebase's signInWithPopup, which was unreliable at surfacing
+// the OAuth credential/access token for this incremental-scope case.
+function ensureGisTokenClient() {
+  if (gisTokenClient) return gisTokenClient;
+  if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) return null;
+  if (!GOOGLE_OAUTH_CLIENT_ID || GOOGLE_OAUTH_CLIENT_ID === 'PASTE_YOUR_WEB_CLIENT_ID_HERE') return null;
+  gisTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_OAUTH_CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/calendar.app.created',
+    callback: () => {}, // overridden per-request in getCalendarAccessToken
+    error_callback: () => {} // overridden per-request; catches popup-closed/blocked, which the normal callback does not
+  });
+  return gisTokenClient;
+}
+
+function getCalendarAccessToken() {
+  return new Promise((resolve, reject) => {
+    const client = ensureGisTokenClient();
+    if (!client) {
+      const msg = (typeof google === 'undefined' || !google.accounts)
+        ? 'Google sign-in library not loaded yet — wait a moment and try again.'
+        : 'GOOGLE_OAUTH_CLIENT_ID is not set in firebase-config.js.';
+      toast(msg);
+      const err = new Error(msg); err.toastShown = true;
+      reject(err);
+      return;
+    }
+    let settled = false;
+    // Safety net: if the user closes the popup window directly (not via an
+    // in-page Cancel), GIS can fail to invoke either callback at all, which
+    // would otherwise leave this promise — and the "Syncing…" button — stuck
+    // forever.
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      const err = new Error('Calendar authorization timed out or was closed.'); err.toastShown = true;
+      toast('Calendar authorization timed out or was closed.');
+      reject(err);
+    }, 60000);
+    function finish(fn) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      fn();
+    }
+    client.callback = (resp) => finish(() => {
+      if (resp.error) {
+        toast('Calendar authorization failed: ' + resp.error);
+        const err = new Error(resp.error); err.toastShown = true;
+        reject(err);
+        return;
+      }
+      resolve(resp.access_token);
+    });
+    client.error_callback = (err) => finish(() => {
+      const message = (err && err.message) || (err && err.type) || 'Calendar authorization was cancelled.';
+      toast('Calendar authorization failed: ' + message);
+      const e = new Error(message); e.toastShown = true;
+      reject(e);
+    });
+    // No `prompt` override: let Google decide. Once granted, this lets repeat
+    // syncs reuse the existing grant silently instead of re-prompting (and
+    // re-triggering Google's own step-up verification) on every click.
+    client.requestAccessToken({ hint: currentUser && currentUser.email || undefined });
+  });
+}
+
+async function syncCalendarNow() {
+  if (calendarSyncing || !currentUser || !board) return;
+  calendarSyncing = true;
+  renderCalendarPanel();
+  syncStatus('Calendar sync…', 'warn');
+  try {
+    const token = await getCalendarAccessToken();
+    const calendarId = await GCAL.findOrCreateCalendar(token, board.calendar && board.calendar.calendarId);
+    const plan = KB.syncPlan(cards, board.contexts);
+
+    const ops = [];
+    plan.create.forEach(op => ops.push(async () => {
+      const card = findCard(op.cardId); if (!card) return;
+      const body = KB.buildEventBody(card, board.contexts);
+      const ev = await GCAL.insertEvent(token, calendarId, body);
+      await saveCardNow(card.id, { calendarEventId: ev.id, calSig: op.sig });
+    }));
+    plan.update.forEach(op => ops.push(async () => {
+      const card = findCard(op.cardId); if (!card) return;
+      const body = KB.buildEventBody(card, board.contexts);
+      try {
+        await GCAL.updateEvent(token, calendarId, op.eventId, body);
+        await saveCardNow(card.id, { calSig: op.sig });
+      } catch (e) {
+        if (e.status !== 404) throw e;
+        // Event was deleted on the Calendar side — recreate it.
+        const ev = await GCAL.insertEvent(token, calendarId, body);
+        await saveCardNow(card.id, { calendarEventId: ev.id, calSig: op.sig });
+      }
+    }));
+    plan.delete.forEach(op => ops.push(async () => {
+      await GCAL.deleteEvent(token, calendarId, op.eventId);
+      await saveCardNow(op.cardId, { calendarEventId: null, calSig: null });
+    }));
+
+    await GCAL.runWithConcurrency(ops, 3);
+    await saveBoardNow({ calendar: { calendarId, lastSyncAt: firebase.firestore.FieldValue.serverTimestamp() } });
+    syncStatus('Synced', 'ok');
+    toast(ops.length ? `Pushed ${ops.length} card update${ops.length===1?'':'s'} to Google Calendar` : 'Google Calendar already up to date');
+  } catch (e) {
+    console.error(e);
+    syncStatus('Calendar sync failed', 'err');
+    if (!e.toastShown) toast('Calendar sync failed: ' + (e.message || 'unknown error'));
+  } finally {
+    calendarSyncing = false;
+    renderCalendarPanel();
+  }
+}
+
+function renderCalendarPanel() {
+  if (STATE.view !== 'calendar') return;
+  const wrap = eid('cal-wrap');
+  const plan = KB.syncPlan(cards, board.contexts);
+  const pending = plan.create.length + plan.update.length + plan.delete.length;
+  const lastSync = board.calendar && board.calendar.lastSyncAt;
+  const lastSyncDate = lastSync && typeof lastSync.toDate === 'function' ? lastSync.toDate() : null;
+  const lastSyncText = lastSyncDate ? lastSyncDate.toLocaleString() : 'Never';
+
+  let html = `<p style="color:var(--ink-3)">Month view arrives in Phase 2. For now: cards with a due date and "On calendar" turned on in their drawer push to a dedicated "Kanban" calendar in your Google account, one-way.</p>`;
+  html += `<div class="ctx-list" style="padding:16px;display:flex;flex-direction:column;gap:10px">`;
+  html += `<div style="font-size:12.5px;color:var(--ink-2)">Last synced: ${escapeHtml(lastSyncText)}</div>`;
+  html += `<div style="font-size:12.5px;color:var(--ink-2)">${pending} card${pending===1?'':'s'} to push</div>`;
+  html += `<button class="btn btn-p" id="cal-sync-now"${calendarSyncing?' disabled':''}>${calendarSyncing?'Syncing…':`Sync now (${pending} card${pending===1?'':'s'})`}</button>`;
+  html += `<button class="btn" disabled style="opacity:.5;cursor:not-allowed">Two-way sync (later)</button>`;
+  html += `</div>`;
+  wrap.innerHTML = html;
+
+  const btn = eid('cal-sync-now');
+  if (btn) btn.addEventListener('click', syncCalendarNow);
+}
+
+// ═══════════════════════════════════════════════════════════
+// QUICK ADD
+// ═══════════════════════════════════════════════════════════
+function submitQuickAdd(rawText, fallbackCtx, fallbackDue) {
+  const text = (rawText || '').trim();
+  if (!text) { toast('Type a title first'); return; }
+  const parsed = KB.parseQuickAdd(text, board.contexts, fallbackCtx, KB.todayLocal());
+  if (!parsed.title) { toast('Type a title first'); return; }
+  const dueDate = parsed.dueDate || fallbackDue || null;
+  const dest = cardsInCol('backlog');
+  const lastRank = dest.length ? dest[dest.length-1].rank : null;
+  createCard({
+    title: parsed.title, contextId: parsed.contextId, status:'backlog',
+    rank: KB.rankBetween(lastRank, null), dueDate, calendarSync: !!dueDate
+  });
+  toast('Added to Backlog');
+}
+eid('qa-add').addEventListener('click', () => {
+  submitQuickAdd(eid('qa-text').value, eid('qa-ctx').value, null);
+  eid('qa-text').value = '';
+});
+eid('qa-text').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); eid('qa-add').click(); }
+});
+eid('qa-ctx').addEventListener('change', () => { STATE.addCtx = eid('qa-ctx').value; });
+
+eid('fab-add').addEventListener('click', () => { STATE.sheet = 'add'; render(); });
+function renderAddSheet() {
+  const overlay = eid('add-overlay'), sheet = eid('add-sheet');
+  const show = STATE.sheet === 'add';
+  overlay.hidden = !show; sheet.hidden = !show;
+  if (!show) return;
+  eid('add-text').value = STATE.addText;
+  const ctxRow = eid('add-ctx-row');
+  ctxRow.innerHTML = (board.contexts||[]).map(c => `<button class="chip${STATE.addCtx===c.id?' sel':''}" data-add-ctx="${escapeHtml(c.id)}"><span class="dot" style="background:${escapeHtml(c.color)}"></span>${escapeHtml(c.name)}</button>`).join('');
+  ctxRow.querySelectorAll('[data-add-ctx]').forEach(b => b.addEventListener('click', () => { STATE.addCtx = b.dataset.addCtx; render(); }));
+  const today = KB.todayLocal();
+  const dueOpts = [[null,'No date'],[KB.toLocalISODate(today),'Today'],[KB.toLocalISODate(KB.addDays(today,1)),'Tomorrow'],[KB.toLocalISODate(KB.addDays(today,7)),'Next week']];
+  const dueRow = eid('add-due-row');
+  dueRow.innerHTML = dueOpts.map(([val,label]) => `<button class="chip${STATE.addDue===val?' sel':''}" data-add-due="${val?escapeHtml(val):''}">${escapeHtml(label)}</button>`).join('');
+  dueRow.querySelectorAll('[data-add-due]').forEach(b => b.addEventListener('click', () => { STATE.addDue = b.dataset.addDue || null; render(); }));
+}
+eid('add-text').addEventListener('input', () => { STATE.addText = eid('add-text').value; });
+eid('add-submit').addEventListener('click', () => {
+  submitQuickAdd(STATE.addText, STATE.addCtx, STATE.addDue);
+  STATE.addText = ''; STATE.addDue = null; STATE.sheet = null; STATE.phoneCol = 'backlog';
+  render();
+});
+eid('add-overlay').addEventListener('click', () => { STATE.sheet = null; render(); });
+
+// ═══════════════════════════════════════════════════════════
+// MOVE SHEET (phone)
+// ═══════════════════════════════════════════════════════════
+function openMoveSheet(id) { STATE.selId = id; STATE.sheet = 'move'; render(); }
+function renderMoveSheet() {
+  const overlay = eid('move-overlay'), sheet = eid('move-sheet');
+  const show = STATE.sheet === 'move' && STATE.selId;
+  overlay.hidden = !show; sheet.hidden = !show;
+  if (!show) return;
+  const c = findCard(STATE.selId); if (!c) return;
+  eid('move-title').textContent = c.title;
+  const doingAll = cardsInCol('doing');
+  const rows = (board.columns||[]).map(col => {
+    const note = col.id === c.status ? 'Current' : (col.id === 'doing' && doingAll.length >= (colDef('doing').wipLimit ?? Infinity) && c.status !== 'doing' ? 'Over limit (warns)' : '');
+    return `<button class="sheetrow" data-move-to="${escapeHtml(col.id)}" style="${col.id===c.status?'font-weight:600;background:var(--surf-2)':''}"><span>${escapeHtml(col.name)}</span><span style="font-size:12px;color:var(--ink-3)">${escapeHtml(note)}</span></button>`;
+  }).join('');
+  eid('move-rows').innerHTML = rows;
+  eid('move-rows').querySelectorAll('[data-move-to]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const dest = cardsInCol(btn.dataset.moveTo);
+      const lastRank = dest.length ? dest[dest.length-1].rank : null;
+      moveCard(c.id, btn.dataset.moveTo, KB.rankBetween(lastRank, null));
+      STATE.sheet = null;
+      toast('Moved to ' + colDef(btn.dataset.moveTo).name);
+      render();
+    });
+  });
+}
+eid('btn-move-cancel').addEventListener('click', () => { STATE.sheet = null; render(); });
+eid('move-overlay').addEventListener('click', () => { STATE.sheet = null; render(); });
+
+// ═══════════════════════════════════════════════════════════
+// CARD DRAWER / SHEET
+// ═══════════════════════════════════════════════════════════
+function openCard(id) { STATE.selId = id; STATE.sheet = null; eid('drop-confirm').hidden = true; render(); }
+function closeCard() { STATE.selId = null; eid('drop-confirm').hidden = true; render(); }
+eid('card-overlay').addEventListener('click', closeCard);
+eid('btn-card-close').addEventListener('click', closeCard);
+
+function renderCardPanel() {
+  const overlay = eid('card-overlay'), panel = eid('card-panel');
+  const show = !!STATE.selId && STATE.sheet !== 'move' && STATE.sheet !== 'add';
+  overlay.hidden = !show; panel.hidden = !show;
+  if (!show) return;
+  const c = findCard(STATE.selId);
+  if (!c) { closeCard(); return; }
+  const ctxs = board.contexts || [];
+  const cols = board.columns || [];
+  const age = c.statusChangedAt ? KB.agingOf(c.statusChangedAt) : 0;
+  const due = dueInfo(c.dueDate, c.status);
+
+  let html = '';
+  html += `<input class="title-input" id="pc-title" value="${escapeHtml(c.title)}" aria-label="Card title">`;
+  html += `<div><span class="field-label">Context</span><div class="field-row">`;
+  html += ctxs.map(x => `<button class="chip${x.id===c.contextId?' sel':''}" data-pc-ctx="${escapeHtml(x.id)}"><span class="dot" style="background:${escapeHtml(x.color)}"></span>${escapeHtml(x.name)}</button>`).join('');
+  html += `</div></div>`;
+  html += `<div><span class="field-label">Status</span><div class="field-row">`;
+  html += cols.map(x => `<button class="chip${x.id===c.status?' sel':''}" data-pc-status="${escapeHtml(x.id)}">${escapeHtml(x.name)}</button>`).join('');
+  html += `</div></div>`;
+  if (c.status === 'waiting') {
+    html += `<div><span class="field-label">Waiting on</span><input class="title-input" style="height:32px;font-size:13px;font-weight:400" id="pc-wait" value="${escapeHtml(c.waitingOn||'')}" placeholder="Who or what?">`;
+    html += `<div style="font-size:11.5px;color:var(--ink-3);margin-top:4px">In this column for ${age} days</div></div>`;
+  }
+  html += `<div><span class="field-label">Due date (hard)</span><div class="due-row"><span class="due-full">${due.hasDue?escapeHtml(due.text):'No date'}</span>`;
+  html += `<input type="date" class="date-input" id="pc-date" value="${c.dueDate?escapeHtml(c.dueDate):''}" aria-label="Due date"></div>`;
+  html += `<div class="due-row" style="margin-top:8px"><button class="btn btn-sm" data-due="-1">-1d</button><button class="btn btn-sm" data-due="1">+1d</button><button class="btn btn-sm" data-due="7">+1w</button><button class="btn btn-sm" data-due="clear">Clear</button></div></div>`;
+  html += `<div><span class="field-label">Class of service</span><div class="field-row">`;
+  html += PRIORITIES.map(([id,label]) => `<button class="chip${c.priority===id?' sel':''}" data-pc-pri="${id}">${label}</button>`).join('');
+  html += `</div></div>`;
+  html += `<div class="field-row">`;
+  html += `<button class="chip${c.blocked?' sel':''}" id="pc-blocked">${c.blocked?'Blocked: on':'Blocked: off'}</button>`;
+  html += `<button class="chip${c.recurrence?' sel':''}" id="pc-rep">${c.recurrence?'Repeats weekly: on':'Repeats weekly: off'}</button>`;
+  html += `<button class="chip${c.calendarSync?' sel':''}" id="pc-sync">${c.calendarSync?'On calendar: yes':'On calendar: no'}</button>`;
+  html += `</div>`;
+  const cl = c.checklist || [];
+  const clDone = cl.filter(x => x.done).length;
+  html += `<div><span class="field-label">Checklist${cl.length?' ('+clDone+'/'+cl.length+')':''}</span>`;
+  cl.forEach((item, i) => {
+    html += `<div class="cl-row" style="margin-bottom:6px"><button class="chk" data-cl-toggle="${i}" aria-label="Toggle item">${item.done?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>':''}</button><input class="cl-text${item.done?' done':''}" data-cl-text="${i}" value="${escapeHtml(item.text)}"></div>`;
+  });
+  html += `<button class="btn btn-sm" id="pc-cl-add">Add item</button></div>`;
+  html += `<div><span class="field-label">Notes</span><textarea class="notes-ta" id="pc-notes" rows="3">${escapeHtml(c.notes||'')}</textarea></div>`;
+
+  eid('panel-body').innerHTML = html;
+
+  eid('pc-title').addEventListener('input', e => scheduleCardSave(c.id, { title: e.target.value }));
+  eid('panel-body').querySelectorAll('[data-pc-ctx]').forEach(b => b.addEventListener('click', () => { saveCardNow(c.id, { contextId: b.dataset.pcCtx }); writeCardLocal(c.id,{contextId:b.dataset.pcCtx}); render(); }));
+  eid('panel-body').querySelectorAll('[data-pc-status]').forEach(b => b.addEventListener('click', () => {
+    const dest = cardsInCol(b.dataset.pcStatus);
+    const lastRank = dest.length ? dest[dest.length-1].rank : null;
+    moveCard(c.id, b.dataset.pcStatus, KB.rankBetween(lastRank, null));
+  }));
+  const waitInput = eid('pc-wait');
+  if (waitInput) waitInput.addEventListener('input', e => scheduleCardSave(c.id, { waitingOn: e.target.value }));
+  eid('panel-body').querySelectorAll('[data-due]').forEach(b => b.addEventListener('click', () => {
+    const op = b.dataset.due;
+    let next;
+    if (op === 'clear') next = null;
+    else {
+      const base = c.dueDate ? new Date(c.dueDate+'T00:00:00') : KB.todayLocal();
+      next = KB.toLocalISODate(KB.addDays(base, parseInt(op,10)));
+    }
+    saveCardNow(c.id, { dueDate: next, calendarSync: !!next });
+    writeCardLocal(c.id, { dueDate: next, calendarSync: !!next });
+    render();
+  }));
+  eid('pc-date').addEventListener('change', e => {
+    const next = e.target.value || null;
+    saveCardNow(c.id, { dueDate: next, calendarSync: !!next });
+    writeCardLocal(c.id, { dueDate: next, calendarSync: !!next });
+    render();
+  });
+  eid('panel-body').querySelectorAll('[data-pc-pri]').forEach(b => b.addEventListener('click', () => {
+    const pri = b.dataset.pcPri;
+    const shouldPromptDate = pri === 'fixed' && !c.dueDate;
+    saveCardNow(c.id, { priority: pri }); writeCardLocal(c.id,{priority:pri}); render();
+    if (shouldPromptDate) {
+      const di = eid('pc-date');
+      if (di) { if (di.showPicker) { try { di.showPicker(); } catch(e) { di.focus(); } } else di.focus(); }
+    }
+  }));
+  eid('pc-blocked').addEventListener('click', () => { saveCardNow(c.id, { blocked: !c.blocked }); writeCardLocal(c.id,{blocked:!c.blocked}); render(); });
+  eid('pc-rep').addEventListener('click', () => { const v = c.recurrence ? null : { freq:'weekly', interval:1 }; saveCardNow(c.id, { recurrence: v }); writeCardLocal(c.id,{recurrence:v}); render(); });
+  eid('pc-sync').addEventListener('click', () => { saveCardNow(c.id, { calendarSync: !c.calendarSync }); writeCardLocal(c.id,{calendarSync:!c.calendarSync}); render(); });
+  eid('panel-body').querySelectorAll('[data-cl-toggle]').forEach(b => b.addEventListener('click', () => {
+    const i = parseInt(b.dataset.clToggle,10);
+    const next = cl.map((x,j) => j===i ? {...x, done: !x.done} : x);
+    saveCardNow(c.id, { checklist: next }); writeCardLocal(c.id, { checklist: next }); render();
+  }));
+  eid('panel-body').querySelectorAll('[data-cl-text]').forEach(inp => inp.addEventListener('input', e => {
+    const i = parseInt(inp.dataset.clText,10);
+    const next = cl.map((x,j) => j===i ? {...x, text: e.target.value} : x);
+    writeCardLocal(c.id, { checklist: next });
+    clearTimeout(saveTimers['cl-'+c.id]);
+    saveTimers['cl-'+c.id] = setTimeout(() => saveCardNow(c.id, { checklist: next }), 600);
+  }));
+  eid('pc-cl-add').addEventListener('click', () => {
+    const next = cl.concat([{ id: genToken(), text:'New item', done:false }]);
+    saveCardNow(c.id, { checklist: next }); writeCardLocal(c.id, { checklist: next }); render();
+  });
+  eid('pc-notes').addEventListener('input', e => scheduleCardSave(c.id, { notes: e.target.value }));
+}
+eid('btn-card-drop').addEventListener('click', () => {
+  if (!STATE.selId) return;
+  eid('drop-confirm').hidden = false;
+});
+eid('btn-drop-cancel').addEventListener('click', () => { eid('drop-confirm').hidden = true; });
+eid('btn-drop-confirm').addEventListener('click', () => {
+  if (!STATE.selId) return;
+  dropCard(STATE.selId);
+  toast('Card dropped');
+  closeCard();
+});
+eid('btn-card-done').addEventListener('click', () => {
+  if (!STATE.selId) return;
+  markDone(STATE.selId);
+  closeCard();
+});
+
+// ═══════════════════════════════════════════════════════════
+// WIRE-UP
+// ═══════════════════════════════════════════════════════════
+eid('user-menu-btn').addEventListener('click', toggleMenu);
+eid('btn-sign-out').addEventListener('click', signOut);
+eid('btn-google').addEventListener('click', signInGoogle);
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Private data, owner only.
+    // Board:  users/{uid}/documents/{boardId}
+    // Cards:  users/{uid}/documents/{boardId}/cards/{cardId}
+    // The recursive wildcard covers the board doc and everything nested under it.
+    match /users/{userId}/documents/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Public read-only snapshots, keyed by an unguessable UUID token.
+    // UNUSED in v1 (SHARING_ENABLED = false). Kept so sharing can be added later.
+    // Tightened from the original template: a single doc can be fetched by token,
+    // but the collection cannot be listed.
+    match /publicDocuments/{shareToken} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if request.auth != null
+        && resource.data.ownerUid == request.auth.uid;
+    }
+  }
+}

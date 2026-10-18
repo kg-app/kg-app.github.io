@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kanban Mobile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#1F1F1D;font-size:14px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #2F5BEA;outline-offset:2px}
+h1,h2,h3,p{margin:0}
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ic.sm{width:14px;height:14px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none}
+.chip{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 14px;border:1px solid #C7C6BF;border-radius:20px;background:#fff;font-size:14px;white-space:nowrap;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:44px;padding:0 16px;border:1px solid #1F1F1D;border-radius:10px;background:#fff;font-size:14px;font-weight:500;white-space:nowrap}
+.btn.pri{background:#1F1F1D;color:#fff}
+.ibtn{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;border-radius:10px;padding:0;flex:none}
+.sq{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #C7C6BF;border-radius:10px;background:#fff;padding:0;flex:none}
+.tag{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.04em;padding:1px 6px;border:1px solid #C7C6BF;border-radius:4px;color:#5F5F5A;background:#fff;white-space:nowrap}
+.tag.red{color:#B42318;border-color:#B42318}
+.tag.amber{color:#7A4B00;border-color:#D69E2E;background:#FEF3C7}
+.fld{width:100%;height:44px;padding:0 12px;border:1px solid #C7C6BF;border-radius:8px;background:#fff}
+.lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5F5F5A;font-weight:500}
+.chk{width:40px;height:40px;border:2px solid #1F1F1D;border-radius:8px;background:#fff;padding:0;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.panel{background:#fff;border:1px solid #C7C6BF;border-radius:12px}
+.rowbtn{flex:1;min-width:0;text-align:left;background:none;border:0;padding:0}
+.foot{flex:1;height:44px;background:#fff;border:0;font-size:13px;font-weight:500}
+.tab{flex:1;height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:transparent;font-size:11px;padding:0}
+.cellb{height:52px;border:0;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0;background:transparent;font-size:14px}
+.sheetrow{display:flex;align-items:center;justify-content:space-between;width:100%;height:52px;padding:0 16px;border:0;border-bottom:1px solid #E3E2DC;background:#fff;font-size:15px;text-align:left}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;overflow:hidden;background:#F4F4F2;display:flex;flex-direction:column">
+
+<header style="height:56px;flex:none;display:flex;align-items:center;gap:4px;padding:0 8px 0 16px;background:#fff;border-bottom:1px solid #C7C6BF">
+<sc-if value="{{isCtx}}" hint-placeholder-val="{{ false }}"><button class="ibtn" aria-label="Back" onClick="{{goBoard}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button></sc-if>
+<h1 style="font-size:19px;font-weight:600;flex-grow:1">{{viewTitle}}</h1>
+<button class="ibtn" aria-label="Edit contexts" onClick="{{goCtx}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"></path><circle cx="16" cy="7" r="2"></circle><circle cx="8" cy="17" r="2"></circle></svg></button>
+</header>
+
+<sc-if value="{{showChips}}" hint-placeholder-val="{{ true }}">
+<div style="height:56px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px;overflow-x:auto;background:#fff;border-bottom:1px solid #C7C6BF">
+<button class="chip" style="{{allChip.style}}" onClick="{{allChip.click}}">All</button>
+<sc-for list="{{chips}}" as="ch" hint-placeholder-count="4"><button class="chip" style="{{ch.style}}" onClick="{{ch.click}}"><span class="dot" style="{{ch.dot}}"></span>{{ch.name}}</button></sc-for>
+</div>
+</sc-if>
+
+<main style="flex:1;min-height:0;position:relative;overflow:hidden">
+
+<sc-if value="{{isBoard}}" hint-placeholder-val="{{ true }}">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column">
+<div style="flex:none;display:flex;gap:8px;overflow-x:auto;padding:10px 12px">
+<sc-for list="{{colTabs}}" as="t" hint-placeholder-count="5"><button class="chip" style="{{t.style}}" onClick="{{t.go}}">{{t.name}} <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">{{t.count}}</span></button></sc-for>
+</div>
+<sc-if value="{{wipOver}}" hint-placeholder-val="{{ true }}"><div style="flex:none;margin:0 12px 8px;padding:10px 12px;background:#FEF3C7;border:1px solid #D69E2E;border-radius:8px;font-size:13px;color:#7A4B00;display:flex;gap:8px;align-items:center"><svg class="ic sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l9 16H3z"></path><path d="M12 10v4M12 17v.5"></path></svg>Doing is over its limit ({{wipText}}). Warning only.</div></sc-if>
+<div style="flex:1;min-height:0;overflow:auto;padding:4px 12px 96px;display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{cards}}" as="card" hint-placeholder-count="3">
+<div class="panel" style="overflow:hidden;flex:none">
+<button class="rowbtn" style="display:block;width:100%;padding:12px 14px" onClick="{{card.open}}">
+<span style="display:flex;align-items:center;gap:6px;font-size:12px;color:#5F5F5A;margin-bottom:6px"><span class="dot" style="{{card.dot}}"></span><span>{{card.ctxName}}</span><sc-if value="{{card.expedite}}" hint-placeholder-val="{{ false }}"><span class="tag red">EXPEDITE</span></sc-if></span>
+<span style="{{card.titleStyle}}">{{card.title}}</span>
+<sc-if value="{{card.waiting}}" hint-placeholder-val="{{ false }}"><span style="display:block;font-size:12px;color:#5F5F5A;margin-top:6px">{{card.waitText}}</span></sc-if>
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;font-size:12px">
+<sc-if value="{{card.hasDue}}" hint-placeholder-val="{{ true }}"><span style="{{card.dueStyle}}">{{card.dueText}}</span></sc-if>
+<sc-if value="{{card.hasCl}}" hint-placeholder-val="{{ false }}"><span class="tag">{{card.clText}} done</span></sc-if>
+<sc-if value="{{card.rep}}" hint-placeholder-val="{{ false }}"><span class="tag">REPEATS</span></sc-if>
+<sc-if value="{{card.blocked}}" hint-placeholder-val="{{ false }}"><span class="tag red">BLOCKED</span></sc-if>
+<sc-if value="{{card.aged}}" hint-placeholder-val="{{ false }}"><span class="tag amber">{{card.ageText}} here</span></sc-if>
+</span>
+</button>
+<sc-if value="{{card.notDone}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;border-top:1px solid #E3E2DC"><button class="foot" onClick="{{card.moveSheet}}">Move to...</button><button class="foot" style="border-left:1px solid #E3E2DC" onClick="{{card.check}}">Mark done</button></div>
+</sc-if>
+</div>
+</sc-for>
+<sc-if value="{{boardEmpty}}" hint-placeholder-val="{{ false }}"><div style="border:1.5px dashed #A9A8A1;border-radius:10px;padding:32px;text-align:center;color:#5F5F5A">Nothing here</div></sc-if>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isToday}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;overflow:auto;padding:14px 12px 96px;display:flex;flex-direction:column;gap:18px">
+<div style="font-size:13px;color:#5F5F5A">{{todayLine}}</div>
+<sc-for list="{{tsec}}" as="sec" hint-placeholder-count="3">
+<section style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:center;gap:8px"><h2 class="lbl">{{sec.name}}</h2><span class="tag">{{sec.count}}</span></div>
+<sc-for list="{{sec.rows}}" as="row" hint-placeholder-count="2">
+<div class="panel" style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 8px">
+<button class="chk" aria-label="Mark done" onClick="{{row.check}}"></button>
+<button class="rowbtn" style="min-height:44px" onClick="{{row.open}}"><span style="display:flex;gap:6px;align-items:center;font-size:12px;color:#5F5F5A"><span class="dot" style="{{row.dot}}"></span>{{row.ctxName}} / {{row.statusName}}</span><span style="display:block;font-weight:500;margin-top:2px">{{row.title}}</span><sc-if value="{{row.hasDue}}" hint-placeholder-val="{{ true }}"><span style="{{row.dueStyle}};display:block;font-size:12px;margin-top:2px">{{row.dueText}}</span></sc-if></button>
+</div>
+</sc-for>
+</section>
+</sc-for>
+<sc-if value="{{tEmpty}}" hint-placeholder-val="{{ false }}"><div style="border:1.5px dashed #A9A8A1;border-radius:10px;padding:32px;text-align:center;color:#5F5F5A">All clear. Nothing overdue, due today, or in progress.</div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isCal}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;overflow:auto;padding:12px 12px 24px;display:flex;flex-direction:column;gap:12px">
+<div class="panel" style="padding:8px">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px">
+<button class="ibtn" aria-label="Previous month" onClick="{{cal.prev}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<h2 style="font-size:16px;font-weight:600">{{cal.title}}</h2>
+<button class="ibtn" aria-label="Next month" onClick="{{cal.next}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+</div>
+<div style="display:grid;grid-template-columns:repeat(7, minmax(0, 1fr));text-align:center">
+<span class="lbl" style="padding:4px 0">S</span><span class="lbl" style="padding:4px 0">M</span><span class="lbl" style="padding:4px 0">T</span><span class="lbl" style="padding:4px 0">W</span><span class="lbl" style="padding:4px 0">T</span><span class="lbl" style="padding:4px 0">F</span><span class="lbl" style="padding:4px 0">S</span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(7, minmax(0, 1fr));gap:2px">
+<sc-for list="{{cal.cells}}" as="cell" hint-placeholder-count="35">
+<button class="cellb" style="{{cell.style}}" aria-label="{{cell.aria}}" onClick="{{cell.pick}}"><span>{{cell.num}}</span><span style="display:flex;gap:3px;height:8px"><sc-for list="{{cell.dots}}" as="dt" hint-placeholder-count="2"><span class="dot" style="{{dt.style}};width:7px;height:7px"></span></sc-for></span></button>
+</sc-for>
+</div>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between"><h2 class="lbl">{{cal.selTitle}}</h2><button class="chip" style="height:36px" onClick="{{cal.syncNow}}">Sync now</button></div>
+<sc-for list="{{cal.rows}}" as="row" hint-placeholder-count="2">
+<button class="panel" style="display:block;width:100%;text-align:left;padding:12px 14px" onClick="{{row.open}}"><span style="display:flex;gap:6px;align-items:center;font-size:12px;color:#5F5F5A"><span class="dot" style="{{row.dot}}"></span>{{row.ctxName}} / {{row.statusName}}</span><span style="display:block;font-weight:500;margin-top:2px">{{row.title}}</span></button>
+</sc-for>
+<sc-if value="{{cal.empty}}" hint-placeholder-val="{{ false }}"><div style="border:1.5px dashed #A9A8A1;border-radius:10px;padding:20px;text-align:center;color:#5F5F5A">No cards due this day</div></sc-if>
+<div style="font-size:12px;color:#5F5F5A">One-way push to your "Kanban" Google Calendar. Two-way sync comes later.</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isReview}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;overflow:auto;padding:14px 12px 24px;display:flex;flex-direction:column;gap:12px">
+<sc-if value="{{rev.finished}}" hint-placeholder-val="{{ false }}"><div class="panel" style="padding:32px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px"><h2 style="font-size:19px;font-weight:600">Review complete</h2><p style="color:#5F5F5A">Backlog triaged. Next 7 days checked.</p><button class="btn pri" onClick="{{rev.restart}}">Back to board</button></div></sc-if>
+<sc-if value="{{rev.active}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;justify-content:space-between"><span class="lbl">{{rev.stepLine}}</span><span class="tag">{{rev.count}} cards</span></div>
+<div><h2 style="font-size:18px;font-weight:600">{{rev.name}}</h2><p style="color:#5F5F5A;margin-top:4px">{{rev.hint}}</p></div>
+<sc-for list="{{rev.rows}}" as="row" hint-placeholder-count="2">
+<div class="panel" style="overflow:hidden">
+<button class="rowbtn" style="display:block;width:100%;padding:12px 14px" onClick="{{row.open}}"><span style="display:flex;gap:6px;align-items:center;font-size:12px;color:#5F5F5A"><span class="dot" style="{{row.dot}}"></span>{{row.ctxName}} / {{row.statusName}} / {{row.ageText}} in column</span><span style="display:block;font-weight:500;margin-top:2px">{{row.title}}</span><sc-if value="{{row.hasDue}}" hint-placeholder-val="{{ true }}"><span style="{{row.dueStyle}};display:block;font-size:12px;margin-top:2px">{{row.dueText}}</span></sc-if></button>
+<div style="display:flex;border-top:1px solid #E3E2DC"><sc-for list="{{row.actions}}" as="a" hint-placeholder-count="3"><button class="foot" style="border-left:1px solid #E3E2DC" onClick="{{a.run}}">{{a.label}}</button></sc-for></div>
+</div>
+</sc-for>
+<sc-if value="{{rev.empty}}" hint-placeholder-val="{{ false }}"><div style="border:1.5px dashed #A9A8A1;border-radius:10px;padding:28px;text-align:center;color:#5F5F5A">Nothing to review in this step.</div></sc-if>
+<div style="display:flex;gap:10px"><button class="btn" style="flex:1" onClick="{{rev.back}}">Back</button><button class="btn pri" style="flex:2" onClick="{{rev.next}}">{{rev.nextLabel}}</button></div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isCtx}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;overflow:auto;padding:14px 12px 24px;display:flex;flex-direction:column;gap:12px">
+<p style="color:#5F5F5A;font-size:13px">Rename, recolor, reorder, or hide contexts. Hidden ones keep their cards.</p>
+<div class="panel" style="padding:4px 10px;display:flex;flex-direction:column">
+<sc-for list="{{ctxRows}}" as="r" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid #E3E2DC">
+<button class="sq" aria-label="Change color" onClick="{{r.cycle}}"><span class="dot" style="{{r.swatch}};width:18px;height:18px"></span></button>
+<input class="fld" aria-label="Context name" style="min-width:0" value="{{r.name}}" onInput="{{r.rename}}">
+<button class="sq" aria-label="Move up" onClick="{{r.up}}"><svg class="ic sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
+<button class="sq" aria-label="Move down" onClick="{{r.down}}"><svg class="ic sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0 10px 4px;border-bottom:1px solid #C7C6BF"><span class="tag">{{r.count}} cards</span><button class="chip" style="{{r.onStyle}};height:36px" onClick="{{r.toggle}}">{{r.onLabel}}</button></div>
+</sc-for>
+</div>
+<button class="btn" onClick="{{addContext}}"><svg class="ic sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New context</button>
+</div>
+</sc-if>
+
+<sc-if value="{{showFab}}" hint-placeholder-val="{{ true }}">
+<button aria-label="Quick add card" onClick="{{openAdd}}" style="position:absolute;right:16px;bottom:16px;width:56px;height:56px;border-radius:50%;background:#1F1F1D;color:#fff;border:0;display:flex;align-items:center;justify-content:center"><svg class="ic" style="width:26px;height:26px" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+</sc-if>
+
+</main>
+
+<nav style="height:64px;flex:none;display:flex;background:#fff;border-top:1px solid #C7C6BF">
+<button class="tab" style="{{nav.board.style}}" onClick="{{nav.board.go}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"></rect><rect x="10" y="4" width="5" height="10" rx="1"></rect><rect x="17" y="4" width="4" height="13" rx="1"></rect></svg><span>Board</span></button>
+<button class="tab" style="{{nav.today.style}}" onClick="{{nav.today.go}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"></path></svg><span>Today</span></button>
+<button class="tab" style="{{nav.calendar.style}}" onClick="{{nav.calendar.go}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg><span>Calendar</span></button>
+<button class="tab" style="{{nav.review.style}}" onClick="{{nav.review.go}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6l2 2 3-3M4 13l2 2 3-3M12 7h8M12 14h8M4 20h16"></path></svg><span>Review</span></button>
+</nav>
+
+<sc-if value="{{hasSheet}}" hint-placeholder-val="{{ false }}">
+<button aria-label="Close sheet" onClick="{{closeSheet}}" style="position:absolute;inset:0;background:rgba(31,31,29,.4);border:0;padding:0;cursor:default"></button>
+</sc-if>
+
+<sc-if value="{{sheetMove}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;border-top:1px solid #1F1F1D;padding-bottom:12px">
+<div style="padding:16px 16px 8px"><span class="lbl">Move to</span><p style="font-weight:600;margin-top:4px">{{mv.title}}</p></div>
+<sc-for list="{{mv.cols}}" as="x" hint-placeholder-count="5"><button class="sheetrow" style="{{x.style}}" onClick="{{x.pick}}"><span>{{x.name}}</span><span style="font-size:12px;color:#5F5F5A">{{x.note}}</span></button></sc-for>
+<div style="padding:12px 16px 0"><button class="btn" style="width:100%" onClick="{{closeSheet}}">Cancel</button></div>
+</div>
+</sc-if>
+
+<sc-if value="{{sheetAdd}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;border-top:1px solid #1F1F1D;padding:16px;display:flex;flex-direction:column;gap:14px">
+<span class="lbl">New card</span>
+<input class="fld" aria-label="Card title" placeholder="Call vendor #work !fri" value="{{addText}}" onInput="{{onAddText}}" onKeyDown="{{onAddKey}}">
+<div style="display:flex;flex-direction:column;gap:8px"><span class="lbl">Context</span><div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{addCtxs}}" as="x" hint-placeholder-count="4"><button class="chip" style="{{x.style}}" onClick="{{x.pick}}"><span class="dot" style="{{x.dot}}"></span>{{x.name}}</button></sc-for></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span class="lbl">Due</span><div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{addDues}}" as="x" hint-placeholder-count="4"><button class="chip" style="{{x.style}}" onClick="{{x.pick}}">{{x.name}}</button></sc-for></div></div>
+<button class="btn pri" onClick="{{addCard}}">Add to Backlog</button>
+</div>
+</sc-if>
+
+<sc-if value="{{sheetCard}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:0;right:0;bottom:0;height:90%;background:#fff;border-radius:16px 16px 0 0;border-top:1px solid #1F1F1D;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px 0 16px"><span class="lbl">Card detail</span><button class="ibtn" aria-label="Close" onClick="{{closeSheet}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+<div style="flex:1;min-height:0;overflow:auto;padding:4px 16px 16px;display:flex;flex-direction:column;gap:18px">
+<input class="fld" aria-label="Card title" style="font-size:17px;font-weight:600" value="{{dr.title}}" onInput="{{dr.onTitle}}">
+<div style="display:flex;flex-direction:column;gap:8px"><span class="lbl">Context</span><div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{dr.ctxs}}" as="x" hint-placeholder-count="4"><button class="chip" style="{{x.style}}" onClick="{{x.pick}}"><span class="dot" style="{{x.dot}}"></span>{{x.name}}</button></sc-for></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span class="lbl">Status</span><div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{dr.cols}}" as="x" hint-placeholder-count="5"><button class="chip" style="{{x.style}}" onClick="{{x.pick}}">{{x.name}}</button></sc-for></div></div>
+<sc-if value="{{dr.isWaiting}}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:8px"><span class="lbl">Waiting on</span><input class="fld" aria-label="Waiting on" placeholder="Who or what?" value="{{dr.wait}}" onInput="{{dr.onWait}}"><span style="font-size:12px;color:#5F5F5A">{{dr.ageLine}}</span></div></sc-if>
+<div style="display:flex;flex-direction:column;gap:8px"><span class="lbl">Due date (hard)</span><span style="font-weight:500">{{dr.dueFull}}</span>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="chip" onClick="{{dr.dueM1}}">-1d</button><button class="chip" onClick="{{dr.dueP1}}">+1d</button><button class="chip" onClick="{{dr.dueP7}}">+1w</button><button class="chip" onClick="{{dr.dueClear}}">Clear</button></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span class="lbl">Class of service</span><div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{dr.pris}}" as="x" hint-placeholder-count="4"><button class="chip" style="{{x.style}}" onClick="{{x.pick}}">{{x.name}}</button></sc-for></div></div>
+<div style="display:flex;flex-wrap:wrap;gap:8px"><button class="chip" style="{{dr.blockedStyle}}" onClick="{{dr.toggleBlocked}}">{{dr.blockedLabel}}</button><button class="chip" style="{{dr.repStyle}}" onClick="{{dr.toggleRep}}">{{dr.repLabel}}</button><button class="chip" style="{{dr.syncStyle}}" onClick="{{dr.toggleSync}}">{{dr.syncLabel}}</button></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span class="lbl">Checklist {{dr.clText}}</span>
+<sc-for list="{{dr.cl}}" as="it" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:8px"><button class="chk" aria-label="Toggle item" onClick="{{it.toggle}}"><sc-if value="{{it.d}}" hint-placeholder-val="{{ false }}"><svg class="ic sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></sc-if></button><input class="fld" aria-label="Checklist item" style="{{it.style}}" value="{{it.t}}" onInput="{{it.rename}}"></div></sc-for>
+<div><button class="chip" onClick="{{dr.addCl}}">Add item</button></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span class="lbl">Notes</span><textarea aria-label="Notes" rows="3" style="width:100%;padding:10px 12px;border:1px solid #C7C6BF;border-radius:8px" value="{{dr.note}}" onInput="{{dr.onNote}}"></textarea></div>
+</div>
+<div style="display:flex;gap:10px;padding:12px 16px;border-top:1px solid #C7C6BF"><button class="btn" style="flex:1;border-color:#B42318;color:#B42318" onClick="{{dr.drop}}">Drop</button><button class="btn pri" style="flex:2" onClick="{{dr.done}}">Mark done</button></div>
+</div>
+</sc-if>
+
+<sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:50%;bottom:84px;transform:translateX(-50%);background:#1F1F1D;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;white-space:nowrap">{{toast}}</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  state = {
+    view: 'board', sheet: null, sel: null, col: 'doing', addText: '', addCtx: 'work', addDue: null, toast: '', rstep: 0, rfin: false, calM: 0, calSel: 0, seq: 1, sync: true,
+    contexts: [
+      { id: 'work', name: 'Work', color: '#2F6FDB', on: true },
+      { id: 'ventures', name: 'Ventures', color: '#7A4FC2', on: true },
+      { id: 'personal', name: 'Personal', color: '#1F8A70', on: true },
+      { id: 'kids', name: 'Kids', color: '#C2467A', on: true }
+    ],
+    cards: [
+      this.mk('b1', 'Research sharing rules for Firestore', 'ventures', 'backlog', null, { pri: 'someday', age: 12 }),
+      this.mk('b2', 'Outline spring workshop curriculum', 'ventures', 'backlog', 18, { age: 3 }),
+      this.mk('b3', 'Schedule dentist appointments', 'personal', 'backlog', 13, { age: 8 }),
+      this.mk('b4', 'Fix gutter downspout', 'personal', 'backlog', null, { pri: 'someday', age: 20 }),
+      this.mk('r1', 'Draft steering committee deck', 'work', 'ready', 4, { pri: 'fixed', age: 1, cl: [{ t: 'Pull status data', d: true }, { t: 'Draft risks slide', d: false }, { t: 'Review with lead', d: false }] }),
+      this.mk('r2', 'Register for fall tournament', 'kids', 'ready', 3, { pri: 'fixed', age: 2 }),
+      this.mk('r3', 'Review resource plan template', 'work', 'ready', 7, { age: 2 }),
+      this.mk('d1', 'Weekly status report', 'work', 'doing', 0, { pri: 'fixed', rep: true, age: 0, cl: [{ t: 'Collect updates', d: true }, { t: 'Update RAID log', d: true }, { t: 'Write summary', d: false }, { t: 'Send', d: false }] }),
+      this.mk('d2', 'Firestore data model v1', 'ventures', 'doing', 6, { age: 6, cl: [{ t: 'Cards collection', d: true }, { t: 'Contexts collection', d: false }, { t: 'Security rules', d: false }, { t: 'Indexes', d: false }, { t: 'Seed data', d: false }] }),
+      this.mk('d3', 'Workshop handout draft', 'ventures', 'doing', 1, { age: 3, blocked: true, note: 'Need final agenda before layout.' }),
+      this.mk('d4', 'Book hotel for tournament', 'kids', 'doing', 2, { pri: 'expedite', age: 1 }),
+      this.mk('w1', 'Vendor quote: PMO tooling', 'work', 'waiting', 10, { wait: 'Procurement', age: 5 }),
+      this.mk('w2', 'Warranty claim: dishwasher', 'personal', 'waiting', -1, { wait: 'Manufacturer', age: 9, pri: 'expedite' }),
+      this.mk('x1', 'Submit expense report', 'work', 'done', -2, { age: 1 }),
+      this.mk('x2', 'Renew car registration', 'personal', 'done', -3, { age: 2 })
+    ]
+  };
+
+  mk(id, t, ctx, col, due, x) {
+    return Object.assign({ id: id, t: t, ctx: ctx, col: col, due: due, pri: 'standard', blocked: false, wait: '', age: 0, cl: [], rep: false, sync: due != null, note: '' }, x || {});
+  }
+  d(off) { return new Date(Date.UTC(2026, 9, 2 + off)); }
+  lbl(off) { const x = this.d(off); return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][x.getUTCMonth()] + ' ' + x.getUTCDate(); }
+  full(off) { return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][this.d(off).getUTCDay()] + ', ' + this.lbl(off); }
+  dueText(off) { if (off == null) return ''; if (off === 0) return 'Today'; if (off === 1) return 'Tomorrow'; if (off < 0) return this.lbl(off) + ' (overdue)'; return this.lbl(off); }
+  say(m) { this.setState({ toast: m }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: '' }), 2400); }
+  upd(id, p) { this.setState({ cards: this.state.cards.map(c => c.id === id ? Object.assign({}, c, p) : c) }); }
+  moveTo(id, col) { const c = this.state.cards.find(x => x.id === id); if (!c || c.col === col) return; this.upd(id, { col: col, age: 0 }); }
+  drop(id) { this.setState({ cards: this.state.cards.filter(c => c.id !== id), sel: null, sheet: null }); this.say('Card dropped'); }
+  cxUpd(id, p) { this.setState({ contexts: this.state.contexts.map(c => c.id === id ? Object.assign({}, c, p) : c) }); }
+  parseAdd(raw) {
+    let ctx = this.state.addCtx, due = this.state.addDue; const out = [];
+    raw.trim().split(/\s+/).forEach(w => {
+      if (w.charAt(0) === '#' && w.length > 1) { const m = this.state.contexts.find(c => c.name.toLowerCase().indexOf(w.slice(1).toLowerCase()) === 0); if (m) { ctx = m.id; return; } }
+      if (w.charAt(0) === '!' && w.length > 1) {
+        const k = w.slice(1).toLowerCase(); const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+        if (k === 'today') { due = 0; return; }
+        if (k === 'tom' || k === 'tomorrow') { due = 1; return; }
+        const i = days.indexOf(k.slice(0, 3)); if (i >= 0) { due = ((i - 5 + 7) % 7) || 7; return; }
+        const n = k.match(/^\+?(\d+)d$/); if (n) { due = +n[1]; return; }
+      }
+      out.push(w);
+    });
+    return { title: out.join(' '), ctx: ctx, due: due };
+  }
+  addCard() {
+    const p = this.parseAdd(this.state.addText);
+    if (!p.title) { this.say('Type a title first'); return; }
+    const id = 'n' + this.state.seq;
+    this.setState({ cards: this.state.cards.concat([this.mk(id, p.title, p.ctx, 'backlog', p.due, {})]), addText: '', addDue: null, seq: this.state.seq + 1, sheet: null, view: 'board', col: 'backlog' });
+    this.say('Added to Backlog');
+  }
+
+  renderVals() {
+    const S = this.state;
+    const COLS = [['backlog', 'Backlog'], ['ready', 'Ready'], ['doing', 'Doing'], ['waiting', 'Waiting'], ['done', 'Done']];
+    const colName = id => (COLS.find(x => x[0] === id) || ['', ''])[1];
+    const cx = id => S.contexts.find(c => c.id === id) || { name: '?', color: '#999', on: true };
+    const vis = c => cx(c.ctx).on;
+    const SEL = 'background:#1F1F1D;color:#fff;border-color:#1F1F1D';
+    const WIP = 3;
+
+    const vm = c => {
+      const x = cx(c.ctx); const od = c.due != null && c.due < 0 && c.col !== 'done';
+      const cl = c.cl || []; const cd = cl.filter(y => y.d).length;
+      return {
+        id: c.id, title: c.t, ctxName: x.name, dot: 'background:' + x.color, statusName: colName(c.col),
+        titleStyle: 'display:block;font-size:15px;font-weight:500;line-height:1.35;' + (c.col === 'done' ? 'text-decoration:line-through;color:#5F5F5A' : ''),
+        hasDue: c.due != null, dueText: this.dueText(c.due),
+        dueStyle: od ? 'color:#B42318;font-weight:600' : 'color:#5F5F5A',
+        blocked: c.blocked, waiting: c.col === 'waiting', waitText: 'Waiting on ' + (c.wait || 'someone') + ' / ' + c.age + 'd',
+        aged: (c.col === 'doing' || c.col === 'waiting') && c.age >= 5, ageText: c.age + 'd',
+        expedite: c.pri === 'expedite', hasCl: cl.length > 0, clText: cd + '/' + cl.length, rep: c.rep, notDone: c.col !== 'done',
+        open: () => this.setState({ sel: c.id, sheet: 'card' }),
+        moveSheet: () => this.setState({ sel: c.id, sheet: 'move' }),
+        check: () => { this.moveTo(c.id, 'done'); this.say('Marked done'); }
+      };
+    };
+
+    const ns = v => ({ style: S.view === v ? 'color:#1F1F1D;font-weight:600;box-shadow:inset 0 3px 0 #1F1F1D' : 'color:#5F5F5A', go: () => this.setState({ view: v, sheet: null }) });
+    const nav = { board: ns('board'), today: ns('today'), calendar: ns('calendar'), review: ns('review') };
+    const titles = { board: 'Board', today: 'Today', calendar: 'Calendar', review: 'Weekly review', contexts: 'Contexts' };
+
+    const allOn = S.contexts.every(c => c.on);
+    const allChip = { style: allOn ? SEL : '', click: () => this.setState({ contexts: S.contexts.map(c => Object.assign({}, c, { on: true })) }) };
+    const chips = S.contexts.map(c => ({
+      name: c.name, dot: 'background:' + c.color, style: (!allOn && c.on) ? SEL : '',
+      click: () => {
+        let next;
+        if (allOn) next = S.contexts.map(x => Object.assign({}, x, { on: x.id === c.id }));
+        else { next = S.contexts.map(x => x.id === c.id ? Object.assign({}, x, { on: !x.on }) : x); if (!next.some(x => x.on)) next = next.map(x => Object.assign({}, x, { on: true })); }
+        this.setState({ contexts: next });
+      }
+    }));
+
+    const doingAll = S.cards.filter(c => c.col === 'doing').length;
+    const over = doingAll > WIP;
+    const colTabs = COLS.map(col => {
+      const all = S.cards.filter(c => c.col === col[0]); const n = all.filter(vis).length;
+      const isD = col[0] === 'doing'; const warn = isD && all.length > WIP;
+      const sel = S.col === col[0];
+      return {
+        name: col[1], count: isD ? all.length + '/' + WIP : String(n),
+        style: sel ? SEL : (warn ? 'background:#FEF3C7;border-color:#D69E2E;color:#7A4B00' : ''),
+        go: () => this.setState({ col: col[0] })
+      };
+    });
+    const boardCards = S.cards.filter(c => c.col === S.col && vis(c)).map(vm);
+
+    const open = S.cards.filter(c => c.col !== 'done' && vis(c));
+    const tsec = [
+      ['Overdue', open.filter(c => c.due != null && c.due < 0)],
+      ['Due today', open.filter(c => c.due === 0)],
+      ['In progress', open.filter(c => c.col === 'doing' && !(c.due != null && c.due <= 0))],
+      ['Next 3 days', open.filter(c => c.due != null && c.due >= 1 && c.due <= 3 && c.col !== 'doing')]
+    ].map(x => ({ name: x[0], count: x[1].length, rows: x[1].map(vm) })).filter(s => s.count > 0);
+    const tCount = tsec.reduce((a, s) => a + s.count, 0);
+
+    const base = this.d(0).getTime();
+    const mo = new Date(Date.UTC(2026, 9 + S.calM, 1)); const y = mo.getUTCFullYear(), mn = mo.getUTCMonth();
+    const first = mo.getUTCDay(); const dim = new Date(Date.UTC(y, mn + 1, 0)).getUTCDate(); const nrows = Math.ceil((first + dim) / 7);
+    const cells = [];
+    for (let i = 0; i < nrows * 7; i++) {
+      const dt = new Date(Date.UTC(y, mn, i - first + 1)); const off = Math.round((dt.getTime() - base) / 86400000);
+      const inM = (i - first + 1) >= 1 && (i - first + 1) <= dim;
+      const cs = S.cards.filter(c => c.due === off && c.col !== 'done' && vis(c));
+      const isSel = off === S.calSel;
+      cells.push({
+        num: dt.getUTCDate(), aria: this.full(off) + ', ' + cs.length + ' cards',
+        style: (isSel ? 'background:#1F1F1D;color:#fff;' : (off === 0 ? 'border:2px solid #1F1F1D;' : '') + 'color:' + (inM ? '#1F1F1D' : '#8A8A84') + ';'),
+        dots: cs.slice(0, 3).map(c => ({ style: 'background:' + (isSel ? '#fff' : cx(c.ctx).color) })),
+        pick: () => this.setState({ calSel: off })
+      });
+    }
+    const selCards = S.cards.filter(c => c.due === S.calSel && c.col !== 'done' && vis(c));
+    const dated = S.cards.filter(c => c.due != null && c.sync && c.col !== 'done').length;
+    const cal = {
+      title: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][mn] + ' ' + y,
+      cells: cells, prev: () => this.setState({ calM: S.calM - 1 }), next: () => this.setState({ calM: S.calM + 1 }),
+      selTitle: this.full(S.calSel) + ' / ' + selCards.length + ' due', rows: selCards.map(vm), empty: selCards.length === 0,
+      syncNow: () => this.say('Pushed ' + dated + ' dated cards to Google Calendar')
+    };
+
+    const A = (label, run) => ({ label: label, run: run });
+    const actsOf = (c, step) => step === 3
+      ? [A('To Ready', () => this.moveTo(c.id, 'ready')), A('Drop', () => this.drop(c.id))]
+      : [A('Done', () => this.moveTo(c.id, 'done')), A('+7d', () => this.upd(c.id, { due: Math.max(c.due == null ? 0 : c.due, 0) + 7 })), A('Backlog', () => this.moveTo(c.id, 'backlog'))];
+    const live = S.cards.filter(c => c.col !== 'done');
+    const steps = [
+      { name: 'Overdue', hint: 'Past their due date. Finish, push out, or park.', rows: live.filter(c => c.due != null && c.due < 0) },
+      { name: 'Stale in Doing', hint: 'In Doing for 5+ days. Finish it or send it back.', rows: live.filter(c => c.col === 'doing' && c.age >= 5) },
+      { name: 'Long in Waiting', hint: 'Waiting 4+ days. Nudge, reschedule, or let go.', rows: live.filter(c => c.col === 'waiting' && c.age >= 4) },
+      { name: 'Backlog triage', hint: 'Promote what matters now. Drop what does not.', rows: live.filter(c => c.col === 'backlog') },
+      { name: 'Next 7 days', hint: 'Dates coming up. Finish or push anything unrealistic.', rows: live.filter(c => c.due != null && c.due >= 0 && c.due <= 7) }
+    ];
+    const rs = Math.min(S.rstep, 4); const cur = steps[rs];
+    const rev = {
+      finished: S.rfin, active: !S.rfin, stepLine: 'Step ' + (rs + 1) + ' of 5', count: cur.rows.length,
+      name: cur.name, hint: cur.hint, empty: cur.rows.length === 0,
+      rows: cur.rows.map(c => Object.assign(vm(c), { actions: actsOf(c, rs) })),
+      back: () => this.setState({ rstep: Math.max(0, rs - 1) }),
+      next: () => rs === 4 ? this.setState({ rfin: true }) : this.setState({ rstep: rs + 1 }),
+      nextLabel: rs === 4 ? 'Finish review' : 'Next step',
+      restart: () => this.setState({ rfin: false, rstep: 0, view: 'board' })
+    };
+
+    const PAL = ['#2F6FDB', '#7A4FC2', '#1F8A70', '#C2467A', '#B7791F', '#5B6770'];
+    const ctxRows = S.contexts.map((c, i) => ({
+      name: c.name, swatch: 'background:' + c.color, count: S.cards.filter(x => x.ctx === c.id).length,
+      rename: e => this.cxUpd(c.id, { name: e.target.value }),
+      cycle: () => this.cxUpd(c.id, { color: PAL[(PAL.indexOf(c.color) + 1) % PAL.length] }),
+      up: () => { if (i === 0) return; const a = S.contexts.slice(); const t = a[i]; a[i] = a[i - 1]; a[i - 1] = t; this.setState({ contexts: a }); },
+      down: () => { if (i === S.contexts.length - 1) return; const a = S.contexts.slice(); const t = a[i]; a[i] = a[i + 1]; a[i + 1] = t; this.setState({ contexts: a }); },
+      onLabel: c.on ? 'Shown on board' : 'Hidden', onStyle: c.on ? '' : 'border-style:dashed;color:#5F5F5A',
+      toggle: () => this.cxUpd(c.id, { on: !c.on })
+    }));
+
+    const real = S.cards.find(c => c.id === S.sel);
+    const c = real || this.mk('', '', 'work', 'backlog', null, {});
+    const id = c.id;
+    const adj = n => this.upd(id, { due: c.due == null ? (n > 0 ? n : 0) : c.due + n });
+    const cl = c.cl || [];
+    const setCl = a => this.upd(id, { cl: a });
+    const dr = {
+      title: c.t, onTitle: e => this.upd(id, { t: e.target.value }),
+      ctxs: S.contexts.map(x => ({ name: x.name, dot: 'background:' + x.color, style: x.id === c.ctx ? SEL : '', pick: () => this.upd(id, { ctx: x.id }) })),
+      cols: COLS.map(x => ({ name: x[1], style: x[0] === c.col ? SEL : '', pick: () => this.moveTo(id, x[0]) })),
+      isWaiting: c.col === 'waiting', wait: c.wait, onWait: e => this.upd(id, { wait: e.target.value }), ageLine: 'In this column for ' + c.age + ' days',
+      dueFull: c.due == null ? 'No date' : this.full(c.due),
+      dueM1: () => adj(-1), dueP1: () => adj(1), dueP7: () => adj(7), dueClear: () => this.upd(id, { due: null }),
+      pris: [['expedite', 'Expedite'], ['fixed', 'Fixed date'], ['standard', 'Standard'], ['someday', 'Someday']].map(x => ({ name: x[1], style: c.pri === x[0] ? SEL : '', pick: () => this.upd(id, { pri: x[0] }) })),
+      blockedStyle: c.blocked ? 'background:#B42318;color:#fff;border-color:#B42318' : '', blockedLabel: c.blocked ? 'Blocked: on' : 'Blocked: off', toggleBlocked: () => this.upd(id, { blocked: !c.blocked }),
+      repStyle: c.rep ? SEL : '', repLabel: c.rep ? 'Repeats weekly: on' : 'Repeats weekly: off', toggleRep: () => this.upd(id, { rep: !c.rep }),
+      syncStyle: c.sync ? SEL : '', syncLabel: c.sync ? 'On calendar: yes' : 'On calendar: no', toggleSync: () => this.upd(id, { sync: !c.sync }),
+      clText: cl.length ? '(' + cl.filter(x => x.d).length + '/' + cl.length + ')' : '',
+      cl: cl.map((x, i) => ({
+        t: x.t, d: x.d, style: x.d ? 'text-decoration:line-through;color:#5F5F5A' : '',
+        toggle: () => setCl(cl.map((yy, j) => j === i ? Object.assign({}, yy, { d: !yy.d }) : yy)),
+        rename: e => setCl(cl.map((yy, j) => j === i ? Object.assign({}, yy, { t: e.target.value }) : yy))
+      })),
+      addCl: () => setCl(cl.concat([{ t: 'New item', d: false }])),
+      note: c.note, onNote: e => this.upd(id, { note: e.target.value }),
+      drop: () => this.drop(id),
+      done: () => { this.moveTo(id, 'done'); this.setState({ sel: null, sheet: null }); this.say('Marked done'); }
+    };
+
+    const mv = {
+      title: c.t,
+      cols: COLS.map(x => ({
+        name: x[1], note: x[0] === c.col ? 'Current' : (x[0] === 'doing' && doingAll >= WIP && c.col !== 'doing' ? 'Over limit (warns)' : ''),
+        style: x[0] === c.col ? 'font-weight:600;background:#F4F4F2' : '',
+        pick: () => { this.moveTo(id, x[0]); this.setState({ sheet: null }); this.say('Moved to ' + x[1]); }
+      }))
+    };
+
+    const addCtxs = S.contexts.map(x => ({ name: x.name, dot: 'background:' + x.color, style: x.id === S.addCtx ? SEL : '', pick: () => this.setState({ addCtx: x.id }) }));
+    const addDues = [[null, 'No date'], [0, 'Today'], [1, 'Tomorrow'], [7, 'Next week']].map(x => ({ name: x[1], style: S.addDue === x[0] ? SEL : '', pick: () => this.setState({ addDue: x[0] }) }));
+
+    return {
+      nav: nav, viewTitle: titles[S.view],
+      isBoard: S.view === 'board', isToday: S.view === 'today', isCal: S.view === 'calendar', isReview: S.view === 'review', isCtx: S.view === 'contexts',
+      showChips: S.view !== 'contexts', showFab: S.view === 'board' || S.view === 'today',
+      goCtx: () => this.setState({ view: 'contexts', sheet: null }), goBoard: () => this.setState({ view: 'board' }),
+      allChip: allChip, chips: chips, colTabs: colTabs, cards: boardCards, boardEmpty: boardCards.length === 0,
+      wipOver: over && S.view === 'board', wipText: doingAll + '/' + WIP,
+      tsec: tsec, tEmpty: tsec.length === 0, todayLine: 'Fri, Oct 2 / ' + tCount + ' items need attention',
+      cal: cal, rev: rev, ctxRows: ctxRows,
+      addContext: () => this.setState({ contexts: S.contexts.concat([{ id: 'c' + S.seq, name: 'New context', color: PAL[S.contexts.length % PAL.length], on: true }]), seq: S.seq + 1 }),
+      openAdd: () => this.setState({ sheet: 'add' }), closeSheet: () => this.setState({ sheet: null }),
+      hasSheet: !!S.sheet, sheetMove: S.sheet === 'move' && !!real, sheetAdd: S.sheet === 'add', sheetCard: S.sheet === 'card' && !!real,
+      dr: dr, mv: mv,
+      addText: S.addText, onAddText: e => this.setState({ addText: e.target.value }),
+      onAddKey: e => { if (e.key === 'Enter') { e.preventDefault(); this.addCard(); } },
+      addCard: () => this.addCard(), addCtxs: addCtxs, addDues: addDues,
+      hasToast: !!S.toast, toast: S.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

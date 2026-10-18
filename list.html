@@ -8,7 +8,7 @@
   <style>
     body {
       font-family: Georgia, serif;
-      max-width: 600px;
+      max-width: 900px;
       margin: 60px auto;
       padding: 0 24px;
       background: #fff;
@@ -55,6 +55,21 @@
       text-decoration: underline;
     }
 
+    .app-thumb {
+      width: 360px;
+      height: 240px;
+      object-fit: cover;
+      object-position: top left;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      flex-shrink: 0;
+      align-self: center;
+    }
+
+    .app-link > div {
+      flex: 1;
+    }
+
     .app-name {
       font-size: 1rem;
       color: #1a1a1a;
@@ -97,6 +112,7 @@
   <ul>
     <li>
       <a class="app-link" href="apps/frontend/src/spas/My_Lore/v1/index.html" target="_blank">
+        <img class="app-thumb" src="assets/thumbnails/My_Lore.png" alt="My Lore thumbnail">
         <div>
           <div class="app-name">My Lore</div>
           <div class="app-desc">A micro journal for capturing life's events.</div>
@@ -106,6 +122,7 @@
     </li>
     <li>
       <a class="app-link" href="apps/frontend/src/spas/math_regression.html" target="_blank">
+        <img class="app-thumb" src="assets/thumbnails/Linear_Regression.png" alt="Math Regression thumbnail">
         <div>
           <div class="app-name">Math Regression</div>
           <div class="app-desc">Plot data and explore regression models visually.</div>
@@ -115,6 +132,7 @@
     </li>
     <li>
       <a class="app-link" href="apps/frontend/src/spas/composite_shapes_practice.html" target="_blank">
+        <img class="app-thumb" src="assets/thumbnails/Math_Composite_Shapes.png" alt="Composite Shapes thumbnail">
         <div>
           <div class="app-name">Composite Shapes</div>
           <div class="app-desc">Practice area and perimeter of composite shapes.</div>
@@ -124,9 +142,20 @@
     </li>
     <li>
       <a class="app-link" href="apps/frontend/src/spas/Lean_Canvas/LeanCanvas.html" target="_blank">
+        <img class="app-thumb" src="assets/thumbnails/LN_Canvas.png" alt="Lean Canvas thumbnail">
         <div>
           <div class="app-name">Lean Canvas</div>
           <div class="app-desc">Single page business model canvas.</div>
+        </div>
+        <span class="arrow">↗</span>
+      </a>
+    </li>
+    <li>
+      <a class="app-link" href="kg-overview.html" target="_blank">
+        <img class="app-thumb" src="assets/thumbnails/KGApp.png" alt="Knowledge Garden thumbnail">
+        <div>
+          <div class="app-name">Knowledge Garden</div>
+          <div class="app-desc">A document reader for contextual annotations and personal knowledge. Watch the overview.</div>
         </div>
         <span class="arrow">↗</span>
       </a>
