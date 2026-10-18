@@ -56,8 +56,8 @@
     }
 
     .app-thumb {
-      width: 360px;
-      height: 240px;
+      width: 450px;
+      height: 300px;
       object-fit: cover;
       object-position: top left;
       border: 1px solid #e5e5e5;
@@ -85,6 +85,27 @@
       font-size: 0.9rem;
       color: #bbb;
       flex-shrink: 0;
+    }
+
+    @media (max-width: 640px) {
+      a.app-link {
+        flex-wrap: wrap;
+      }
+
+      .app-link>div {
+        order: 1;
+      }
+
+      .arrow {
+        order: 2;
+      }
+
+      .app-thumb {
+        order: 3;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 3 / 2;
+      }
     }
 
     footer {
@@ -115,7 +136,9 @@
         <img class="app-thumb" src="assets/thumbnails/My_Lore.png" alt="My Lore thumbnail">
         <div>
           <div class="app-name">My Lore</div>
-          <div class="app-desc">A micro journal for capturing life's events.</div>
+          <div class="app-desc">A micro journal for curating life's moments, achievements, and milestones. Reminisce
+            through a time capsule
+            or use the data for a college essay.</div>
         </div>
         <span class="arrow">↗</span>
       </a>
@@ -125,7 +148,9 @@
         <img class="app-thumb" src="assets/thumbnails/LN_Canvas.png" alt="Lean Canvas thumbnail">
         <div>
           <div class="app-name">Lean Canvas</div>
-          <div class="app-desc">Single page business model canvas with the 4U + BLAC framework (Michael Skok's Harvard Lab framework)</div>
+          <div class="app-desc">Single page business model canvas, augmented with a critical analysis framework 4U +
+            BLAC framework (Michael Skok's Harvard
+            Lab framework)</div>
         </div>
         <span class="arrow">↗</span>
       </a>
@@ -135,8 +160,19 @@
         <img class="app-thumb" src="assets/thumbnails/KGApp.png" alt="Knowledge Garden thumbnail">
         <div>
           <div class="app-name">Knowledge Garden</div>
-          <div class="app-desc">A document reader for contextual annotations and personal knowledge. Watch the overview.
+          <div class="app-desc">A document reading app that provides contextual annotations to build a personal
+            knowledge garden. Designed for academic journals and deep reading.
           </div>
+        </div>
+        <span class="arrow">↗</span>
+      </a>
+    </li>
+    <li>
+      <a class="app-link" href="apps/frontend/src/spas/KTM/index.html" target="_blank">
+        <img class="app-thumb" src="assets/thumbnails/KTaskManager.png" alt="KTM Task Manager thumbnail">
+        <div>
+          <div class="app-name">KTM Task Manager</div>
+          <div class="app-desc">A kanban-style task manager.</div>
         </div>
         <span class="arrow">↗</span>
       </a>

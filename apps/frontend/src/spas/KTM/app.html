@@ -135,7 +135,7 @@ body.readonly #ro-banner{display:flex}
 .wip-warn-line{font-size:10.5px;color:var(--wip-ink);display:flex;align-items:center;gap:4px}
 .col-body{flex:1;min-height:0;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
 .col-body.drag-over{background:var(--line-2)}
-.col-empty{border:1.5px dashed var(--line);border-radius:6px;padding:16px;text-align:center;font-size:11.5px;color:var(--ink-3)}
+.col-empty{border:1.5px dashed var(--line-2);border-radius:6px;padding:32px 16px;text-align:center;font-size:12px;color:var(--ink-4);background:var(--surf)}
 .wip-banner{display:none;margin:0 12px 10px;padding:10px 12px;background:var(--wip-bg);border:1px solid var(--wip-line);border-radius:6px;font-size:12.5px;color:var(--wip-ink)}
 
 .kcard{position:relative;background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px}
@@ -227,9 +227,14 @@ body.readonly #ro-banner{display:flex}
 .card-tooltip .tip-notes{white-space:pre-wrap}
 
 /* ═══════════════════════════════════════════════════════════
-   PHONE LAYOUT (<1024px)
+   PHONE LAYOUT (<680px)
+   Deliberately narrower than a typical tablet/laptop breakpoint: shrinking
+   a desktop browser window should keep the familiar multi-column board
+   (scrolling horizontally if needed) rather than collapsing into the
+   one-column-at-a-time phone UI. Only genuinely phone-width viewports get
+   the column tabs / bottom nav / FAB treatment.
    ═══════════════════════════════════════════════════════════ */
-@media (max-width:1023px){
+@media (max-width:679px){
   .rail{display:none}
   .qa-desktop{display:none}
   .col-tabs{display:flex}
@@ -239,7 +244,7 @@ body.readonly #ro-banner{display:flex}
   .board-col.phone-active{display:flex}
   .board-cols{padding:0 0 76px}
   .col-head{display:none}
-  .wip-banner{display:block;margin:10px 12px}
+  .wip-banner:not([hidden]){display:block;margin:10px 12px}
   .col-body{padding:4px 12px 8px}
   .kcard-foot{display:flex;border-top:1px solid var(--line-2);margin:10px -12px -10px}
   .kcard-foot button{flex:1;height:42px;background:none;border:0;font-size:12.5px;font-weight:500;color:var(--ink-2)}
@@ -249,7 +254,7 @@ body.readonly #ro-banner{display:flex}
   .topheader{padding:10px 12px}
   .topheader h1{font-size:17px}
 }
-@media (min-width:1024px){
+@media (min-width:680px){
   .sheet{display:none!important}
   .back-btn{display:none!important}
 }
