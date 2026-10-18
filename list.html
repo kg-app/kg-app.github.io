@@ -81,6 +81,65 @@
       margin-top: 4px;
     }
 
+    .chip {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      border: 1px solid #ddd;
+      color: #666;
+      background: #f7f7f7;
+    }
+
+    .chip.teaching {
+      background: #eaf3ff;
+      border-color: #c9defa;
+      color: #2c5d9e;
+    }
+
+    .chip.personal {
+      background: #fff1e6;
+      border-color: #f6d9bf;
+      color: #9a5a1f;
+    }
+
+    .chip.productivity {
+      background: #eaf7ee;
+      border-color: #c6e6cf;
+      color: #2d7a45;
+    }
+
+    .chip.experiment {
+      background: #f3ebfa;
+      border-color: #dcc6f0;
+      color: #6b3fa0;
+    }
+
+    .chip.analytics {
+      background: #e8f6f7;
+      border-color: #c3e3e6;
+      color: #1f7a85;
+    }
+
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 48px 0 20px;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #999;
+    }
+
+    .section-divider::before,
+    .section-divider::after {
+      content: "";
+      flex: 1;
+      border-top: 1px dashed #ccc;
+    }
+
     .arrow {
       font-size: 0.9rem;
       color: #bbb;
@@ -139,6 +198,7 @@
           <div class="app-desc">A micro journal for curating life's moments, achievements, and milestones. Reminisce
             through a time capsule
             or use the data for a college essay.</div>
+          <span class="chip personal">Personal data</span>
         </div>
         <span class="arrow">↗</span>
       </a>
@@ -163,6 +223,7 @@
           <div class="app-desc">A document reading app that provides contextual annotations to build a personal
             knowledge garden. Designed for academic journals and deep reading.
           </div>
+          <span class="chip productivity">Productivity</span>
         </div>
         <span class="arrow">↗</span>
       </a>
@@ -173,6 +234,7 @@
         <div>
           <div class="app-name">KTM Task Manager</div>
           <div class="app-desc">A kanban-style personal task manager with google calendar integration.</div>
+          <span class="chip productivity">Productivity</span>
         </div>
         <span class="arrow">↗</span>
       </a>
@@ -183,6 +245,7 @@
         <div>
           <div class="app-name">Math Regression</div>
           <div class="app-desc">Plot data and explore regression models visually.</div>
+          <span class="chip teaching">Teaching</span>
         </div>
         <span class="arrow">↗</span>
       </a>
@@ -193,6 +256,23 @@
         <div>
           <div class="app-name">Composite Shapes</div>
           <div class="app-desc">Practice area and perimeter of composite shapes.</div>
+          <span class="chip teaching">Teaching</span>
+        </div>
+        <span class="arrow">↗</span>
+      </a>
+    </li>
+  </ul>
+
+  <div class="section-divider"><span>Experimental</span></div>
+
+  <ul>
+    <li>
+      <a class="app-link" href="apps/frontend/src/spas/Validait/index.html" target="_blank">
+        <div>
+          <div class="app-name">ValidAIt</div>
+          <div class="app-desc">Break an idea into claims, surface tensions, and generate experiments to validate it.</div>
+          <span class="chip experiment">Experiment</span>
+          <span class="chip analytics">Analytics</span>
         </div>
         <span class="arrow">↗</span>
       </a>

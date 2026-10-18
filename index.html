@@ -1,54 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sid's Mini Apps</title>
-<style>
-  body {
-    font-family: Georgia, serif;
-    max-width: 600px;
-    margin: 60px auto;
-    padding: 0 24px;
-    background: #fff;
-    color: #222;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sid Thakur</title>
+  <style>
+    body {
+      font-family: Georgia, serif;
+      max-width: 680px;
+      margin: 60px auto;
+      padding: 0 24px;
+      background: #fff;
+      color: #222;
+    }
 
-  h1 {
-    font-size: 1.8rem;
-    font-weight: normal;
-    margin-bottom: 10px;
-  }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
 
-  p {
-    color: #666;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 32px;
-  }
+    header img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
 
-  a.btn {
-    display: inline-block;
-    font-family: Georgia, serif;
-    font-size: 0.9rem;
-    color: #222;
-    border: 1px solid #222;
-    padding: 10px 20px;
-    text-decoration: none;
-    border-radius: 2px;
-  }
+    h1 {
+      font-size: 1.8rem;
+      font-weight: normal;
+      margin: 0 0 6px;
+    }
 
-  a.btn:hover {
-    background: #222;
-    color: #fff;
-  }
-</style>
+    .headline {
+      color: #666;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    h2 {
+      font-size: 0.8rem;
+      font-weight: normal;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #999;
+      margin: 36px 0 12px;
+    }
+
+    p {
+      color: #444;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin: 0 0 14px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      border-top: 1px solid #e5e5e5;
+      padding: 10px 0;
+      font-size: 0.92rem;
+      color: #444;
+    }
+
+    li:last-child {
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .links a {
+      color: #1a1a1a;
+      margin: 0 6px;
+    }
+
+    .links a:first-child {
+      margin-left: 0;
+    }
+
+    a.btn {
+      display: inline-block;
+      font-family: Georgia, serif;
+      font-size: 0.9rem;
+      color: #222;
+      border: 1px solid #222;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 2px;
+      margin-top: 12px;
+    }
+
+    a.btn:hover {
+      background: #222;
+      color: #fff;
+    }
+
+    @media (max-width: 520px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-  <h1>Sid's Apps</h1>
+  <header>
+    <img src="https://sidsprofile.wordpress.com/wp-content/uploads/2018/08/dr_sid_thakur1.jpg" alt="Sid Thakur, PhD">
+    <div>
+      <h1>Sid Thakur, PhD</h1>
+      <p class="headline">Human-Centered AI, Data Visualization and Analytics, User Experience and Interfaces</p>
+    </div>
+  </header>
+
+  <p>Hello and welcome! I help people understand, trust, and fit data visualization and ML/AI into their work, with a background in applied
+    machine learning,
+    visual analytics and product design. This is a showcase of the small apps he builds for learning, productivity, and
+    experiments.</p>
   <p>A small collection of personal apps.</p>
   <a class="btn" href="list.html">Browse Apps →</a>
 
+  <h2>Experience</h2>
+  <ul>
+    <li>Co-founder, product design and implementation lead: mining capital investment decision platform</li>
+    <li>Blaize: AI solutions discovery, AI Studio product experience</li>
+    <li>Intel AI Group: visual analytics</li>
+    <li>RENCI, UNC-Chapel Hill: eight years of research</li>
+    <li>UNC-Chapel Hill: visual analytics instructor</li>
+  </ul>
+
+  <h2>Focus areas</h2>
+  <p>Human-centered AI · Data visualization and analytics · User interfaces and experience design · Design thinking ·
+    Product design</p>
+
+  <h2>Other Links</h2>
+  <p class="links">
+    <a href="https://sidspapercuts.wordpress.com/">Art</a> •
+    <a href="https://idea-launch-lab.github.io">Idea Launch Lab</a> •
+    <a href="https://www.linkedin.com/in/sidhartht/">LinkedIn</a> •
+    <a href="https://sidsprofile.wordpress.com/work-portfolio/">Portfolio</a> •
+    <a href="https://sidsprofile.wordpress.com/publications-2/">Publications</a>
+    <!-- • <a href="http://vizbuzz.wordpress.com/">Blog</a> -->
+  </p>
+
 </body>
+
 </html>
