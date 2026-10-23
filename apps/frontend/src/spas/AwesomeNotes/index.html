@@ -1,0 +1,3159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sid's Notes</title>
+<script>
+  // apply saved theme before first paint to avoid a flash
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('notes-theme'); } catch (e) {}
+    if (!t) t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* Text colours are checked against WCAG AA (4.5:1) on --bg-surface, --bg-page and --bg-subtle. */
+  :root {
+    --primary: #7c3aed;
+    --primary-hover: #6d28d9;
+    --primary-pale: #ede9fe;
+    --bg-page: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-subtle: #f1f5f9;
+    --line: #e2e8f0;
+    --line-strong: #c4b5fd;
+    --ink: #0f172a;
+    --ink-2: #334155;
+    --ink-3: #536175;
+    --ink-mute: #5f6f84;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.12);
+    --accent-text: #6d28d9;
+    --link: #1d4ed8;
+    --focus: #6d28d9;
+    --mark-bg: #fde68a;
+    --mark-ink: #1f2937;
+    --overlay: rgba(15, 23, 42, .4);
+    --danger: #b42318;
+    --danger-pale: #fef3f2;
+    --on-ink: #fff;
+    --sidebar-w: 260px;
+    --related-w: 290px;
+    /* tag colours: ColorBrewer "Set2" (same in both themes). The pastels are under 3:1 on white, so dots/stripes get a thin dark rim (--tc-rim) */
+    --tc-teal: #66c2a5; --tc-orange: #fc8d62; --tc-blue: #8da0cb; --tc-pink: #e78ac3; --tc-green: #a6d854; --tc-amber: #ffd92f;
+    --tc-rim: rgba(15, 23, 42, .35);
+    color-scheme: light;
+  }
+
+  /* VS Code "Dark+"-style palette */
+  :root[data-theme="dark"] {
+    --primary: #0e639c;
+    --primary-hover: #1177bb;
+    --primary-pale: #04395e;
+    --bg-page: #1e1e1e;
+    --bg-surface: #252526;
+    --bg-subtle: #2d2d30;
+    --line: #3c3c3c;
+    --line-strong: #007fd4;
+    --ink: #e0e0e0;
+    --ink-2: #cccccc;
+    --ink-3: #aaaaaa;
+    --ink-mute: #9a9a9a;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --accent-text: #4fc1ff;
+    --link: #4fc1ff;
+    --focus: #4fc1ff;
+    --mark-bg: #665c00;
+    --mark-ink: #fff8c5;
+    --overlay: rgba(0, 0, 0, .6);
+    --danger: #f48771;
+    --danger-pale: #3a2623;
+    --on-ink: #1e1e1e;
+    --tc-rim: transparent;
+    color-scheme: dark;
+  }
+
+  html, body { height: 100%; }
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    background: var(--bg-page);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  body.resizing { cursor: col-resize; user-select: none; }
+
+  button, input, textarea { font-family: inherit; }
+  input, textarea { background: var(--bg-page); color: var(--ink); }
+  input::placeholder, textarea::placeholder { color: var(--ink-mute); }
+  body, #topbar, #sidebar, #related-pane, .modal, .btn { transition: background-color .2s, color .2s, border-color .2s; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  svg.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  mark { background: var(--mark-bg); color: var(--mark-ink); border-radius: 2px; padding: 0 1px; }
+
+  /* visible keyboard focus everywhere */
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  #search:focus-visible { outline: none; }
+
+  .btn {
+    font-size: 13px; font-weight: 600;
+    padding: 7px 12px; border-radius: var(--radius);
+    border: 1px solid var(--line); background: var(--bg-surface); color: var(--ink-2);
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    transition: background .15s, border-color .15s;
+  }
+  .btn[hidden] { display: none; }
+  .btn:hover:not(:disabled) { background: var(--bg-subtle); border-color: var(--line-strong); }
+  .btn:active:not(:disabled) { transform: scale(0.98); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .btn-primary:hover:not(:disabled) { background: var(--primary-hover); border-color: var(--primary-hover); }
+  .btn-sm { padding: 4px 9px; font-size: 12px; border-radius: 8px; }
+  .btn-icon { padding: 6px; line-height: 1; justify-content: center; }
+  .btn-ghost { border-color: transparent; background: transparent; }
+
+  /* ---------- top bar ---------- */
+  #topbar {
+    display: flex; align-items: center; gap: 10px;
+    height: 52px; padding: 0 14px;
+    border-bottom: 1px solid var(--line); background: var(--bg-surface);
+  }
+  #topbar .brand { font-weight: 700; font-size: 15px; white-space: nowrap; }
+  #topbar .spacer { flex: 1; }
+  #sidebar-toggle { display: none; }
+
+  .search-wrap {
+    position: relative; flex: 1; min-width: 0; max-width: 340px; display: flex; align-items: center;
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-page);
+  }
+  .search-wrap:focus-within { outline: 2px solid var(--focus); outline-offset: 1px; border-color: transparent; }
+  .search-wrap > svg.i { position: absolute; left: 9px; color: var(--ink-mute); pointer-events: none; }
+  #search { flex: 1; min-width: 0; border: none; background: transparent; padding: 6px 30px 6px 30px; font-size: 13px; }
+  #search-clear {
+    position: absolute; right: 4px; width: 22px; height: 22px; border: none; border-radius: 50%;
+    background: transparent; color: var(--ink-3); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  #search-clear[hidden] { display: none; }
+  #search-clear:hover { background: var(--bg-subtle); color: var(--ink); }
+  #search-clear svg.i { width: 13px; height: 13px; }
+
+  #related-toggle[hidden] { display: none; }
+  #related-toggle .count { font-size: 11px; background: var(--bg-subtle); color: var(--ink-2); border-radius: 9px; padding: 0 6px; }
+
+  /* ---------- menus (avatar, note actions) ---------- */
+  .menu-wrap { position: relative; display: inline-flex; }
+  .menu {
+    position: absolute; right: 0; top: calc(100% + 6px); z-index: 40; min-width: 210px; padding: 4px;
+    background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-md);
+  }
+  .menu[hidden] { display: none; }
+  .menu-head { padding: 8px 10px 6px; font-size: 12px; color: var(--ink-3); border-bottom: 1px solid var(--line); margin-bottom: 4px; overflow-wrap: anywhere; }
+  .menu-item {
+    display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+    padding: 7px 10px; border: none; background: none; border-radius: 6px;
+    font-size: 13px; color: var(--ink-2); cursor: pointer;
+  }
+  .menu-item[hidden] { display: none; }
+  .menu-item:hover, .menu-item:focus-visible { background: var(--bg-subtle); outline-offset: -2px; }
+  .menu-item.danger { color: var(--danger); }
+  .menu-item.danger:hover, .menu-item.danger:focus-visible { background: var(--danger-pale); }
+  .menu-item .txt { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+  .menu-item .sub { font-size: 11px; color: var(--ink-3); }
+  .switch { flex: none; position: relative; width: 30px; height: 18px; border-radius: 9px; background: var(--ink-mute); transition: background .15s; }
+  .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform .15s; }
+  [aria-checked="true"] > .switch { background: var(--primary); }
+  [aria-checked="true"] > .switch::after { transform: translateX(12px); }
+  #settings-wrap .menu { min-width: 250px; }
+  .menu-sep { height: 1px; background: var(--line); margin: 4px 0; }
+  #avatar-btn {
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--primary); color: #fff;
+    font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  }
+  #avatar-btn.anon { background: var(--bg-subtle); color: var(--ink-2); }
+
+  /* ---------- layout ---------- */
+  #layout { position: relative; display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--related-w); height: calc(100vh - 52px); height: calc(100dvh - 52px); }
+  #layout.no-related { grid-template-columns: var(--sidebar-w) minmax(0, 1fr); }
+
+  #sidebar, #related-pane { background: var(--bg-surface); overflow-y: auto; }
+  #sidebar { border-right: 1px solid var(--line); padding: 12px; }
+  #related-pane { border-left: 1px solid var(--line); padding: 12px; }
+
+  #sidebar-resizer {
+    position: absolute; top: 0; bottom: 0; left: calc(var(--sidebar-w) - 3px); width: 6px; z-index: 10;
+    cursor: col-resize; touch-action: none;
+  }
+  #sidebar-resizer:hover, #sidebar-resizer:active { background: var(--line-strong); opacity: .6; }
+  #sidebar-resizer:focus-visible { outline-offset: -2px; background: var(--line-strong); }
+
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); margin: 14px 0 6px; }
+  .section-label:first-child { margin-top: 0; }
+  .section-label.first { margin-top: 2px; }
+
+  /* tags: neutral, so purple stays reserved for the primary action and selection */
+  .tag-chip {
+    display: inline-flex; font-size: 12px; padding: 2px 9px; border-radius: 12px;
+    background: var(--bg-subtle); color: var(--ink-2); margin: 0 5px 5px 0; cursor: pointer; border: 1px solid var(--line);
+  }
+  .tag-chip:hover { border-color: var(--ink-mute); }
+  .tag-chip[aria-pressed="true"] { background: var(--primary-pale); color: var(--accent-text); border-color: var(--line-strong); font-weight: 600; }
+
+  /* tag colours: [data-tc] sets --tc; a note's left border is a stripe (one segment per distinct tag colour, max 3) */
+  [data-tc="teal"] { --tc: var(--tc-teal); } [data-tc="orange"] { --tc: var(--tc-orange); } [data-tc="blue"] { --tc: var(--tc-blue); }
+  [data-tc="pink"] { --tc: var(--tc-pink); } [data-tc="green"] { --tc: var(--tc-green); } [data-tc="amber"] { --tc: var(--tc-amber); }
+  .tag-chip[data-tc]::before, .tag-dot { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--tc); box-shadow: 0 0 0 1px var(--tc-rim); margin: auto 6px auto 0; }
+  .note-row.tagged::before { content: ''; position: absolute; left: 0; top: 5px; bottom: 5px; width: 4px; border-radius: 3px; background: var(--tc-stripe); box-shadow: 0 0 0 1px var(--tc-rim); pointer-events: none; }
+  .md-tag { padding: 0 5px; border-radius: 4px; background: var(--bg-subtle); color: var(--ink-2); text-decoration: underline 2px var(--tc, transparent); text-underline-offset: 3px; font-size: .92em; cursor: pointer; }
+  .md-tag:hover { color: var(--ink); background: var(--line); }
+  #tags-row .tag-pill[data-tc]::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--tc); box-shadow: 0 0 0 1px var(--tc-rim); }
+  #tags-row .tag-pill.inline { border-style: dashed; cursor: default; }
+
+  /* settings gear + tag colours popover */
+  #settings-btn {
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg-subtle); color: var(--ink-2);
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  }
+  #settings-btn:hover, #settings-btn[aria-expanded="true"] { color: var(--ink); border-color: var(--ink-mute); }
+  #tc-pop {
+    position: fixed; top: 58px; right: 14px; z-index: 45; width: min(380px, calc(100vw - 24px)); max-height: calc(100vh - 76px); max-height: calc(100dvh - 76px);
+    display: flex; flex-direction: column; background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-md);
+  }
+  #tc-pop[hidden] { display: none; }
+  .tcp-head { display: flex; align-items: center; gap: 8px; padding: 12px 12px 4px 14px; }
+  .tcp-head h2 { flex: 1; font-size: 14px; }
+  .tcp-hint { padding: 0 14px 10px; font-size: 12px; line-height: 1.45; color: var(--ink-3); }
+  .tcp-add { display: flex; gap: 6px; padding: 0 14px 10px; }
+  .tcp-add input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 9px; font-size: 13px; }
+  .tcp-add input:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .tcp-list { overflow-y: auto; padding: 4px 6px 8px; border-top: 1px solid var(--line); }
+  .tcp-empty { padding: 10px 8px; font-size: 12px; color: var(--ink-mute); }
+  .tcp-row { display: flex; flex-direction: column; gap: 7px; padding: 8px; border-radius: var(--radius); }
+  .tcp-row:hover { background: var(--bg-subtle); }
+  .tcp-name { display: flex; align-items: baseline; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+  .tcp-name .n { font-weight: 400; font-size: 11px; color: var(--ink-3); }
+  .tcp-sw { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sw {
+    width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 0; background: var(--tc); color: #1f2937; box-shadow: 0 0 0 1px var(--tc-rim); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .sw svg.i { width: 12px; height: 12px; stroke-width: 3; visibility: hidden; }
+  .sw[aria-checked="true"] { box-shadow: 0 0 0 2px var(--bg-surface), 0 0 0 4px var(--ink); }
+  .sw[aria-checked="true"] svg.i { visibility: visible; }
+  .sw:hover { transform: scale(1.12); }
+  .sw:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+  .sw.none { background: transparent; border: 1.5px dashed var(--ink-mute); color: var(--ink-3); }
+
+  .note-row {
+    position: relative;
+    display: block; width: 100%; text-align: left; border: none; background: none; font-size: inherit; color: inherit; box-sizing: border-box;
+    padding: 7px 9px; border-radius: var(--radius); cursor: pointer; margin-bottom: 1px;
+  }
+  .note-row { user-select: none; -webkit-user-select: none; }
+  .note-row:hover { background: var(--bg-subtle); }
+  .note-row.active { background: var(--primary-pale); }
+  .note-row.selected { background: var(--primary-pale); box-shadow: inset 0 0 0 1px var(--line-strong); }
+  .note-row.selected.active { box-shadow: inset 0 0 0 1px var(--line-strong), inset -3px 0 0 var(--primary); } /* the note open in the editor (right edge: the left edge shows tag colours) */
+  #sel-bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 6px; padding: 6px 8px; margin: 0 0 8px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--primary-pale); color: var(--accent-text); font-size: 12px; font-weight: 600; }
+  #sel-bar[hidden] { display: none; }
+  #sel-count { flex: 1; min-width: 0; }
+  .note-row .r1 { display: flex; align-items: baseline; gap: 8px; }
+  .note-row .t { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .note-row .d { flex: none; font-size: 11px; color: var(--ink-mute); }
+  .note-row .s { display: block; margin-top: 1px; font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .note-row .s.none { font-style: italic; }
+  .note-row.active .d, .note-row.active .s, .note-row.selected .d, .note-row.selected .s { color: var(--ink-2); } /* --ink-mute is under 4.5:1 on the selected tint */
+  .note-row .pin-btn { flex: none; align-self: center; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin: -3px 0 -3px -4px; border-radius: 5px; border: 1px solid var(--line-strong); background: var(--bg-surface); color: var(--primary); cursor: pointer; }
+  .note-row .pin-btn .i { width: 12px; height: 12px; }
+  .note-row .pin-btn .p { fill: currentColor; }
+  .note-row .pin-btn .x { display: none; }
+  .note-row .pin-btn:hover, .note-row .pin-btn:focus-visible { background: var(--bg-subtle); color: var(--ink); }
+  .note-row .pin-btn:hover .p, .note-row .pin-btn:focus-visible .p { display: none; }
+  .note-row .pin-btn:hover .x, .note-row .pin-btn:focus-visible .x { display: inline-block; }
+  .empty-list { font-size: 13px; color: var(--ink-mute); padding: 8px 9px; }
+
+  /* new note: split button (main = ungrouped note, caret = pick a group) */
+  .split { position: relative; display: flex; margin-bottom: 8px; }
+  .split .menu-wrap { position: static; }
+  #new-note-btn { flex: 1; min-width: 0; justify-content: center; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+  #new-note-caret { height: 100%; padding: 7px 9px; border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-color: rgba(255,255,255,.4); }
+  .split .menu { left: 0; right: 0; min-width: 0; top: calc(100% + 4px); max-height: 50vh; overflow-y: auto; }
+  .split .menu-item .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #new-group-btn { width: 100%; justify-content: center; margin-bottom: 12px; color: var(--ink-3); }
+  #new-group-btn:hover:not(:disabled) { color: var(--ink); }
+
+  /* groups */
+  .grp { border-radius: var(--radius); margin-bottom: 2px; }
+  .grp-head { display: flex; align-items: center; gap: 2px; border-radius: var(--radius); cursor: grab; }
+  .grp-head:hover { background: var(--bg-subtle); }
+  .grp-toggle { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; border: none; background: none; padding: 6px 6px; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink); text-align: left; cursor: pointer; border-radius: 6px; }
+  .grp-toggle .chev { width: 12px; height: 12px; color: var(--ink-3); transition: transform .15s; }
+  .grp[data-open="true"] .grp-toggle .chev { transform: rotate(90deg); }
+  .grp-toggle .fi { width: 14px; height: 14px; color: var(--ink-3); }
+  .grp-toggle .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .grp-toggle .cnt { flex: none; font-size: 11px; font-weight: 500; color: var(--ink-3); }
+  .grp-act { flex: none; width: 24px; height: 24px; border: none; background: none; border-radius: 6px; color: var(--ink-3); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; opacity: 0; }
+  .grp-head:hover .grp-act, .grp-head:focus-within .grp-act, .grp-act[aria-expanded="true"] { opacity: 1; }
+  .grp-act:hover { background: var(--line); color: var(--ink); }
+  .grp-act .i { width: 14px; height: 14px; }
+  @media (hover: none) { .grp-act { opacity: 1; } }
+  .grp .menu { min-width: 170px; }
+  .grp-body { margin: 0 0 4px 12px; padding-left: 6px; border-left: 1px solid var(--line); }
+  .grp[data-open="false"] .grp-body { display: none; }
+  .grp-empty { font-size: 12px; font-style: italic; color: var(--ink-mute); padding: 4px 9px 6px; }
+  .ungrouped { margin-top: 8px; padding: 8px 0 2px; border-top: 1px solid var(--line-strong); border-radius: 0 0 var(--radius) var(--radius); }
+  .ug-toggle { width: 100%; padding: 4px 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); }
+  .ug-toggle:hover { color: var(--ink); }
+  .ungrouped[data-open="true"] .ug-toggle .chev { transform: rotate(90deg); }
+  .ungrouped[data-open="false"] .ungrouped-body { display: none; }
+  .section-label.sub { text-transform: none; letter-spacing: 0; font-weight: 600; margin: 8px 0 4px; }
+  .note-row .g { flex: none; max-width: 72px; font-size: 10px; padding: 0 6px; border-radius: 8px; border: 1px solid var(--line); color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .note-row.dragging, .grp.dragging { opacity: .45; }
+  .grp.drop-target, .ungrouped.drop-target { background: var(--primary-pale); outline: 1px dashed var(--primary); outline-offset: -1px; }
+  .grp.drop-before { box-shadow: 0 -2px 0 var(--primary); }
+  .grp.drop-after { box-shadow: 0 2px 0 var(--primary); }
+
+  /* group dialog (create / rename / delete / move) */
+  .gm-msg { font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+  .gm-msg[hidden], #gm-input[hidden], #gm-list[hidden], #gm-ok[hidden] { display: none; }
+  #gm-list { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; }
+  .mv-item { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-surface); color: var(--ink-2); font-size: 13px; cursor: pointer; }
+  .mv-item:hover { background: var(--bg-subtle); }
+  .mv-item[aria-current="true"] { background: var(--primary-pale); border-color: var(--line-strong); color: var(--accent-text); font-weight: 600; }
+  .btn-danger { color: var(--danger); border-color: var(--danger); background: var(--danger-pale); font-weight: 700; }
+  .btn-danger:hover:not(:disabled) { border-color: var(--danger); }
+
+  /* ---------- editor ---------- */
+  #editor-pane { overflow: hidden; min-width: 0; }
+  #editor-pane.empty-state { display: flex; align-items: center; justify-content: center; color: var(--ink-mute); font-size: 14px; padding: 24px; text-align: center; }
+
+  .editor-wrap { height: 100%; max-width: 720px; margin: 0 auto; padding: 16px 24px 18px; display: flex; flex-direction: column; }
+  .editor-wrap[data-mode="split"] { max-width: 1240px; }
+
+  .meta-row { display: flex; align-items: center; justify-content: space-between; gap: 6px 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink-mute); margin-bottom: 6px; }
+
+  #tags-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; }
+  #tags-row .tag-pill {
+    font-size: 12px; padding: 2px 8px; border-radius: 10px; background: var(--bg-subtle); color: var(--ink-2); border: 1px solid var(--line);
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  #tags-row .tag-pill button { border: none; background: none; cursor: pointer; color: var(--ink-3); font-size: 12px; line-height: 1; }
+  #tags-row .tag-pill button:hover { color: var(--ink); }
+  #tag-input-wrap { position: relative; display: inline-block; }
+  #tag-suggest {
+    position: absolute; top: 100%; left: 0; z-index: 20; min-width: 160px; max-height: 200px; overflow-y: auto;
+    margin-top: 4px; padding: 4px; background: var(--bg-surface); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: var(--shadow-md);
+  }
+  #tag-suggest[hidden] { display: none; }
+  .tag-suggest-item { padding: 4px 8px; font-size: 12px; color: var(--ink-2); border-radius: 6px; cursor: pointer; }
+  .tag-suggest-item:hover, .tag-suggest-item.hi { background: var(--primary-pale); color: var(--accent-text); }
+  #tag-input { border: none; background: none; font-size: 12px; color: var(--ink-2); width: 90px; border-radius: 4px; }
+
+  #toolbar { display: flex; align-items: center; gap: 4px; padding: 6px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 10px; flex-wrap: wrap; }
+  #toolbar .spacer { flex: 1; }
+  #toolbar .tb-sep { width: 8px; }
+
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { border: none; background: var(--bg-surface); color: var(--ink-2); font-size: 12px; font-weight: 600; padding: 4px 10px; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button:hover { background: var(--bg-subtle); }
+  .seg button[aria-pressed="true"] { background: var(--primary-pale); color: var(--accent-text); }
+  .seg button:focus-visible { outline-offset: -2px; }
+
+  #save-status { font-size: 12px; color: var(--ink-mute); min-width: 66px; text-align: right; }
+  #save-status[data-state="saved"]::before { content: '✓ '; }
+  #save-status[data-state="error"] { color: var(--danger); font-weight: 600; }
+
+  #vis-btn.on { color: var(--accent-text); border-color: var(--line-strong); background: var(--primary-pale); }
+
+  #edit-area { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 16px; }
+  #edit-area[data-mode="split"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  #edit-area[data-mode="edit"] #md-preview, #edit-area[data-mode="preview"] #md-input { display: none; }
+  #md-input {
+    width: 100%; height: 100%; min-height: 0; resize: none; border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 12px 14px; font-size: 14px; line-height: 1.6; font-family: 'SFMono-Regular', Consolas, monospace;
+  }
+  #md-input:focus-visible { outline: 2px solid var(--focus); outline-offset: 0; border-color: transparent; }
+  #md-preview { min-height: 0; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; font-size: 15px; line-height: 1.7; overflow-y: auto; }
+  #edit-area[data-mode="preview"] #md-preview { border: none; padding: 4px 0; }
+  #md-preview img { max-width: 100%; border-radius: 6px; }
+  #md-preview ul, #md-preview ol, #ro-content ul, #ro-content ol { margin: 0 0 10px; padding-left: 26px; }
+  #md-preview ul, #ro-content ul { list-style: disc; }
+  #md-preview ol, #ro-content ol { list-style: decimal; }
+  #md-preview ul ul, #ro-content ul ul { list-style: circle; }
+  #md-preview ul ul ul, #ro-content ul ul ul { list-style: square; }
+  #md-preview li ul, #md-preview li ol, #ro-content li ul, #ro-content li ol { margin: 2px 0; }
+  #md-preview li, #ro-content li { margin: 2px 0; }
+  #md-preview p, #ro-content p { margin: 0 0 10px; }
+  #md-preview h1, #md-preview h2, #md-preview h3, #md-preview h4, #md-preview h5, #md-preview h6,
+  #ro-content h1, #ro-content h2, #ro-content h3, #ro-content h4, #ro-content h5, #ro-content h6 { margin: 16px 0 8px; line-height: 1.3; }
+  #md-preview h1, #ro-content h1 { font-size: 1.8em; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  #md-preview h2, #ro-content h2 { font-size: 1.45em; border-bottom: 1px solid var(--line); padding-bottom: 3px; }
+  #md-preview h3, #ro-content h3 { font-size: 1.2em; }
+  #md-preview h4, #ro-content h4 { font-size: 1.05em; }
+  #md-preview h5, #ro-content h5, #md-preview h6, #ro-content h6 { font-size: 1em; color: var(--ink-3); }
+  #md-preview > :first-child, #ro-content > :first-child { margin-top: 0; }
+  #md-preview hr, #ro-content hr { border: none; border-top: 1px solid var(--line-strong); margin: 16px 0; }
+  #md-preview del, #ro-content del { opacity: .65; }
+  #md-preview li > input[type="checkbox"], #ro-content li > input[type="checkbox"] { margin: 0 6px 0 -18px; vertical-align: middle; }
+  #md-preview li:has(> input[type="checkbox"]), #ro-content li:has(> input[type="checkbox"]) { list-style: none; }
+  #md-preview pre code, #ro-content pre code { background: none; padding: 0; }
+  #md-preview pre, #ro-content pre { background: var(--bg-subtle); padding: 10px; border-radius: 8px; overflow-x: auto; margin: 0 0 10px; }
+  #md-preview blockquote, #ro-content blockquote { margin: 0 0 10px; }
+  #md-preview th, #ro-content th { background: var(--bg-subtle); text-align: left; }
+  #md-preview img, #ro-content img { max-width: 100%; }
+  #md-preview table, #ro-content table { border-collapse: collapse; margin: 0 0 10px; }
+  #md-preview a.note-link { color: var(--link); text-decoration: none; border-bottom: 1px dashed currentColor; cursor: pointer; }
+  #md-preview a.note-link.missing { color: var(--ink-mute); border-bottom-style: dotted; }
+  #md-preview code { background: var(--bg-subtle); padding: 1px 4px; border-radius: 4px; font-size: 13px; }
+
+  /* [[ note picker */
+  #link-picker {
+    position: fixed; z-index: 45; width: 280px; max-height: 280px; overflow-y: auto; padding: 4px;
+    background: var(--bg-surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-md);
+  }
+  #link-picker[hidden] { display: none; }
+  .lp-item { display: block; padding: 6px 9px; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--ink-2); }
+  .lp-item .t { display: block; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lp-item .s { display: block; font-size: 11px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lp-item.hi, .lp-item:hover { background: var(--primary-pale); }
+  .lp-item.create .t { color: var(--accent-text); }
+  .lp-hint { padding: 4px 9px 2px; font-size: 11px; color: var(--ink-mute); }
+
+  /* ---------- related panel ---------- */
+  .pane-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .pane-head .section-label { margin: 0; }
+  .rel-section { margin-top: 10px; }
+  .rel-section summary { font-size: 12px; font-weight: 700; color: var(--ink-2); cursor: pointer; padding: 3px 0; list-style: none; display: flex; align-items: center; gap: 6px; border-radius: 4px; }
+  .rel-section summary::-webkit-details-marker { display: none; }
+  .rel-section summary::before { content: '▸'; font-size: 10px; color: var(--ink-3); transition: transform .15s; }
+  .rel-section[open] summary::before { transform: rotate(90deg); }
+  .rel-section .n { font-weight: 500; color: var(--ink-3); }
+  .rel-item { display: block; width: 100%; text-align: left; font-size: inherit; color: inherit; background: none; border: 1px solid var(--line); border-radius: var(--radius); padding: 7px 10px; margin-top: 6px; cursor: pointer; }
+  .rel-item:hover { border-color: var(--line-strong); background: var(--bg-subtle); }
+  .rel-item .t { display: block; font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 2px; overflow-wrap: anywhere; }
+  .rel-item .s { display: block; font-size: 12px; color: var(--ink-3); line-height: 1.4; overflow-wrap: anywhere; }
+  .rel-item .m { display: block; font-size: 11px; color: var(--ink-mute); margin-top: 3px; overflow-wrap: anywhere; }
+  .rel-empty { margin-top: 8px; font-size: 12px; color: var(--ink-3); line-height: 1.45; }
+  .rel-sem { margin-top: 14px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 11px; color: var(--ink-mute); line-height: 1.4; }
+  .rel-sem:empty { display: none; }
+
+  /* ---------- auth modal ---------- */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: var(--overlay); align-items: center; justify-content: center; z-index: 50; }
+  .modal-overlay.open { display: flex; }
+  .modal { width: min(380px, 92vw); background: var(--bg-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--line); }
+  .modal-head h2 { font-size: 16px; }
+  .modal-close { border: none; background: none; font-size: 16px; cursor: pointer; color: var(--ink-3); }
+  .modal-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .modal-body input { padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius); font-size: 13px; }
+  #auth-fields { display: flex; flex-direction: column; gap: 10px; }
+  #auth-fields:empty { display: none; }
+  .auth-divider { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--ink-mute); }
+  .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .auth-msg { font-size: 11px; min-height: 1.2em; }
+  .auth-msg.err { color: var(--danger); }
+  .modal-foot { padding: 12px 18px; border-top: 1px solid var(--line); text-align: right; }
+
+  /* ---------- toast ---------- */
+  #md-preview a, #ro-content a { color: var(--link); }
+  #md-preview blockquote, #ro-content blockquote { border-left: 3px solid var(--line-strong); padding-left: 12px; color: var(--ink-3); }
+  #md-preview pre, #md-preview code { color: var(--ink-2); }
+  #md-preview th, #md-preview td, #ro-content th, #ro-content td { border: 1px solid var(--line); padding: 4px 8px; }
+  #toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(0); background: var(--ink); color: var(--on-ink);
+    font-size: 13px; padding: 9px 16px; border-radius: 20px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 60;
+    display: flex; align-items: center; gap: 14px;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+  #toast.show.has-action { pointer-events: auto; }
+  #toast button { border: none; background: none; color: inherit; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; border-radius: 4px; }
+  #toast button:focus-visible { outline-color: var(--on-ink); }
+
+  /* ---------- read only view ---------- */
+  #readonly-view { max-width: 640px; margin: 40px auto; padding: 0 20px; }
+  #ro-app { font-size: 13px; font-weight: 700; color: var(--ink-3); letter-spacing: .02em; margin-bottom: 10px; }
+  #ro-meta { font-size: 12px; color: var(--ink-mute); margin-bottom: 16px; }
+  #ro-badge { display: inline-block; font-size: 11px; background: var(--primary-pale); color: var(--accent-text); padding: 3px 9px; border-radius: 10px; margin-bottom: 14px; }
+  #ro-content { font-size: 15px; line-height: 1.7; }
+  #ro-content img { max-width: 100%; border-radius: 6px; }
+
+  /* ---------- responsive ---------- */
+  @media (min-width: 761px) {
+    #layout.no-related #related-pane { display: none; }
+  }
+  @media (max-width: 760px) {
+    #layout, #layout.no-related { grid-template-columns: minmax(0, 1fr); }
+    #sidebar, #related-pane { display: none; position: fixed; inset: 52px 0 0 0; z-index: 30; border: none; }
+    #sidebar.open, #related-pane.open { display: block; }
+    #sidebar-resizer { display: none; }
+    #sidebar-toggle { display: inline-flex; }
+    #edit-area[data-mode="split"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
+    .search-wrap { max-width: none; }
+    .editor-wrap { padding: 12px 14px; }
+  }
+  @media (max-width: 520px) {
+    #topbar .brand { display: none; }
+    #related-toggle .label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app" hidden>
+  <div id="topbar">
+    <button class="btn btn-icon" id="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle note list">☰</button>
+    <div class="brand">Notes</div>
+    <div class="search-wrap">
+      <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <label class="sr-only" for="search">Search notes</label>
+      <input id="search" type="text" placeholder="Search notes..." autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" oninput="onSearchInput()" onkeydown="if(event.key==='Escape')clearSearch()">
+      <button id="search-clear" onclick="clearSearch()" aria-label="Clear search" hidden>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn btn-sm" id="related-toggle" onclick="toggleRelated()" aria-expanded="true" aria-controls="related-pane" hidden>
+      <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1 1"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1-1"/></svg>
+      <span class="label">Related</span><span class="count" id="related-count"></span>
+    </button>
+    <button class="btn btn-sm btn-primary" id="btn-signin" onclick="openModal('auth-modal')">Sign in</button>
+    <div class="menu-wrap" id="settings-wrap">
+      <button id="settings-btn" onclick="toggleMenu(this)" aria-haspopup="menu" aria-expanded="false" aria-label="Settings" title="Settings"></button>
+      <div class="menu" role="menu" hidden>
+        <button class="menu-item" role="menuitem" id="tagcolors-item" onclick="closeMenus(); openTagColors()"></button>
+        <div class="menu-sep"></div>
+        <button class="menu-item" role="menuitemcheckbox" id="theme-item" aria-checked="false" onclick="toggleTheme()">
+          <span class="txt">Dark mode</span><span class="switch" aria-hidden="true"></span>
+        </button>
+        <button class="menu-item" role="menuitemcheckbox" id="sem-item" aria-checked="false" onclick="toggleSemantic()">
+          <span class="txt">Semantic matching<span class="sub" id="sem-sub"></span></span><span class="switch" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+    <div class="menu-wrap" id="avatar-wrap">
+      <button id="avatar-btn" class="anon" onclick="toggleMenu(this)" aria-haspopup="menu" aria-expanded="false" aria-label="Account menu"></button>
+      <div class="menu" role="menu" hidden>
+        <div class="menu-head" id="menu-user" hidden></div>
+        <button class="menu-item" role="menuitem" id="signout-item" onclick="closeMenus(); signOut()" hidden>
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign out
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="layout">
+    <aside id="sidebar">
+      <div class="split">
+        <button class="btn btn-primary" id="new-note-btn" onclick="createNewNote()">+ New note</button>
+        <div class="menu-wrap">
+          <button class="btn btn-primary" id="new-note-caret" onclick="toggleMenu(this)" aria-haspopup="menu" aria-expanded="false" aria-label="New note in a group" title="New note in a group"></button>
+          <div class="menu" id="new-note-menu" role="menu" hidden></div>
+        </div>
+      </div>
+      <button class="btn btn-sm btn-ghost" id="new-group-btn" onclick="newGroupPrompt()">+ New group</button>
+      <div class="section-label" id="tags-label">Tags</div>
+      <div id="tag-chips"></div>
+      <div id="sel-bar" hidden>
+        <span id="sel-count" aria-live="polite"></span>
+        <button class="btn btn-sm" onclick="openMoveModal(selectedList())">Move to…</button>
+        <button class="btn btn-sm btn-ghost" onclick="clearSelection()">Clear</button>
+      </div>
+      <div id="note-list"></div>
+    </aside>
+    <div id="sidebar-resizer" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" aria-valuemin="200" aria-valuemax="480" tabindex="0" title="Drag to resize · double-click to reset"></div>
+
+    <main id="editor-pane" class="empty-state">
+      <div>Select a note, or create a new one.</div>
+    </main>
+
+    <aside id="related-pane" hidden aria-label="Related notes">
+      <div class="pane-head">
+        <div class="section-label">Related</div>
+        <button class="btn btn-icon btn-sm btn-ghost" onclick="toggleRelated()" aria-label="Collapse related panel" title="Collapse panel">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+      <div id="related-body"></div>
+      <div class="rel-sem" id="rel-sem" aria-live="polite"></div>
+    </aside>
+  </div>
+</div>
+
+<div id="readonly-view" hidden>
+  <div id="ro-app">Sid's Notes</div>
+  <span id="ro-badge">Read-only · shared note</span>
+  <h1 id="ro-title" style="font-size:22px;margin-bottom:4px;"></h1>
+  <div id="ro-meta"></div>
+  <div id="ro-content"></div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Sign in</h2>
+      <button class="modal-close" onclick="closeModal('auth-modal')" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <button class="btn btn-primary" onclick="signInWithGoogle()">Continue with Google</button>
+      <div class="auth-divider">or email</div>
+      <div id="auth-fields"></div>
+      <div class="auth-msg" id="auth-msg"></div>
+      <button class="btn" onclick="signInWithEmail()">Sign in with email</button>
+      <button class="btn" onclick="registerWithEmail()">Create account</button>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-sm" onclick="closeModal('auth-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- GROUP DIALOG: create / rename / delete / move -->
+<div class="modal-overlay" id="group-modal" role="dialog" aria-modal="true" aria-labelledby="gm-title">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="gm-title"></h2>
+      <button class="modal-close" onclick="closeGroupModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="gm-msg" id="gm-msg" hidden></div>
+      <input id="gm-input" maxlength="60" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" aria-label="Group name" placeholder="Group name" hidden>
+      <div id="gm-list" hidden></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-sm" id="gm-cancel" onclick="closeGroupModal()">Cancel</button>
+      <button class="btn btn-sm btn-primary" id="gm-ok" onclick="submitGroupModal()" hidden></button>
+    </div>
+  </div>
+</div>
+
+<div id="link-picker" role="listbox" aria-label="Link to a note" hidden></div>
+<div id="tc-pop" role="dialog" aria-label="Tag colors" hidden></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="image-input" accept="image/*" hidden onchange="onImageFileChosen(event)">
+
+<script src="firebase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.5/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.2.0/turndown.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/turndown-plugin-gfm@1.0.2/dist/turndown-plugin-gfm.js"></script>
+
+<script>
+const ICONS = {
+  sun: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  moon: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+  user: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
+  lock: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+  globe: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
+  more: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>',
+  pin: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17v5M9 3h6l-1 7 3 3v2H7v-2l3-3z"/></svg>',
+  trash: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/></svg>',
+  link: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1 1"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1-1"/></svg>',
+  image: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>',
+  folder: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  chev: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>',
+  plus: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  caret: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
+  edit: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  x: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  gear: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  tag: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1.5"/></svg>',
+  check: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
+  spark: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></svg>',
+};
+
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  var b = document.getElementById('theme-item');
+  if (b) b.setAttribute('aria-checked', String(t === 'dark'));
+}
+function toggleTheme() {
+  var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  lsSet('notes-theme', t);
+  applyTheme(t);
+}
+document.getElementById('theme-item').insertAdjacentHTML('afterbegin', ICONS.moon);
+applyTheme(document.documentElement.getAttribute('data-theme'));
+</script>
+<script>
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+let currentUser = null;
+let notes = [];              // full note objects for the signed-in user, cached in memory
+let folders = [];            // note groups: [{ id, name, order }] in display order (stored in users/{uid}/folders)
+let activeNoteId = null;
+let activeNote = null;       // { title, content, tags, public, pinned }
+let activeTagFilter = null;
+let saveTimer = null;
+let dirty = false;           // active note has edits that haven't reached Firestore yet
+let viewMode = ['edit', 'split', 'preview'].includes(lsGet('notes-view-mode')) ? lsGet('notes-view-mode') : 'edit';
+let relatedCollapsed = lsGet('notes-related-collapsed') === '1';
+let relatedAvailable = false;   // a note is open, so the Related panel / toggle exist (the user can still collapse it)
+let pendingDelete = null;    // { note, timer } — hard delete is deferred so the undo toast can bring it back
+
+/* ---------- helpers ---------- */
+
+function pad(n) { return String(n).padStart(2, '0'); }
+function defaultTitle(d) {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function highlight(text, terms) {
+  if (!terms || !terms.length) return escapeHtml(text);
+  const re = new RegExp('(' + terms.map(escapeRegex).sort((a, b) => b.length - a.length).join('|') + ')', 'gi');
+  return text.split(re).map((p, i) => i % 2 ? `<mark>${escapeHtml(p)}</mark>` : escapeHtml(p)).join('');
+}
+
+let toastTimer = null;
+function toast(msg, opts = {}) {
+  const el = document.getElementById('toast');
+  el.innerHTML = '';
+  const span = document.createElement('span');
+  span.textContent = msg;
+  el.appendChild(span);
+  el.classList.toggle('has-action', !!opts.action);
+  if (opts.action) {
+    const b = document.createElement('button');
+    b.textContent = opts.action;
+    b.onclick = () => { hideToast(); opts.onAction(); };
+    el.appendChild(b);
+  }
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, opts.ms || 2200);
+}
+function hideToast() { document.getElementById('toast').classList.remove('show', 'has-action'); }
+
+// The email/password inputs exist in the DOM only while the sign-in modal is open, so browsers
+// don't treat the note title/tag/search boxes as "username" fields and offer saved passwords there.
+function openModal(id) {
+  if (id === 'auth-modal') {
+    document.getElementById('auth-fields').innerHTML =
+      '<input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" aria-label="Email">' +
+      '<input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password" aria-label="Password">';
+  }
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  if (id === 'auth-modal') document.getElementById('auth-fields').innerHTML = '';
+}
+function isMobile() { return window.matchMedia('(max-width: 760px)').matches; }
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function onSearchInput() {
+  document.getElementById('search-clear').hidden = !document.getElementById('search').value;
+  renderNoteList();
+}
+function clearSearch() {
+  const s = document.getElementById('search');
+  s.value = '';
+  s.focus();
+  onSearchInput();
+}
+
+function notesCol(uid) { return db.collection('users').doc(uid).collection('notes'); }
+
+/* ---------- menus ---------- */
+
+function toggleMenu(btn) {
+  const menu = btn.nextElementSibling;
+  const opening = menu.hidden;
+  closeMenus();
+  if (!opening) return;
+  menu.hidden = false;
+  btn.setAttribute('aria-expanded', 'true');
+  const first = [...menu.querySelectorAll('[role^=menuitem]')].find(i => !i.hidden);
+  if (first) first.focus();
+}
+function closeMenus(returnFocus) {
+  document.querySelectorAll('.menu').forEach(m => {
+    if (m.hidden) return;
+    m.hidden = true;
+    const b = m.previousElementSibling;
+    b.setAttribute('aria-expanded', 'false');
+    if (returnFocus) b.focus();
+  });
+}
+document.addEventListener('click', e => { if (!e.target.closest('.menu-wrap')) closeMenus(); });
+document.addEventListener('keydown', e => {
+  const menu = e.target.closest && e.target.closest('.menu');
+  if (!menu) return;
+  const items = [...menu.querySelectorAll('[role^=menuitem]')].filter(i => !i.hidden);
+  const i = items.indexOf(document.activeElement);
+  if (e.key === 'Escape') { e.preventDefault(); closeMenus(true); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+  else if (e.key === 'Tab') closeMenus();
+});
+
+/* ---------- auth ---------- */
+
+function signInWithGoogle() {
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+    .then(() => closeModal('auth-modal'))
+    .catch(e => showAuthMsg(e.message));
+}
+function signInWithEmail() {
+  auth.signInWithEmailAndPassword(val('auth-email'), val('auth-password'))
+    .then(() => closeModal('auth-modal'))
+    .catch(e => showAuthMsg(e.message));
+}
+function registerWithEmail() {
+  auth.createUserWithEmailAndPassword(val('auth-email'), val('auth-password'))
+    .then(() => closeModal('auth-modal'))
+    .catch(e => showAuthMsg(e.message));
+}
+function signOut() { auth.signOut(); }
+function val(id) { return document.getElementById(id).value.trim(); }
+function showAuthMsg(m) { const el = document.getElementById('auth-msg'); el.textContent = m; el.classList.add('err'); }
+
+function renderAccount(user) {
+  const btn = document.getElementById('avatar-btn');
+  const who = user ? (user.displayName || user.email || '') : '';
+  btn.classList.toggle('anon', !user);
+  btn.innerHTML = user ? escapeHtml((who.trim()[0] || '?').toUpperCase()) : ICONS.user;
+  btn.title = who || 'Account';
+  const head = document.getElementById('menu-user');
+  head.hidden = !user;
+  head.textContent = user ? (user.email || user.displayName || '') : '';
+  document.getElementById('signout-item').hidden = !user;
+  document.getElementById('btn-signin').hidden = !!user;
+}
+
+auth.onAuthStateChanged(async user => {
+  document.getElementById('search').value = '';
+  folders = [];
+  onSearchInput();
+  currentUser = user;
+  renderAccount(user);
+  if (user) {
+    await loadNotes();
+  } else {
+    notes = [];
+    activeNoteId = null; activeNote = null;
+    tagColors = { ...DEFAULT_TAG_COLORS };
+    closeTagColors(false);
+    semReset();
+    renderNoteList();
+    renderTagChips();
+    showEmptyEditor('Sign in to see your notes.');
+  }
+});
+
+/* ---------- data loading ---------- */
+
+async function loadNotes() {
+  await loadFolders(); // never throws; notes still load if groups can't
+  await loadTagColors(); // never throws either
+  try {
+    const snap = await notesCol(currentUser.uid).orderBy('updatedAt', 'desc').get();
+    notes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderNoteList();
+    renderTagChips();
+    migrateLinkNames();
+    setTimeout(semSchedule, 1200); // start the embedding index once the UI has settled
+  } catch (err) {
+    console.error('loadNotes failed:', err.code, err.message);
+    showEmptyEditor(`Couldn't load notes: ${err.code || err.message}. Check that firestore.rules has been deployed for this project.`);
+    toast(`Load failed: ${err.code || err.message}`);
+  }
+}
+
+/* ---------- note naming, text extraction ---------- */
+
+// Strip markdown down to readable text (used for titles, snippets, keywords)
+function plainText(s) {
+  return (s || '')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[\[([^\]]+)\]\]/g, '$1')
+    .replace(/^[ \t]{0,3}(#{1,6}|>|[-*+]|\d+[.)])[ \t]+(\[[ xX]\][ \t]+)?/gm, '')
+    .replace(/[*_~`]+/g, '')
+    .replace(/\s+/g, ' ').trim();
+}
+// A note's title comes from its content: the first heading ("# Title") if the note starts with one,
+// otherwise the first few words of its first line. `idx` is the line it came from, `full` the whole line.
+const TITLE_WORDS = 8;
+function titleLine(content) {
+  const lines = (content || '').split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].trim() || /^\s*(```|~~~)/.test(lines[i])) continue;
+    const full = plainText(lines[i]).slice(0, 200);
+    if (!full) continue;
+    const isHeading = /^\s{0,3}#{1,6}\s/.test(lines[i]);
+    const text = isHeading ? full : full.split(' ').slice(0, TITLE_WORDS).join(' ');
+    return { text, full, idx: i };
+  }
+  return { text: '', full: '', idx: -1 };
+}
+function derivedTitle(content) { return titleLine(content).text; }
+// What the note is called in the list
+function displayTitle(n) { return derivedTitle(n.content) || 'Untitled'; }
+// Name used when inserting a [[link]] to this note
+function linkName(n) { return derivedTitle(n.content); }
+// [[links]] resolve by title: the derived title, the whole first line, or (for very old links) the legacy timestamp title
+function findNoteByLinkName(name) {
+  const k = name.trim().toLowerCase();
+  if (!k) return null;
+  return notes.find(n => derivedTitle(n.content).toLowerCase() === k)
+    || notes.find(n => titleLine(n.content).full.toLowerCase() === k)
+    || notes.find(n => (n.title || '').trim().toLowerCase() === k);
+}
+function bodySnippet(n, max = 140) {
+  const t = titleLine(n.content);
+  if (t.idx < 0) return '';
+  const rest = t.full.slice(t.text.length).trim(); // words of the first line that didn't fit in the title
+  const after = plainText((n.content || '').split('\n').slice(t.idx + 1).join('\n'));
+  return [rest, after].filter(Boolean).join(' ').slice(0, max);
+}
+
+/* ---------- dates ---------- */
+
+function toDate(ts) { return ts && ts.toDate ? ts.toDate() : (ts instanceof Date ? ts : null); }
+function noteDate(n) { return toDate(n.updatedAt) || toDate(n.createdAt) || null; }
+function startOfToday() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+function formatListDate(d) {
+  if (!d) return '';
+  const sod = startOfToday();
+  const yest = new Date(sod); yest.setDate(yest.getDate() - 1);
+  if (d >= yest) return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return d.toLocaleDateString([], d.getFullYear() === sod.getFullYear() ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function groupNotes(items) {
+  const sod = startOfToday();
+  const yest = new Date(sod); yest.setDate(yest.getDate() - 1);
+  const g = { Pinned: [], Today: [], Yesterday: [], Earlier: [] };
+  items.forEach(n => {
+    const d = noteDate(n);
+    if (n.pinned) g.Pinned.push(n);
+    else if (d && d >= sod) g.Today.push(n);
+    else if (d && d >= yest) g.Yesterday.push(n);
+    else g.Earlier.push(n);
+  });
+  return Object.entries(g).filter(([, a]) => a.length);
+}
+
+/* ---------- note list / tags / search ---------- */
+
+/* ---------- tags: metadata tags + inline #tags, and tag colours ---------- */
+
+const TAG_COLORS = [['teal', 'Teal'], ['orange', 'Orange'], ['blue', 'Blue'], ['pink', 'Pink'], ['green', 'Green'], ['amber', 'Yellow']];
+const LEGACY_TAG_COLORS = { red: 'pink', purple: 'blue' }; // ids from the old nine-colour palette, mapped to the nearest remaining one (gray is dropped)
+const TAG_COLOR_IDS = new Set(TAG_COLORS.map(c => c[0]));
+const DEFAULT_TAG_COLORS = { important: 'pink', revisit: 'pink', warning: 'orange', remember: 'orange' }; // first-run examples; edit or clear in Settings
+let tagColors = { ...DEFAULT_TAG_COLORS }; // tag key (lower-case) -> colour id. One colour per tag; many tags can share a colour.
+
+function tagKey(t) { return String(t || '').trim().replace(/^#+/, '').toLowerCase(); }
+
+// "#tag" in note text: must start a line or follow whitespace / "(" and begin with a letter. So headings ("# Title"),
+// issue numbers (#123), URL fragments (page#top), hex colours (#ff8800), code, [[links]] and \#escapes are not tags.
+const INLINE_TAG_RE = /(^|[\s(])#(\p{L}[\p{L}\p{N}_\/-]*)/gu;
+function inlineTagName(raw) {
+  const name = raw.replace(/[-_\/]+$/, '');
+  if (!name) return null;
+  if (/^[0-9a-f]+$/i.test(name) && /\d/.test(name) && [3, 4, 6, 8].includes(name.length)) return null;
+  return name;
+}
+function inlineTags(content) {
+  if (!content || content.indexOf('#') < 0) return [];
+  const text = content
+    .replace(/(```|~~~)[\s\S]*?(\1|$)/g, ' ')
+    .replace(/`[^`\n]*`/g, ' ')
+    .replace(/\[\[[^\]]*\]\]/g, ' ')
+    .replace(/\]\([^)]*\)/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\\#/g, ' ');
+  const out = [], seen = new Set(), re = new RegExp(INLINE_TAG_RE.source, 'gu');
+  let m;
+  while ((m = re.exec(text))) {
+    const name = inlineTagName(m[2]);
+    if (name && !seen.has(name.toLowerCase())) { seen.add(name.toLowerCase()); out.push(name); }
+  }
+  return out;
+}
+
+// A note's tags: the ones in its metadata row first, then any inline #tags (case-insensitive de-dupe)
+const _etCache = new WeakMap();
+function effectiveTags(n) {
+  if (!n) return [];
+  const meta = n.tags || [], content = n.content || '', sig = meta.join('\u0001');
+  const hit = _etCache.get(n);
+  if (hit && hit.c === content && hit.s === sig) return hit.t;
+  const seen = new Set(), out = [];
+  [...meta, ...inlineTags(content)].forEach(t => {
+    const k = tagKey(t);
+    if (k && !seen.has(k)) { seen.add(k); out.push(String(t).trim().replace(/^#+/, '')); }
+  });
+  _etCache.set(n, { c: content, s: sig, t: out });
+  return out;
+}
+function hasTag(n, key) { return effectiveTags(n).some(t => tagKey(t) === key); }
+
+function tagIndex() { // key -> { name, count }
+  const m = new Map();
+  notes.forEach(n => effectiveTags(n).forEach(t => {
+    const k = tagKey(t), e = m.get(k);
+    if (e) e.count++; else m.set(k, { name: t, count: 1 });
+  }));
+  return m;
+}
+function allTags() {
+  return [...tagIndex().values()].map(e => e.name).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+}
+
+function tagColorOf(t) { return tagColors[tagKey(t)] || null; }
+function noteColors(n) { // distinct colours of a note's tags, in tag order
+  const out = [];
+  effectiveTags(n).forEach(t => { const c = tagColorOf(t); if (c && !out.includes(c)) out.push(c); });
+  return out;
+}
+function stripeGradient(colors) { // up to 3 hard-edged segments; var() keeps it in step with the theme
+  const cs = colors.slice(0, 3), step = 100 / cs.length;
+  return 'linear-gradient(to bottom, ' + cs.map((c, i) => `var(--tc-${c}) ${(i * step).toFixed(2)}% ${((i + 1) * step).toFixed(2)}%`).join(', ') + ')';
+}
+
+/* ---- colour storage: localStorage per user, mirrored to users/{uid}/settings/tagColors (best effort) ---- */
+
+const tcStoreKey = uid => `notes-tag-colors:${uid}`;
+const tcDoc = uid => db.collection('users').doc(uid).collection('settings').doc('tagColors');
+let tcSyncWarned = false;
+
+function sanitizeTagColors(obj) {
+  const out = {};
+  if (obj && typeof obj === 'object') Object.entries(obj).forEach(([k, v]) => { const key = tagKey(k); const id = LEGACY_TAG_COLORS[v] || v; if (key && TAG_COLOR_IDS.has(id)) out[key] = id; });
+  return out;
+}
+async function loadTagColors() {
+  tagColors = { ...DEFAULT_TAG_COLORS };
+  if (!currentUser) return;
+  const uid = currentUser.uid;
+  let local = null, remote = null;
+  try { const raw = lsGet(tcStoreKey(uid)); if (raw) local = sanitizeTagColors(JSON.parse(raw)); } catch (e) { /* ignore a corrupt copy */ }
+  try {
+    const d = await tcDoc(uid).get();
+    if (d.exists) remote = sanitizeTagColors(Object.fromEntries(((d.data() || {}).entries || []).map(e => [e.tag, e.color])));
+  } catch (err) { console.warn('tag colours: cloud read failed:', err.code || err.message); }
+  const chosen = remote || local;
+  if (chosen) { tagColors = chosen; lsSet(tcStoreKey(uid), JSON.stringify(chosen)); }
+  if (!remote && local) syncTagColors(true);
+}
+async function syncTagColors(quiet) {
+  if (!currentUser) return;
+  const entries = Object.entries(tagColors).map(([tag, color]) => ({ tag, color }));
+  try { await tcDoc(currentUser.uid).set({ entries, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }); }
+  catch (err) {
+    console.warn('tag colours: cloud save failed:', err.code || err.message);
+    if (!quiet && !tcSyncWarned) { tcSyncWarned = true; toast('Tag colors are saved on this device only. Deploy the updated firestore.rules to sync them.', { ms: 6000 }); }
+  }
+}
+function setTagColor(key, color) {
+  if (!key) return;
+  if (color && TAG_COLOR_IDS.has(color)) tagColors[key] = color; else delete tagColors[key];
+  if (currentUser) lsSet(tcStoreKey(currentUser.uid), JSON.stringify(tagColors));
+  syncTagColors();
+  refreshTagColorViews();
+}
+function refreshTagColorViews() {
+  renderTagChips();
+  renderNoteList();
+  if (activeNote && document.getElementById('tags-row')) { renderTagsRow(); renderPreview(); }
+}
+
+function setTagFilter(key) {
+  activeTagFilter = (activeTagFilter === key ? null : key);
+  renderTagChips();
+  renderNoteList();
+  if (!activeTagFilter || isMobile()) return; // on mobile the list is a slide-over; opening a note would hide the results
+  // open the top note of the filtered list (same order the list shows)
+  const terms = val('search').toLowerCase().split(/\s+/).filter(Boolean);
+  const first = notes
+    .filter(n => hasTag(n, activeTagFilter) && (!terms.length || noteMatches(n, terms)))
+    .sort((a, b) => (noteDate(b) || 0) - (noteDate(a) || 0))[0];
+  if (first && first.id !== activeNoteId) openNote(first.id);
+}
+
+function renderTagChips() {
+  const el = document.getElementById('tag-chips');
+  el.innerHTML = '';
+  const idx = tagIndex();
+  if (activeTagFilter && !idx.has(activeTagFilter)) activeTagFilter = null; // nothing carries that tag any more
+  const tags = [...idx.entries()].sort((a, b) => a[1].name.toLowerCase().localeCompare(b[1].name.toLowerCase()));
+  document.getElementById('tags-label').hidden = !tags.length;
+  tags.forEach(([key, { name }]) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'tag-chip';
+    const c = tagColors[key];
+    if (c) chip.dataset.tc = c;
+    chip.setAttribute('aria-pressed', String(activeTagFilter === key));
+    chip.textContent = name;
+    chip.onclick = () => setTagFilter(key);
+    el.appendChild(chip);
+  });
+}
+
+/* ---- Settings → Tag colors… popover ---- */
+
+let tcPending = []; // tags added in the popover that nothing uses yet (kept until it closes)
+const tcPopEl = () => document.getElementById('tc-pop');
+
+function openTagColors() {
+  const pop = tcPopEl();
+  tcPending = [];
+  pop.innerHTML = '';
+  const head = document.createElement('div');
+  head.className = 'tcp-head';
+  const h = document.createElement('h2');
+  h.textContent = 'Tag colors';
+  const x = document.createElement('button');
+  x.type = 'button'; x.className = 'btn btn-sm btn-ghost'; x.setAttribute('aria-label', 'Close tag colors'); x.innerHTML = ICONS.x;
+  x.onclick = () => closeTagColors();
+  head.append(h, x);
+  const hint = document.createElement('p');
+  hint.className = 'tcp-hint';
+  hint.textContent = 'A note gets a colored left border from its tags, whether they are in the tag row or typed as #tag in the text. A tag has one color; several tags can share it.';
+  const form = document.createElement('form');
+  form.className = 'tcp-add';
+  form.innerHTML = '<input id="tcp-new" type="text" placeholder="Add a tag, e.g. urgent" aria-label="Add a tag" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other"><button class="btn btn-sm" type="submit">Add</button>';
+  form.onsubmit = e => {
+    e.preventDefault();
+    const input = form.querySelector('input'), key = tagKey(input.value);
+    if (!key) return;
+    if (!tagIndex().has(key) && !tagColors[key] && !tcPending.some(t => tagKey(t) === key)) tcPending.push(input.value.trim().replace(/^#+/, ''));
+    input.value = '';
+    renderTagColorsList({ key });
+  };
+  const list = document.createElement('div');
+  list.className = 'tcp-list'; list.id = 'tcp-list';
+  pop.append(head, hint, form, list);
+  pop.hidden = false;
+  renderTagColorsList();
+  document.getElementById('tcp-new').focus();
+}
+
+function closeTagColors(returnFocus = true) {
+  const pop = tcPopEl();
+  if (!pop || pop.hidden) return;
+  pop.hidden = true;
+  pop.innerHTML = '';
+  if (returnFocus) document.getElementById('settings-btn').focus();
+}
+
+function renderTagColorsList(focus) {
+  const list = document.getElementById('tcp-list');
+  if (!list) return;
+  const rows = new Map();
+  tagIndex().forEach((v, k) => rows.set(k, v));
+  Object.keys(tagColors).forEach(k => { if (!rows.has(k)) rows.set(k, { name: k, count: 0 }); });
+  tcPending.forEach(t => { const k = tagKey(t); if (!rows.has(k)) rows.set(k, { name: t, count: 0 }); });
+  list.innerHTML = '';
+  if (!rows.size) {
+    const empty = document.createElement('div');
+    empty.className = 'tcp-empty';
+    empty.textContent = 'No tags yet. Add one above, or tag a note.';
+    list.appendChild(empty);
+    return;
+  }
+  [...rows.entries()].sort((a, b) => a[1].name.toLowerCase().localeCompare(b[1].name.toLowerCase())).forEach(([key, { name, count }]) => {
+    const row = document.createElement('div');
+    row.className = 'tcp-row'; row.dataset.key = key;
+    const nm = document.createElement('div');
+    nm.className = 'tcp-name';
+    const label = document.createElement('span');
+    label.textContent = '#' + name;
+    const n = document.createElement('span');
+    n.className = 'n'; n.textContent = count === 1 ? '1 note' : count + ' notes';
+    nm.append(label, n);
+    const sw = document.createElement('div');
+    sw.className = 'tcp-sw'; sw.setAttribute('role', 'radiogroup'); sw.setAttribute('aria-label', 'Color for #' + name);
+    const cur = tagColors[key] || '';
+    [...TAG_COLORS, ['', 'No color']].forEach(([id, text]) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'sw' + (id ? '' : ' none');
+      if (id) b.dataset.tc = id;
+      b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(cur === id));
+      b.setAttribute('aria-label', text); b.title = text;
+      b.tabIndex = cur === id ? 0 : -1;
+      b.innerHTML = ICONS.check;
+      b.onclick = () => {
+        if (!id && !tagIndex().has(key) && !tcPending.some(t => tagKey(t) === key)) tcPending.push(name); // keep the row after clearing
+        setTagColor(key, id);
+        renderTagColorsList({ key });
+      };
+      b.onkeydown = e => {
+        const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+        if (!step) return;
+        e.preventDefault();
+        const all = [...sw.children];
+        all[(all.indexOf(b) + step + all.length) % all.length].click();
+      };
+      sw.appendChild(b);
+    });
+    row.append(nm, sw);
+    list.appendChild(row);
+  });
+  if (focus) {
+    const b = list.querySelector(`.tcp-row[data-key="${CSS.escape(focus.key)}"] .sw[aria-checked="true"]`);
+    if (b) b.focus();
+  }
+}
+document.addEventListener('mousedown', e => {
+  const pop = tcPopEl();
+  if (pop && !pop.hidden && !e.target.closest('#tc-pop, #settings-wrap')) closeTagColors(false);
+});
+document.addEventListener('keydown', e => {
+  const pop = tcPopEl();
+  if (e.key === 'Escape' && pop && !pop.hidden && pop.contains(e.target)) { e.preventDefault(); closeTagColors(); }
+});
+
+function noteMatches(n, terms) {
+  const hay = (displayTitle(n) + ' ' + (n.content || '') + ' ' + (n.tags || []).join(' ')).toLowerCase();
+  return terms.every(t => hay.includes(t));
+}
+// A window of body text around the first search hit, falling back to the start of the body
+function searchSnippet(n, terms) {
+  const text = plainText(n.content);
+  const lower = text.toLowerCase();
+  const hit = terms.map(t => lower.indexOf(t)).filter(i => i >= 0).sort((a, b) => a - b)[0];
+  if (hit === undefined) return highlight(bodySnippet(n), terms);
+  const start = Math.max(0, hit - 30);
+  return (start > 0 ? '…' : '') + highlight(text.slice(start, start + 130), terms);
+}
+
+/* ---------- groups (folders) ----------
+   A group is a doc in users/{uid}/folders ({ name, order }); a note belongs to one via note.folderId (absent / null = ungrouped).
+   One level only. Pinned notes are listed once, in the global Pinned section. Collapse state is per device (localStorage). */
+
+/* multi-select: ⌘/Ctrl-click toggles, Shift-click selects a range, Space toggles from the keyboard. The editor keeps showing
+   the note that was opened first; the selection only decides what a drag / "Move to…" acts on. */
+const selectedIds = new Set();
+let selAnchor = null;
+const isMulti = () => selectedIds.size > 1;
+function visibleRowIds() { return [...document.querySelectorAll('#note-list .note-row')].filter(r => r.offsetParent !== null).map(r => r.dataset.id); }
+function selectedList() { const vis = visibleRowIds(); return [...selectedIds].sort((a, b) => vis.indexOf(a) - vis.indexOf(b)); }
+function clearSelection() { if (!selectedIds.size) return; selectedIds.clear(); renderNoteList(); }
+function toggleSelect(id) {
+  if (!selectedIds.size) {
+    if (!activeNoteId) { openNote(id); return; } // nothing open yet: the first note clicked opens and anchors the selection
+    selectedIds.add(activeNoteId);
+    if (id === activeNoteId) { selAnchor = id; renderNoteList(); return; }
+  }
+  if (selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id);
+  selAnchor = id;
+  renderNoteList();
+}
+function rangeSelect(id) {
+  const from = selAnchor || activeNoteId;
+  if (!from) { openNote(id); return; }
+  const ids = visibleRowIds(), a = ids.indexOf(from), b = ids.indexOf(id);
+  if (a < 0 || b < 0) { toggleSelect(id); return; }
+  selectedIds.clear();
+  ids.slice(Math.min(a, b), Math.max(a, b) + 1).forEach(x => selectedIds.add(x));
+  renderNoteList();
+}
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || !selectedIds.size || gmState) return;
+  if (e.target.closest && (e.target.closest('.menu') || e.target.closest('input, textarea'))) return;
+  clearSelection();
+});
+
+const UNGROUPED = '__ungrouped__'; // key for the Ungrouped section in collapsedFolders (never a Firestore id)
+const collapsedFolders = new Set();
+try { JSON.parse(lsGet('notes-collapsed-groups') || '[]').forEach(id => collapsedFolders.add(id)); } catch (e) {}
+function saveCollapsed() { lsSet('notes-collapsed-groups', JSON.stringify([...collapsedFolders])); }
+function foldersCol(uid) { return db.collection('users').doc(uid).collection('folders'); }
+function folderById(id) { return id ? folders.find(f => f.id === id) || null : null; }
+function noteFolder(n) { return folderById(n.folderId); } // a folderId pointing at a missing group counts as ungrouped
+function cleanGroupName(s) { return String(s || '').replace(/\s+/g, ' ').trim().slice(0, 60); }
+function cmpFolders(a, b) { return (a.order - b.order) || a.name.localeCompare(b.name); }
+function rulesHint(err) { return err && err.code === 'permission-denied' ? ' — deploy the updated firestore.rules (firebase deploy --only firestore:rules)' : ''; }
+
+// items: notes already filtered and sorted newest first. Pinned notes leave their group; a group's count includes them.
+function layoutNotes(items, flds) {
+  const ids = new Set(flds.map(f => f.id));
+  const rest = items.filter(n => !n.pinned);
+  return {
+    pinned: items.filter(n => n.pinned),
+    groups: flds.map(f => ({ folder: f, notes: rest.filter(n => n.folderId === f.id), total: items.filter(n => n.folderId === f.id).length })),
+    ungrouped: rest.filter(n => !n.folderId || !ids.has(n.folderId)),
+  };
+}
+// ids in their new order after moving `dragId` before / after `targetId`
+function reorderIds(ids, dragId, targetId, after) {
+  if (dragId === targetId || !ids.includes(dragId) || !ids.includes(targetId)) return ids.slice();
+  const rest = ids.filter(id => id !== dragId);
+  rest.splice(rest.indexOf(targetId) + (after ? 1 : 0), 0, dragId);
+  return rest;
+}
+
+async function loadFolders() {
+  try {
+    const snap = await foldersCol(currentUser.uid).get();
+    folders = snap.docs.map(d => ({ id: d.id, name: cleanGroupName(d.data().name) || 'Untitled group', order: Number(d.data().order) || 0 })).sort(cmpFolders);
+  } catch (err) {
+    console.error('loadFolders failed:', err.code, err.message);
+    folders = [];
+    toast(`Couldn't load groups: ${err.code || err.message}${rulesHint(err)}`, { ms: 9000 });
+  }
+}
+
+async function createFolder(rawName) {
+  if (!currentUser) { openModal('auth-modal'); return null; }
+  const name = cleanGroupName(rawName);
+  if (!name) return null;
+  const ref = foldersCol(currentUser.uid).doc();
+  const order = folders.reduce((m, f) => Math.max(m, f.order), 0) + 1;
+  try {
+    await ref.set({ name, order, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+  } catch (err) {
+    console.error('createFolder failed:', err.code, err.message);
+    toast(`Couldn't create group: ${err.code || err.message}${rulesHint(err)}`, { ms: 9000 });
+    return null;
+  }
+  const f = { id: ref.id, name, order };
+  folders.push(f);
+  folders.sort(cmpFolders);
+  renderNoteList();
+  return f;
+}
+
+async function renameFolder(id, rawName) {
+  const f = folderById(id), name = cleanGroupName(rawName);
+  if (!f || !name || name === f.name) return;
+  const old = f.name;
+  f.name = name;
+  renderNoteList();
+  try {
+    await foldersCol(currentUser.uid).doc(id).update({ name });
+  } catch (err) {
+    console.error('renameFolder failed:', err.code, err.message);
+    f.name = old;
+    renderNoteList();
+    toast(`Couldn't rename group: ${err.code || err.message}`);
+  }
+}
+
+// Deleting a group never deletes notes: its notes become ungrouped (the caller has already shown the warning)
+async function deleteFolder(id) {
+  const f = folderById(id);
+  if (!f || !currentUser) return;
+  const members = notes.filter(n => n.folderId === id);
+  try {
+    for (let i = 0; i < members.length; i += 400) {
+      const batch = db.batch();
+      members.slice(i, i + 400).forEach(n => batch.update(notesCol(currentUser.uid).doc(n.id), { folderId: null })); // updatedAt untouched
+      await batch.commit();
+    }
+    await foldersCol(currentUser.uid).doc(id).delete();
+  } catch (err) {
+    console.error('deleteFolder failed:', err.code, err.message);
+    toast(`Couldn't delete group: ${err.code || err.message}`);
+    return;
+  }
+  members.forEach(n => { n.folderId = null; });
+  folders = folders.filter(x => x.id !== id);
+  collapsedFolders.delete(id); saveCollapsed();
+  renderNoteList();
+  toast(`Deleted group “${f.name}”` + (members.length ? ` · ${members.length} note${members.length === 1 ? '' : 's'} ungrouped` : ''));
+}
+
+async function moveFolder(dragId, targetId, after) {
+  const ids = reorderIds(folders.map(f => f.id), dragId, targetId, after);
+  const before = folders.map(f => [f, f.order]);
+  folders = ids.map((id, i) => { const f = folderById(id); f.order = i + 1; return f; });
+  renderNoteList();
+  try {
+    const batch = db.batch();
+    before.forEach(([f, o]) => { if (f.order !== o) batch.update(foldersCol(currentUser.uid).doc(f.id), { order: f.order }); });
+    await batch.commit();
+  } catch (err) {
+    console.error('moveFolder failed:', err.code, err.message);
+    before.forEach(([f, o]) => { f.order = o; });
+    folders.sort(cmpFolders);
+    renderNoteList();
+    toast(`Couldn't reorder groups: ${err.code || err.message}`);
+  }
+}
+
+// Move notes into a group (or out, with null). Only the field changes, so notes keep their dates and list positions.
+async function setNotesFolder(ids, folderId) {
+  folderId = folderId || null;
+  const moving = ids.map(id => notes.find(n => n.id === id)).filter(n => n && (n.folderId || null) !== folderId);
+  if (!moving.length || !currentUser) return;
+  const prev = new Map(moving.map(n => [n, n.folderId || null]));
+  moving.forEach(n => { n.folderId = folderId; });
+  const key = folderById(folderId) ? folderId : UNGROUPED; // keep the open note visible after moving it
+  if (collapsedFolders.has(key) && moving.some(n => n.id === activeNoteId)) { collapsedFolders.delete(key); saveCollapsed(); }
+  renderNoteList();
+  const f = folderById(folderId), where = f ? `“${f.name}”` : 'Ungrouped';
+  toast(moving.length === 1 ? `Moved to ${where}` : `Moved ${moving.length} notes to ${where}`);
+  try {
+    for (let i = 0; i < moving.length; i += 400) {
+      const batch = db.batch();
+      moving.slice(i, i + 400).forEach(n => batch.update(notesCol(currentUser.uid).doc(n.id), { folderId }));
+      await batch.commit();
+    }
+  } catch (err) {
+    console.error('setNotesFolder failed:', err.code, err.message);
+    prev.forEach((old, n) => { n.folderId = old; });
+    renderNoteList();
+    toast(`Couldn't move ${moving.length === 1 ? 'note' : 'notes'}: ${err.code || err.message}`);
+  }
+}
+function setNoteFolder(id, folderId) { return setNotesFolder([id], folderId); }
+
+function toggleUngrouped() {
+  if (collapsedFolders.has(UNGROUPED)) collapsedFolders.delete(UNGROUPED); else collapsedFolders.add(UNGROUPED);
+  saveCollapsed();
+  renderNoteList(); // also drops the now-hidden notes from the selection
+  const t = document.querySelector('.ungrouped .ug-toggle');
+  if (t) t.focus();
+}
+function isUngroupedHidden(n) { // in the Ungrouped section while it is collapsed (only when groups exist)
+  return folders.length > 0 && collapsedFolders.has(UNGROUPED) && !n.pinned && !folderById(n.folderId);
+}
+function toggleFolder(id) {
+  if (collapsedFolders.has(id)) collapsedFolders.delete(id); else collapsedFolders.add(id);
+  notes.forEach(n => { if (n.folderId === id && !n.pinned) selectedIds.delete(n.id); }); // collapsed notes can't stay selected
+  saveCollapsed();
+  renderNoteList();
+  const t = document.querySelector(`.grp[data-id="${id}"] .grp-toggle`);
+  if (t) t.focus();
+}
+
+/* group dialog: one modal reused for create / rename / delete-warning / move */
+let gmState = null;
+function openGroupModal(o) {
+  gmState = o;
+  const $ = id => document.getElementById(id);
+  $('gm-title').textContent = o.title;
+  const msg = $('gm-msg'); msg.textContent = o.message || ''; msg.hidden = !o.message;
+  const inp = $('gm-input'); inp.hidden = !o.input;
+  if (o.input) { inp.value = o.input.value || ''; inp.placeholder = o.input.placeholder || 'Group name'; }
+  const list = $('gm-list'); list.innerHTML = ''; list.hidden = !o.list;
+  (o.list || []).forEach(it => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'mv-item';
+    if (it.current) b.setAttribute('aria-current', 'true');
+    b.innerHTML = it.icon || '';
+    const s = document.createElement('span'); s.textContent = it.label; b.appendChild(s);
+    b.onclick = () => { closeGroupModal(); it.onPick(); };
+    list.appendChild(b);
+  });
+  const ok = $('gm-ok'); ok.hidden = !o.okLabel; ok.textContent = o.okLabel || '';
+  ok.className = 'btn btn-sm ' + (o.danger ? 'btn-danger' : 'btn-primary');
+  openModal('group-modal');
+  setTimeout(() => (o.input ? inp : o.danger ? $('gm-cancel') : o.list ? (list.querySelector('[aria-current="true"]') || list.firstChild) : ok).focus(), 0);
+}
+function closeGroupModal() { gmState = null; closeModal('group-modal'); }
+async function submitGroupModal() {
+  const o = gmState;
+  if (!o || !o.onOk) return;
+  const v = o.input ? document.getElementById('gm-input').value.trim() : null;
+  if (o.input && !v) { document.getElementById('gm-input').focus(); return; }
+  closeGroupModal();
+  await o.onOk(v);
+}
+document.addEventListener('keydown', e => {
+  if (!gmState) return;
+  if (e.key === 'Escape') { e.preventDefault(); closeGroupModal(); }
+  else if (e.key === 'Enter' && e.target.id === 'gm-input') { e.preventDefault(); submitGroupModal(); }
+});
+
+function newGroupPrompt(then) {
+  if (!currentUser) { openModal('auth-modal'); return; }
+  openGroupModal({
+    title: 'New group', input: { placeholder: 'Group name' }, okLabel: 'Create group',
+    onOk: async name => { const f = await createFolder(name); if (f && typeof then === 'function') await then(f); },
+  });
+}
+function renameGroupPrompt(id) {
+  const f = folderById(id);
+  if (!f) return;
+  openGroupModal({ title: 'Rename group', input: { value: f.name }, okLabel: 'Rename', onOk: name => renameFolder(id, name) });
+}
+function deleteGroupPrompt(id) {
+  const f = folderById(id);
+  if (!f) return;
+  const n = notes.filter(x => x.folderId === id).length;
+  openGroupModal({
+    title: `Delete group “${f.name}”?`,
+    message: n
+      ? `This group has ${n} note${n === 1 ? '' : 's'}. Deleting it moves ${n === 1 ? 'that note' : 'them'} to Ungrouped. The notes themselves are not deleted.`
+      : 'This group is empty. Only the group will be deleted.',
+    okLabel: 'Delete group', danger: true, onOk: () => deleteFolder(id),
+  });
+}
+function openMoveModal(ids) {
+  ids = (ids && ids.length ? ids : [activeNoteId]).filter(Boolean);
+  const ns = ids.map(id => notes.find(n => n.id === id)).filter(Boolean);
+  if (!ns.length) return;
+  const cur = id => (folderById(ns[0].folderId) ? ns[0].folderId : null) === id;
+  const same = ns.every(n => (folderById(n.folderId) ? n.folderId : null) === (folderById(ns[0].folderId) ? ns[0].folderId : null));
+  openGroupModal({
+    title: ns.length > 1 ? `Move ${ns.length} notes to group` : 'Move to group',
+    list: [
+      { label: 'Ungrouped', icon: ICONS.x, current: same && cur(null), onPick: () => setNotesFolder(ids, null) },
+      ...folders.map(f => ({ label: f.name, icon: ICONS.folder, current: same && cur(f.id), onPick: () => setNotesFolder(ids, f.id) })),
+      { label: 'New group…', icon: ICONS.plus, onPick: () => newGroupPrompt(f => setNotesFolder(ids, f.id)) },
+    ],
+  });
+}
+
+// "New note" caret menu: one entry per group
+function renderNewNoteMenu() {
+  const m = document.getElementById('new-note-menu');
+  if (!m) return;
+  m.innerHTML = '';
+  const head = document.createElement('div');
+  head.className = 'menu-head';
+  head.textContent = folders.length ? 'New note in…' : 'No groups yet';
+  m.appendChild(head);
+  folders.forEach(f => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'menu-item'; b.setAttribute('role', 'menuitem');
+    b.innerHTML = ICONS.folder;
+    const s = document.createElement('span'); s.className = 'nm'; s.textContent = f.name; b.appendChild(s);
+    b.onclick = () => { closeMenus(); createNewNote(f.id); };
+    m.appendChild(b);
+  });
+  if (folders.length) { const sep = document.createElement('div'); sep.className = 'menu-sep'; m.appendChild(sep); }
+  const nb = document.createElement('button');
+  nb.type = 'button'; nb.className = 'menu-item'; nb.setAttribute('role', 'menuitem');
+  nb.innerHTML = ICONS.plus + 'New group…';
+  nb.onclick = () => { closeMenus(); newGroupPrompt(); };
+  m.appendChild(nb);
+}
+
+/* drag & drop (mouse). Touch and keyboard use "Move to group…" in the note's … menu. */
+let dragItem = null; // { type: 'note' | 'group', id }
+function clearDropMarks() {
+  document.querySelectorAll('.drop-target, .drop-before, .drop-after').forEach(el => el.classList.remove('drop-target', 'drop-before', 'drop-after'));
+}
+function endDrag() {
+  dragItem = null;
+  clearDropMarks();
+  document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+  document.getElementById('note-list').classList.remove('dragging');
+}
+function startDrag(e, el, item) {
+  dragItem = item;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('application/x-notes-drag', item.type === 'note' ? item.ids.join(',') : item.id);
+  el.classList.add('dragging');
+  if (item.type === 'note' && item.ids.length > 1) {
+    item.ids.forEach(id => document.querySelectorAll(`.note-row[data-id="${id}"]`).forEach(r => r.classList.add('dragging')));
+    const ghost = document.createElement('div'); // drag image: "3 notes"
+    ghost.textContent = `${item.ids.length} notes`;
+    ghost.style.cssText = 'position:fixed;top:-100px;left:-100px;padding:6px 12px;border-radius:8px;background:var(--primary);color:#fff;font:600 12px system-ui,sans-serif;';
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 12, 12);
+    setTimeout(() => ghost.remove(), 0);
+  }
+  document.getElementById('note-list').classList.add('dragging');
+}
+(function setupDnD() {
+  const list = document.getElementById('note-list');
+  const isAfter = (grp, y) => { const r = grp.querySelector('.grp-head').getBoundingClientRect(); return y > r.top + r.height / 2; };
+  list.addEventListener('dragover', e => {
+    if (!dragItem) return;
+    const grp = e.target.closest('.grp'), zone = e.target.closest('.ungrouped');
+    clearDropMarks();
+    if (dragItem.type === 'note') {
+      const t = grp || zone;
+      if (!t) return; // not a drop target (e.g. the Pinned section)
+      e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+      t.classList.add('drop-target');
+    } else if (grp && grp.dataset.id !== dragItem.id) {
+      e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+      grp.classList.add(isAfter(grp, e.clientY) ? 'drop-after' : 'drop-before');
+    }
+  });
+  list.addEventListener('dragleave', e => { if (!list.contains(e.relatedTarget)) clearDropMarks(); });
+  list.addEventListener('drop', e => {
+    if (!dragItem) return;
+    e.preventDefault();
+    const item = dragItem, grp = e.target.closest('.grp'), zone = e.target.closest('.ungrouped');
+    const after = grp ? isAfter(grp, e.clientY) : false;
+    endDrag();
+    if (item.type === 'note' && (grp || zone)) { selectedIds.clear(); setNotesFolder(item.ids, grp ? grp.dataset.id : null); }
+    else if (grp) moveFolder(item.id, grp.dataset.id, after);
+  });
+})();
+
+/* ---------- note list / tags / search: sidebar rendering ---------- */
+
+function noteRow(n, { terms = [], pinned = false, showFolder = false } = {}) {
+  const row = document.createElement('div'); // a div (role=button): rows are draggable and hold their own unpin button
+  row.setAttribute('role', 'button');
+  row.tabIndex = 0;
+  row.draggable = true;
+  row.className = 'note-row' + (n.id === activeNoteId ? ' active' : '') + (isMulti() && selectedIds.has(n.id) ? ' selected' : '');
+  row.dataset.id = n.id;
+  const tagNames = effectiveTags(n), tagCols = noteColors(n);
+  if (tagCols.length) { row.classList.add('tagged'); row.style.setProperty('--tc-stripe', stripeGradient(tagCols)); }
+  if (isMulti()) row.setAttribute('aria-selected', String(selectedIds.has(n.id)));
+  const snippet = terms.length ? searchSnippet(n, terms) : escapeHtml(bodySnippet(n));
+  const f = showFolder ? noteFolder(n) : null;
+  row.innerHTML =
+    `<span class="r1">${pinned ? `<span class="pin-btn" role="button" tabindex="0" title="Unpin" aria-label="Unpin note">${ICONS.pin.replace('class="i"', 'class="i p"')}${ICONS.x}</span>` : ''}<span class="t">${highlight(displayTitle(n), terms)}</span>` +
+    (f ? `<span class="g" title="Group: ${escapeHtml(f.name)}">${escapeHtml(f.name)}</span>` : '') +
+    `<span class="d">${escapeHtml(formatListDate(noteDate(n)))}</span></span>` +
+    (snippet ? `<span class="s">${snippet}</span>` : `<span class="s none">${n.content && n.content.trim() ? '' : 'Empty note'}</span>`) +
+    (tagNames.length ? `<span class="sr-only">Tags: ${escapeHtml(tagNames.join(', '))}</span>` : '');
+  row.onclick = e => {
+    if (e.metaKey || e.ctrlKey) toggleSelect(n.id);
+    else if (e.shiftKey) rangeSelect(n.id);
+    else openNote(n.id);
+  };
+  row.onkeydown = e => {
+    if (e.target !== row) return;
+    if (e.key === 'Enter') { e.preventDefault(); openNote(n.id); }
+    else if (e.key === ' ') { e.preventDefault(); toggleSelect(n.id); }
+  };
+  row.ondragstart = e => startDrag(e, row, { type: 'note', ids: isMulti() && selectedIds.has(n.id) ? selectedList() : [n.id] });
+  row.ondragend = endDrag;
+  const pinBtn = row.querySelector('.pin-btn');
+  if (pinBtn) { // a span: nested buttons aren't valid HTML
+    pinBtn.onclick = e => { e.stopPropagation(); setPinned(n.id, false); };
+    pinBtn.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setPinned(n.id, false); } };
+  }
+  return row;
+}
+
+function groupBlock(g, terms) {
+  const f = g.folder, open = !collapsedFolders.has(f.id);
+  const el = document.createElement('div');
+  el.className = 'grp'; el.dataset.id = f.id; el.dataset.open = String(open);
+  const head = document.createElement('div');
+  head.className = 'grp-head'; head.draggable = true;
+  head.ondragstart = e => startDrag(e, el, { type: 'group', id: f.id });
+  head.ondragend = endDrag;
+  const tog = document.createElement('button');
+  tog.type = 'button'; tog.className = 'grp-toggle';
+  tog.setAttribute('aria-expanded', String(open));
+  tog.setAttribute('aria-label', `${f.name}, ${g.total} note${g.total === 1 ? '' : 's'}`);
+  tog.innerHTML = ICONS.chev.replace('class="i"', 'class="i chev"') + ICONS.folder.replace('class="i"', 'class="i fi"');
+  const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = f.name;
+  const cnt = document.createElement('span'); cnt.className = 'cnt'; cnt.textContent = g.total;
+  tog.append(nm, cnt);
+  tog.onclick = () => toggleFolder(f.id);
+  const add = document.createElement('button');
+  add.type = 'button'; add.className = 'grp-act'; add.title = 'New note in this group'; add.setAttribute('aria-label', `New note in ${f.name}`);
+  add.innerHTML = ICONS.plus;
+  add.onclick = () => createNewNote(f.id);
+  const wrap = document.createElement('div');
+  wrap.className = 'menu-wrap';
+  wrap.innerHTML =
+    `<button type="button" class="grp-act" onclick="toggleMenu(this)" aria-haspopup="menu" aria-expanded="false" aria-label="Group actions" title="Group actions">${ICONS.more}</button>` +
+    `<div class="menu" role="menu" hidden>` +
+    `<button type="button" class="menu-item" role="menuitem" data-act="rename">${ICONS.edit}Rename group</button>` +
+    `<div class="menu-sep"></div>` +
+    `<button type="button" class="menu-item danger" role="menuitem" data-act="delete">${ICONS.trash}Delete group…</button></div>`;
+  wrap.querySelector('[data-act=rename]').onclick = () => { closeMenus(); renameGroupPrompt(f.id); };
+  wrap.querySelector('[data-act=delete]').onclick = () => { closeMenus(); deleteGroupPrompt(f.id); };
+  head.append(tog, add, wrap);
+  const body = document.createElement('div');
+  body.className = 'grp-body';
+  if (g.notes.length) g.notes.forEach(n => body.appendChild(noteRow(n, { terms })));
+  else body.innerHTML = `<div class="grp-empty">${g.total ? 'Only pinned notes here.' : 'Empty. Drag notes here, or use +.'}</div>`;
+  el.append(head, body);
+  return el;
+}
+
+// Re-render the sidebar list, keeping keyboard focus on the same row (rows are rebuilt from scratch every time)
+function renderNoteList() {
+  const ae = document.activeElement;
+  const focusId = ae && ae.classList && ae.classList.contains('note-row') ? ae.dataset.id : null;
+  renderNoteListInner();
+  if (focusId) { const r = document.querySelector(`#note-list .note-row[data-id="${focusId}"]`); if (r) r.focus(); }
+}
+function renderNoteListInner() {
+  const terms = val('search').toLowerCase().split(/\s+/).filter(Boolean);
+  const list = document.getElementById('note-list');
+  list.innerHTML = '';
+  renderNewNoteMenu();
+  const items = notes
+    .filter(n => !activeTagFilter || hasTag(n, activeTagFilter))
+    .filter(n => !terms.length || noteMatches(n, terms))
+    .sort((a, b) => (noteDate(b) || 0) - (noteDate(a) || 0));
+  { // drop selected ids that no longer show (deleted, filtered out, in a collapsed group)
+    const shown = new Set(items.map(n => n.id));
+    if (!terms.length && !activeTagFilter) notes.forEach(n => { if ((n.folderId && !n.pinned && collapsedFolders.has(n.folderId)) || isUngroupedHidden(n)) shown.delete(n.id); });
+    [...selectedIds].forEach(id => { if (!shown.has(id)) selectedIds.delete(id); });
+    const bar = document.getElementById('sel-bar');
+    bar.hidden = !isMulti();
+    document.getElementById('sel-count').textContent = `${selectedIds.size} selected`;
+  }
+  const label = (text, cls = '') => {
+    const h = document.createElement('div');
+    h.className = 'section-label' + cls + (list.children.length === 0 ? ' first' : '');
+    h.textContent = text;
+    return h;
+  };
+  // searching or filtering by tag: one flat list, each note tagged with its group
+  if (terms.length || activeTagFilter) {
+    if (!items.length) { list.innerHTML = '<div class="empty-list">No matching notes.</div>'; return; }
+    list.appendChild(label(`Results · ${items.length}`));
+    items.forEach(n => list.appendChild(noteRow(n, { terms, showFolder: true })));
+    return;
+  }
+  const L = layoutNotes(items, folders);
+  if (L.pinned.length) {
+    list.appendChild(label('Pinned'));
+    L.pinned.forEach(n => list.appendChild(noteRow(n, { pinned: true, showFolder: true })));
+  }
+  L.groups.forEach(g => list.appendChild(groupBlock(g, terms)));
+  const dated = groupNotes(L.ungrouped);
+  if (!folders.length) { // no groups: the plain Today / Yesterday / Earlier list
+    if (!items.length) { list.innerHTML = '<div class="empty-list">No notes yet.</div>'; return; }
+    dated.forEach(([lbl, arr]) => { list.appendChild(label(lbl)); arr.forEach(n => list.appendChild(noteRow(n))); });
+    return;
+  }
+  // with groups: ungrouped notes sit below a divider (this block is also the drop target for "remove from group")
+  const open = !collapsedFolders.has(UNGROUPED);
+  const zone = document.createElement('div');
+  zone.className = 'ungrouped'; zone.dataset.open = String(open);
+  const tog = document.createElement('button');
+  tog.type = 'button'; tog.className = 'grp-toggle ug-toggle';
+  tog.setAttribute('aria-expanded', String(open));
+  tog.setAttribute('aria-label', `Ungrouped, ${L.ungrouped.length} note${L.ungrouped.length === 1 ? '' : 's'}`);
+  tog.innerHTML = ICONS.chev.replace('class="i"', 'class="i chev"') + '<span class="nm">Ungrouped</span>';
+  const cnt = document.createElement('span'); cnt.className = 'cnt'; cnt.textContent = L.ungrouped.length;
+  tog.appendChild(cnt);
+  tog.onclick = toggleUngrouped;
+  zone.appendChild(tog);
+  const body = document.createElement('div');
+  body.className = 'ungrouped-body';
+  if (!L.ungrouped.length) body.innerHTML = '<div class="grp-empty">No ungrouped notes. Drag a note here to take it out of its group.</div>';
+  dated.forEach(([lbl, arr]) => {
+    const s = document.createElement('div'); s.className = 'section-label sub'; s.textContent = lbl;
+    body.appendChild(s);
+    arr.forEach(n => body.appendChild(noteRow(n)));
+  });
+  zone.appendChild(body);
+  list.appendChild(zone);
+}
+
+/* ---------- one-time cleanup of the retired "Link name" field ---------- */
+
+// Notes used to have an optional "Link name" (userTitle) that [[links]] could use instead of the title.
+// Before that field is deleted, any [[link]] written with a link name is rewritten to the note's title so none break.
+function planLinkNameMigration(list) {
+  const remap = new Map(); // lowercased old link name -> title to link to now
+  list.forEach(n => {
+    const old = String(n.userTitle || '').trim();
+    if (!old || /^New Note \(\d+\)$/.test(old)) return; // empty or the old auto-generated placeholder
+    const t = titleLine(n.content), k = old.toLowerCase();
+    if (!t.text || t.text.toLowerCase() === k || t.full.toLowerCase() === k || remap.has(k)) return; // already resolves by title
+    remap.set(k, t.text);
+  });
+  let linkCount = 0, fieldCount = 0;
+  const updates = [];
+  list.forEach(n => {
+    const had = 'userTitle' in n;
+    let content = n.content || '';
+    if (remap.size) {
+      content = content.replace(/\[\[([^\]\n]+)\]\]/g, (m, name) => {
+        const to = remap.get(name.trim().toLowerCase());
+        if (!to) return m;
+        linkCount++;
+        return `[[${to}]]`;
+      });
+    }
+    const changed = content !== (n.content || '');
+    if (had) fieldCount++;
+    if (had || changed) updates.push({ id: n.id, dropField: had, content: changed ? content : null });
+  });
+  return { updates, linkCount, fieldCount };
+}
+
+let linkNameMigrationDeclined = false;
+async function migrateLinkNames() {
+  if (!currentUser || linkNameMigrationDeclined) return;
+  const plan = planLinkNameMigration(notes);
+  if (!plan.updates.length) return;
+  const { fieldCount: nf, linkCount: nl } = plan;
+  if (!confirm(`The "Link name" field has been removed from Notes.\n\nDelete it from ${nf} note${nf === 1 ? '' : 's'}?` +
+      (nl ? `\n\n${nl} [[link]]${nl === 1 ? '' : 's'} that used a link name will be rewritten to the note's title so none break.` : ''))) {
+    linkNameMigrationDeclined = true; // asked again next time the app loads; the leftover field is ignored
+    return;
+  }
+  try {
+    for (let i = 0; i < plan.updates.length; i += 400) {
+      const batch = db.batch();
+      plan.updates.slice(i, i + 400).forEach(u => {
+        const data = {};
+        if (u.dropField) data.userTitle = firebase.firestore.FieldValue.delete();
+        if (u.content !== null) data.content = u.content; // updatedAt is left alone so the list order doesn't change
+        batch.update(notesCol(currentUser.uid).doc(u.id), data);
+      });
+      await batch.commit();
+    }
+  } catch (err) {
+    console.error('migrateLinkNames failed:', err.code, err.message);
+    toast(`Couldn't remove link names: ${err.code || err.message}`);
+    return;
+  }
+  plan.updates.forEach(u => {
+    const n = notes.find(n => n.id === u.id);
+    if (!n) return;
+    delete n.userTitle;
+    if (u.content !== null) n.content = u.content;
+  });
+  renderNoteList();
+  if (activeNote) renderRelated();
+  toast(`Removed link names` + (nl ? ` · updated ${nl} link${nl === 1 ? '' : 's'}` : ''));
+}
+
+/* ---------- CRUD ---------- */
+
+async function createNewNote(folderId = null) {
+  if (!currentUser) { openModal('auth-modal'); return; }
+  if (typeof folderId !== 'string' || !folderById(folderId)) folderId = null; // also ignores click events
+  const ref = notesCol(currentUser.uid).doc();
+  const data = {
+    title: defaultTitle(new Date()), content: '', tags: [], public: false, pinned: false, folderId,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  };
+  try {
+    await ref.set(data);
+  } catch (err) {
+    console.error('createNewNote failed:', err.code, err.message);
+    toast(`Couldn't create note: ${err.code || err.message}`);
+    return;
+  }
+  notes.unshift({ id: ref.id, ...data, createdAt: new Date(), updatedAt: new Date() });
+  if (viewMode === 'preview') viewMode = 'edit';
+  openNote(ref.id, { focus: true }); // also expands the group if it was collapsed
+}
+
+async function createNoteWithTitle(name, { open = true } = {}) {
+  if (!currentUser) return null;
+  name = name.trim();
+  if (!name) return null;
+  const ref = notesCol(currentUser.uid).doc();
+  const data = {
+    title: defaultTitle(new Date()), content: `# ${name}\n\n`, tags: [], public: false, pinned: false, folderId: null,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  };
+  try {
+    await ref.set(data);
+  } catch (err) {
+    console.error('createNoteWithTitle failed:', err.code, err.message);
+    toast(`Couldn't create note: ${err.code || err.message}`);
+    return null;
+  }
+  const note = { id: ref.id, ...data, createdAt: new Date(), updatedAt: new Date() };
+  notes.unshift(note);
+  renderNoteList();
+  if (open) openNote(ref.id, { focus: true });
+  return note;
+}
+
+function openNote(id, opts = {}) {
+  const n = notes.find(n => n.id === id);
+  if (!n) return;
+  selectedIds.clear(); selAnchor = id;
+  if (n.folderId && !n.pinned && collapsedFolders.has(n.folderId)) { collapsedFolders.delete(n.folderId); saveCollapsed(); } // reveal it in its group
+  if (isUngroupedHidden(n)) { collapsedFolders.delete(UNGROUPED); saveCollapsed(); } // ...or in the Ungrouped section
+  if (dirty && activeNoteId && activeNoteId !== id) saveActiveNote(); // flush edits to the note we're leaving
+  activeNoteId = id;
+  activeNote = { title: n.title || '', content: n.content || '', tags: n.tags ? [...n.tags] : [], public: !!n.public, pinned: !!n.pinned };
+  dirty = false;
+  renderNoteList();
+  renderEditor();
+  renderRelated();
+  if (opts.focus && viewMode !== 'preview') document.getElementById('md-input').focus();
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('related-pane').classList.remove('open');
+}
+
+function showEmptyEditor(msg) {
+  const pane = document.getElementById('editor-pane');
+  pane.className = 'empty-state';
+  pane.innerHTML = `<div>${escapeHtml(msg)}</div>`;
+  closeLinkPicker();
+  setRelatedState(false);
+}
+
+function setSaveState(s) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  el.dataset.state = s;
+  el.textContent = { saving: 'Saving…', saved: 'Saved', error: 'Save failed' }[s] || '';
+}
+
+function scheduleSave() {
+  dirty = true;
+  setSaveState('saving');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveActiveNote, 900);
+}
+
+async function saveActiveNote() {
+  clearTimeout(saveTimer); saveTimer = null;
+  if (!activeNoteId || !currentUser) return;
+  const id = activeNoteId;
+  dirty = false;
+  const data = {
+    title: activeNote.title, content: activeNote.content, tags: activeNote.tags,
+    public: activeNote.public, pinned: activeNote.pinned,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  };
+  // Shared view can't read the user's profile, so store a display name on the note itself (no email address)
+  if (activeNote.public) data.authorName = currentUser.displayName || (currentUser.email || '').split('@')[0] || '';
+  try {
+    await notesCol(currentUser.uid).doc(id).update(data);
+  } catch (err) {
+    console.error('saveActiveNote failed:', err.code, err.message);
+    dirty = true;
+    if (id === activeNoteId) setSaveState('error');
+    toast(`Couldn't save: ${err.code || err.message}`);
+    return;
+  }
+  const cached = notes.find(n => n.id === id);
+  if (cached) Object.assign(cached, data, { updatedAt: new Date() });
+  if (id === activeNoteId) {
+    if (!dirty) setSaveState('saved');
+    renderRelated();
+  }
+  renderNoteList();
+  renderTagChips();
+  // inline #tags changed: refresh the read-only pills (not while the tag box is in use)
+  if (id === activeNoteId && activeNote && document.getElementById('tags-row') && document.activeElement && document.activeElement.id !== 'tag-input'
+      && inlineTags(activeNote.content).join('\u0001') !== inlineSig) renderTagsRow();
+}
+window.addEventListener('pagehide', () => { if (dirty) saveActiveNote(); });
+
+// Delete is deferred: the note disappears at once, and the Firestore/Storage delete only runs when the undo window closes.
+function deleteActiveNote() {
+  if (!activeNoteId) return;
+  commitPendingDelete();
+  clearTimeout(saveTimer); saveTimer = null; dirty = false;
+  const note = notes.find(n => n.id === activeNoteId);
+  if (!note) return;
+  Object.assign(note, activeNote); // keep unsaved edits so Undo restores them
+  notes = notes.filter(n => n !== note);
+  activeNoteId = null; activeNote = null;
+  renderNoteList();
+  renderTagChips();
+  showEmptyEditor('Note deleted. Select another note, or create a new one.');
+  const p = { note, timer: setTimeout(() => commitPendingDelete(), 7000) };
+  pendingDelete = p;
+  toast('Note deleted', { action: 'Undo', ms: 7000, onAction: () => undoDelete(p) });
+}
+function undoDelete(p) {
+  if (pendingDelete !== p) return;
+  clearTimeout(p.timer);
+  pendingDelete = null;
+  notes.push(p.note);
+  renderNoteList();
+  renderTagChips();
+  openNote(p.note.id);
+}
+async function commitPendingDelete() {
+  const p = pendingDelete;
+  if (!p) return;
+  clearTimeout(p.timer);
+  pendingDelete = null;
+  try {
+    await deleteNoteFiles(p.note.id);
+  } catch (err) {
+    console.warn('Some attached files could not be deleted:', err.code, err.message);
+  }
+  try {
+    await notesCol(currentUser.uid).doc(p.note.id).delete();
+  } catch (err) {
+    console.error('delete failed:', err.code, err.message);
+    toast(`Couldn't delete: ${err.code || err.message}`);
+    notes.push(p.note);
+    renderNoteList();
+    renderTagChips();
+  }
+}
+
+async function deleteNoteFiles(noteId) {
+  const folderRef = storage.ref(`users/${currentUser.uid}/notes/${noteId}`);
+  const listing = await folderRef.listAll();
+  await Promise.all(listing.items.map(item =>
+    item.delete().catch(e => console.warn('Could not delete file', item.fullPath, e.code || e.message))
+  ));
+}
+
+// Pin / unpin any note (the open one saves with its other edits; others get a direct field update, which leaves their date alone)
+async function setPinned(id, value) {
+  const n = notes.find(n => n.id === id);
+  if (!n || !currentUser) return;
+  n.pinned = value;
+  const isActive = id === activeNoteId && activeNote;
+  if (isActive) activeNote.pinned = value;
+  renderNoteList();
+  refreshMenuState();
+  toast(value ? 'Pinned' : 'Unpinned');
+  if (isActive) { scheduleSave(); return; }
+  try {
+    await notesCol(currentUser.uid).doc(id).update({ pinned: value });
+  } catch (err) {
+    console.error('setPinned failed:', err.code, err.message);
+    n.pinned = !value;
+    renderNoteList();
+    toast(`Couldn't ${value ? 'pin' : 'unpin'}: ${err.code || err.message}`);
+  }
+}
+function togglePin() {
+  if (activeNote) setPinned(activeNoteId, !activeNote.pinned);
+}
+
+/* ---------- editor rendering ---------- */
+
+function createdLabel() {
+  const n = notes.find(n => n.id === activeNoteId);
+  const d = n && toDate(n.createdAt);
+  return d ? `Created ${d.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}` : '';
+}
+
+function renderEditor() {
+  closeLinkPicker();
+  closeMenus();
+  const pane = document.getElementById('editor-pane');
+  pane.className = '';
+  const modeBtn = (m, label) => `<button type="button" data-mode="${m}" aria-pressed="${viewMode === m}" onclick="setViewMode('${m}')">${label}</button>`;
+  pane.innerHTML = `
+    <div class="editor-wrap" data-mode="${viewMode}">
+      <div class="meta-row">
+        <span id="note-created">${escapeHtml(createdLabel())}</span>
+      </div>
+      <div id="tags-row"></div>
+      <div id="toolbar" role="toolbar" aria-label="Note tools">
+        <button class="btn btn-icon btn-sm" data-needs-editor aria-label="Bold" title="Bold" onclick="wrapSelection('**','**')"><b>B</b></button>
+        <button class="btn btn-icon btn-sm" data-needs-editor aria-label="Italic" title="Italic" onclick="wrapSelection('_','_')"><i>i</i></button>
+        <button class="btn btn-icon btn-sm" data-needs-editor aria-label="Link to note" title="Link to note" onclick="wrapSelection('[[',']]')">[[ ]]</button>
+        <button class="btn btn-icon btn-sm" data-needs-editor aria-label="Insert image" title="Insert image" onclick="document.getElementById('image-input').click()">${ICONS.image}</button>
+        <div class="spacer"></div>
+        <div class="seg" role="group" aria-label="View mode">${modeBtn('edit', 'Edit')}${modeBtn('split', 'Split')}${modeBtn('preview', 'Preview')}</div>
+        <span id="save-status" data-state="saved" aria-live="polite">Saved</span>
+        <button class="btn btn-sm" id="vis-btn" onclick="toggleVisibility()"></button>
+        <button class="btn btn-sm" onclick="shareNote()">Share ↗</button>
+        <div class="menu-wrap">
+          <button class="btn btn-icon btn-sm" onclick="toggleMenu(this)" aria-haspopup="menu" aria-expanded="false" aria-label="More actions" title="More actions">${ICONS.more}</button>
+          <div class="menu" role="menu" hidden>
+            <button class="menu-item" role="menuitem" id="menu-pin" onclick="closeMenus(); togglePin()"></button>
+            <button class="menu-item" role="menuitem" id="menu-move" onclick="closeMenus(); openMoveModal()">${ICONS.folder}Move to group…</button>
+            <button class="menu-item" role="menuitem" id="menu-copy" onclick="closeMenus(); copyShareLink()">${ICONS.link}Copy share link</button>
+            <div class="menu-sep"></div>
+            <button class="menu-item danger" role="menuitem" onclick="closeMenus(); deleteActiveNote()">${ICONS.trash}Delete note</button>
+          </div>
+        </div>
+      </div>
+      <div id="edit-area" data-mode="${viewMode}">
+        <textarea id="md-input" aria-label="Note content" autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" placeholder="Start with a # heading — it becomes the note's title.&#10;Type [[ to link to another note."></textarea>
+        <div id="md-preview"></div>
+      </div>
+    </div>
+  `;
+  const ta = document.getElementById('md-input');
+  ta.value = activeNote.content;
+  ta.addEventListener('input', onContentInput);
+  ta.addEventListener('paste', onEditorPaste);
+  ta.addEventListener('keydown', onEditorKeydown);
+  ta.addEventListener('click', updateLinkPicker);
+  ta.addEventListener('blur', () => setTimeout(closeLinkPicker, 120));
+  ta.addEventListener('keyup', e => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) updateLinkPicker(); });
+  renderTagsRow();
+  renderPreview();
+  renderShareStatus();
+  refreshMenuState();
+  document.querySelectorAll('[data-needs-editor]').forEach(b => b.disabled = viewMode === 'preview');
+}
+
+function setViewMode(m) {
+  viewMode = m;
+  lsSet('notes-view-mode', m);
+  const wrap = document.querySelector('.editor-wrap');
+  if (!wrap) return;
+  wrap.dataset.mode = m;
+  document.getElementById('edit-area').dataset.mode = m;
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+  document.querySelectorAll('[data-needs-editor]').forEach(b => b.disabled = m === 'preview');
+  closeLinkPicker();
+  renderPreview();
+  if (m === 'edit') document.getElementById('md-input').focus();
+}
+
+function onContentInput(e) { activeNote.content = e.target.value; renderPreview(); scheduleSave(); updateLinkPicker(); }
+
+let inlineSig = ''; // inline #tags currently shown in the tags row
+function renderTagsRow() {
+  const el = document.getElementById('tags-row');
+  el.innerHTML = '';
+  activeNote.tags.forEach((t, i) => {
+    const pill = document.createElement('span');
+    pill.className = 'tag-pill';
+    const c = tagColorOf(t);
+    if (c) pill.dataset.tc = c;
+    pill.innerHTML = `${escapeHtml(t)} <button aria-label="Remove tag ${escapeHtml(t)}">✕</button>`;
+    pill.querySelector('button').onclick = () => { activeNote.tags.splice(i, 1); renderTagsRow(); scheduleSave(); };
+    el.appendChild(pill);
+  });
+  // #tags typed in the note text: shown here too (read-only; edit them in the text)
+  const metaKeys = new Set(activeNote.tags.map(tagKey));
+  const inl = inlineTags(activeNote.content);
+  inlineSig = inl.join('\u0001');
+  inl.filter(t => !metaKeys.has(tagKey(t))).forEach(t => {
+    const pill = document.createElement('span');
+    pill.className = 'tag-pill inline';
+    pill.title = 'From #' + t + ' in the note text';
+    const c = tagColorOf(t);
+    if (c) pill.dataset.tc = c;
+    pill.textContent = '#' + t;
+    el.appendChild(pill);
+  });
+  const wrap = document.createElement('span');
+  wrap.id = 'tag-input-wrap';
+  const input = document.createElement('input');
+  input.id = 'tag-input';
+  input.placeholder = '+ add tag';
+  input.autocomplete = 'off';
+  input.name = 'note-tag';
+  input.setAttribute('aria-label', 'Add tag');
+  input.setAttribute('data-lpignore', 'true');
+  input.setAttribute('data-1p-ignore', '');
+  input.setAttribute('data-form-type', 'other');
+  const menu = document.createElement('div');
+  menu.id = 'tag-suggest';
+  menu.hidden = true;
+  let items = [], hi = -1;
+
+  const addTag = t => {
+    t = t.trim().replace(/^#+/, '');
+    if (!t) return;
+    if (!activeNote.tags.some(x => x.toLowerCase() === t.toLowerCase())) activeNote.tags.push(t);
+    renderTagsRow();
+    scheduleSave();
+    document.getElementById('tag-input').focus();
+  };
+  const refresh = () => {
+    const q = input.value.trim().toLowerCase();
+    const have = new Set(activeNote.tags.map(t => t.toLowerCase()));
+    const known = new Set([...allTags(), ...activeNote.tags]);
+    items = [...known].filter(t => !have.has(t.toLowerCase()) && t.toLowerCase().includes(q)).sort();
+    hi = -1;
+    menu.innerHTML = '';
+    items.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'tag-suggest-item';
+      row.textContent = t;
+      row.onmousedown = e => { e.preventDefault(); addTag(t); }; // mousedown so blur doesn't close the menu first
+      menu.appendChild(row);
+    });
+    menu.hidden = !items.length;
+  };
+  const highlightItem = () => [...menu.children].forEach((c, i) => c.classList.toggle('hi', i === hi));
+
+  input.oninput = refresh;
+  input.onfocus = refresh;
+  input.onblur = () => { menu.hidden = true; };
+  input.onkeydown = e => {
+    if (e.key === 'ArrowDown' && items.length) { e.preventDefault(); hi = (hi + 1) % items.length; highlightItem(); }
+    else if (e.key === 'ArrowUp' && items.length) { e.preventDefault(); hi = (hi - 1 + items.length) % items.length; highlightItem(); }
+    else if (e.key === 'Escape') { menu.hidden = true; }
+    else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (hi >= 0) addTag(items[hi]); else addTag(input.value);
+    }
+  };
+  wrap.append(input, menu);
+  el.appendChild(wrap);
+}
+
+function wrapSelection(before, after) {
+  const ta = document.getElementById('md-input');
+  const [s, e] = [ta.selectionStart, ta.selectionEnd];
+  const val = ta.value;
+  ta.value = val.slice(0, s) + before + val.slice(s, e) + after + val.slice(e);
+  activeNote.content = ta.value;
+  ta.focus();
+  ta.selectionStart = s + before.length;
+  ta.selectionEnd = e + before.length;
+  renderPreview();
+  scheduleSave();
+  updateLinkPicker();
+}
+
+/* ---------- markdown rendering ---------- */
+
+marked.setOptions({ gfm: true, breaks: true }); // tables, task lists, strikethrough, autolinks; single newline = line break
+
+// Be lenient about emphasis padded with spaces/newlines ("** text **"), which CommonMark would show literally.
+// Code fences and inline code are left untouched.
+function normalizeMarkdown(src) {
+  return src.split(/(```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]*`)/g).map((part, i) => {
+    if (i % 2) return part;
+    return part
+      .replace(/(\*\*|__)[ \t]*\n?[ \t]+([^*_\n][^*_]*?)[ \t]*\n?[ \t]*\1(?!\*)/g, (m, d, t) => d + t.trim() + d)
+      .replace(/(\*\*|__)[ \t]*\n?[ \t]*([^*_\n][^*_]*?)[ \t]+\1(?!\*)/g, (m, d, t) => d + t.trim() + d);
+  }).join('');
+}
+
+function renderMarkdown(src) {
+  return DOMPurify.sanitize(marked.parse(normalizeMarkdown(src)), { ADD_ATTR: ['data-note-title', 'target'] });
+}
+
+function renderPreview() {
+  if (viewMode === 'edit') return; // preview is hidden; rendered when the mode changes
+  const el = document.getElementById('md-preview');
+  const withLinks = activeNote.content.replace(/\[\[([^\]]+)\]\]/g, (m, title) => {
+    const found = findNoteByLinkName(title);
+    const cls = found ? 'note-link' : 'note-link missing';
+    return `<a href="#" class="${cls}" data-note-title="${escapeHtml(title)}">${escapeHtml(title)}</a>`;
+  });
+  el.innerHTML = renderMarkdown(withLinks);
+  openLinksInNewTab(el);
+  decorateInlineTags(el);
+  el.querySelectorAll('a.note-link').forEach(a => {
+    a.addEventListener('click', ev => {
+      ev.preventDefault();
+      const title = a.getAttribute('data-note-title');
+      const found = findNoteByLinkName(title);
+      if (found) { openNote(found.id); }
+      else if (confirm(`No note titled "${title}" yet. Create it?`)) { createNoteWithTitle(title); }
+    });
+  });
+}
+
+// Wrap #tags in the rendered preview (skipping code, links and existing tag spans); click one to filter the sidebar by it
+function decorateInlineTags(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: nd => nd.nodeValue.includes('#') && !nd.parentElement.closest('code, pre, a, script, style, .md-tag') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT,
+  });
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(nd => {
+    const text = nd.nodeValue, re = new RegExp(INLINE_TAG_RE.source, 'gu');
+    const frag = document.createDocumentFragment();
+    let last = 0, m, found = false;
+    while ((m = re.exec(text))) {
+      const name = inlineTagName(m[2]);
+      if (!name) continue;
+      found = true;
+      const hashAt = m.index + m[1].length;
+      frag.append(text.slice(last, hashAt));
+      const span = document.createElement('span');
+      const key = name.toLowerCase();
+      span.className = 'md-tag';
+      span.dataset.tag = key;
+      if (tagColors[key]) span.dataset.tc = tagColors[key];
+      span.setAttribute('role', 'button');
+      span.tabIndex = 0;
+      span.title = 'Show notes tagged #' + name;
+      span.textContent = '#' + name;
+      span.onclick = () => setTagFilter(key);
+      span.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setTagFilter(key); } };
+      frag.append(span);
+      last = hashAt + 1 + name.length;
+    }
+    if (!found) return;
+    frag.append(text.slice(last));
+    nd.replaceWith(frag);
+  });
+}
+
+function openLinksInNewTab(root) {
+  root.querySelectorAll('a[href]:not(.note-link)').forEach(a => {
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+  });
+}
+
+/* ---------- [[ note picker ---------- */
+
+let picker = null; // { start, items, hi } while open
+
+// Pixel position of a caret inside a textarea, measured with a hidden mirror element
+function caretCoords(ta, pos) {
+  const cs = getComputedStyle(ta);
+  const m = document.createElement('div');
+  ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'letterSpacing', 'lineHeight', 'wordSpacing', 'textIndent', 'tabSize',
+    'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft'].forEach(p => { m.style[p] = cs[p]; });
+  Object.assign(m.style, { position: 'fixed', visibility: 'hidden', top: '0', left: '0', whiteSpace: 'pre-wrap',
+    overflowWrap: 'break-word', boxSizing: 'border-box', border: '0', width: ta.clientWidth + 'px' });
+  m.textContent = ta.value.slice(0, pos);
+  const span = document.createElement('span');
+  span.textContent = '​';
+  m.appendChild(span);
+  document.body.appendChild(m);
+  const r = ta.getBoundingClientRect();
+  const lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.5;
+  const out = { left: r.left + ta.clientLeft + span.offsetLeft - ta.scrollLeft, top: r.top + ta.clientTop + span.offsetTop - ta.scrollTop, lh };
+  m.remove();
+  return out;
+}
+
+function updateLinkPicker() {
+  const ta = document.getElementById('md-input');
+  if (!ta || viewMode === 'preview' || ta.selectionStart !== ta.selectionEnd) return closeLinkPicker();
+  const pos = ta.selectionStart;
+  const before = ta.value.slice(0, pos);
+  const start = before.lastIndexOf('[[');
+  if (start === -1) return closeLinkPicker();
+  const q = before.slice(start + 2);
+  if (/[\]\n]/.test(q) || q.length > 60) return closeLinkPicker();
+  const k = q.trim().toLowerCase();
+  const cands = notes
+    .filter(n => n.id !== activeNoteId)
+    .map(n => ({ note: n, name: linkName(n) }))
+    .filter(c => c.name && (!k || c.name.toLowerCase().includes(k) || displayTitle(c.note).toLowerCase().includes(k)));
+  const starts = c => (c.name.toLowerCase().startsWith(k) ? 1 : 0);
+  cands.sort((a, b) => starts(b) - starts(a) || (noteDate(b.note) || 0) - (noteDate(a.note) || 0));
+  const items = cands.slice(0, 8);
+  if (k && !cands.some(c => c.name.toLowerCase() === k)) items.push({ create: true, name: q.trim() });
+  if (!items.length) return closeLinkPicker();
+  picker = { start, items, hi: 0 };
+  renderLinkPicker(ta, pos);
+}
+
+function renderLinkPicker(ta, pos) {
+  const el = document.getElementById('link-picker');
+  el.innerHTML = '';
+  picker.items.forEach((it, i) => {
+    const row = document.createElement('div');
+    row.className = 'lp-item' + (it.create ? ' create' : '') + (i === picker.hi ? ' hi' : '');
+    row.setAttribute('role', 'option');
+    row.setAttribute('aria-selected', String(i === picker.hi));
+    row.innerHTML = it.create
+      ? `<span class="t">+ Create “${escapeHtml(it.name)}”</span>`
+      : `<span class="t">${escapeHtml(it.name)}</span><span class="s">${escapeHtml(bodySnippet(it.note, 80))}</span>`;
+    row.onmousedown = e => { e.preventDefault(); pickLink(it); }; // mousedown so the textarea keeps focus
+    el.appendChild(row);
+  });
+  el.hidden = false;
+  const c = caretCoords(ta, pos);
+  const w = el.offsetWidth, h = el.offsetHeight;
+  const left = Math.max(8, Math.min(c.left, window.innerWidth - w - 8));
+  let top = c.top + c.lh + 4;
+  if (top + h > window.innerHeight - 8) top = Math.max(8, c.top - h - 4);
+  el.style.left = left + 'px';
+  el.style.top = top + 'px';
+  const hi = el.children[picker.hi];
+  if (hi) hi.scrollIntoView({ block: 'nearest' });
+}
+
+function closeLinkPicker() {
+  picker = null;
+  const el = document.getElementById('link-picker');
+  if (el) el.hidden = true;
+}
+
+async function pickLink(item) {
+  const ta = document.getElementById('md-input');
+  const { start } = picker;
+  const pos = ta.selectionStart;
+  closeLinkPicker();
+  let name = item.name;
+  if (item.create) {
+    const created = await createNoteWithTitle(item.name, { open: false });
+    if (!created) return;
+    name = linkName(created);
+    toast(`Created “${name}”`);
+  }
+  if (ta.value.slice(start, start + 2) !== '[[') return;
+  const hasClose = ta.value.slice(pos, pos + 2) === ']]';
+  ta.setRangeText(name + (hasClose ? '' : ']]'), start + 2, pos, 'end');
+  if (hasClose) ta.selectionStart = ta.selectionEnd = start + 2 + name.length + 2;
+  activeNote.content = ta.value;
+  ta.focus();
+  renderPreview();
+  scheduleSave();
+}
+
+/* ---------- related notes: backlinks, unlinked mentions, similar ---------- */
+
+const STOP = new Set(('the and for are but not you all can had her was one our out has have this that with from they will would there their what about which when your said each she how been into more some than them then these those were also just only over such very much most other make like time use may any its did get got let who why too yes').split(' '));
+const kwCache = new Map(); // note id -> { content, tags, set }
+
+// Most frequent meaningful words in a note (title included), cached per note content
+function keywordSet(n) {
+  const hit = kwCache.get(n.id);
+  if (hit && hit.content === n.content) return hit.set;
+  const counts = new Map();
+  (plainText(n.content).toLowerCase().match(/[\p{L}][\p{L}\p{N}'-]{3,}/gu) || []).forEach(w => {
+    if (!STOP.has(w)) counts.set(w, (counts.get(w) || 0) + 1);
+  });
+  const set = new Set([...counts].sort((a, b) => b[1] - a[1] || b[0].length - a[0].length).slice(0, 30).map(e => e[0]));
+  kwCache.set(n.id, { content: n.content, set });
+  return set;
+}
+
+function contextSnippet(content, idx, len) {
+  const flat = s => s.replace(/\s+/g, ' ');
+  const pre = flat(content.slice(Math.max(0, idx - 50), idx));
+  const post = flat(content.slice(idx + len, idx + len + 70));
+  return `${idx > 50 ? '…' : ''}${escapeHtml(pre)}<mark>${escapeHtml(flat(content.slice(idx, idx + len)))}</mark>${escapeHtml(post)}…`;
+}
+
+/* ---------- semantic similarity: on-device embeddings, chunk level ----------
+   Each bullet / paragraph is embedded on its own (a note is a list of unrelated items, so one vector per note
+   would average them into mush). A note is "similar" when its best chunk matches one of ours, and that matching
+   chunk is shown as the reason. Runs in a Web Worker (transformers.js + a small model from a CDN); note text
+   never leaves the browser. Vectors are cached in IndexedDB by content hash. Until the model is ready (or if it
+   fails to load) the keyword scorer in computeRelated() is used instead. */
+
+const SEM = {
+  MODEL: 'Xenova/all-MiniLM-L6-v2',
+  LIB: 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1',
+  MIN: 0.5,          // best chunk-pair cosine needed to count as "similar" (tune with relatedDebug())
+  MAX_CHUNK: 400,    // chars per chunk
+  MAX_CHUNKS: 200,   // chunks per note
+  BATCH: 32,
+  enabled: (() => {
+    const pref = lsGet('notes-semantic');
+    return pref === '1' || (pref !== '0' && !(navigator.connection && navigator.connection.saveData));
+  })(),
+  state: 'idle',     // idle | loading | ready | error
+  error: '', progress: 0, done: 0, total: 0,
+  worker: null, ready: null, readyCtl: null, reqs: new Map(), reqId: 0,
+  vecs: new Map(),        // chunk key -> Float32Array (L2-normalised, so dot product = cosine)
+  chunkCache: new Map(),  // note id -> { content, chunks }
+  indexing: null, again: false, pruned: false, timer: null,
+};
+
+// cyrb53 string hash -> short key
+function semHash(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 2654435761);
+    h2 = Math.imul(h2 ^ c, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+function semKey(text) { return SEM.MODEL.split('/').pop() + ':' + semHash(text); }
+
+// A pasted URL says nothing to an embedding model; its host + slug words do.
+function semUrlWords(s) {
+  return s.replace(/https?:\/\/(?:www\.)?([^\/\s)]+)(\/[^\s)]*)?/g, (m, host, path) => {
+    let words = '';
+    if (path) {
+      const segs = path.split(/[?#]/)[0].split('/').filter(Boolean).slice(-2);
+      words = segs.map(x => { try { return decodeURIComponent(x); } catch (e) { return x; } })
+        .join(' ').replace(/\.(html?|php|aspx?)$/i, '').replace(/[-_+.]+/g, ' ').replace(/\b\d+\b/g, ' ');
+    }
+    return (host + ' ' + words).replace(/\s+/g, ' ').trim();
+  });
+}
+
+// Split a note into one chunk per list item / paragraph. A list item is embedded together with its parent item
+// and the nearest sub-heading ("Add figure for: base case bar…"), so short bullets keep their context.
+// The note's title line is not a chunk and not used as context (titles like "To Do Items" are generic),
+// unless it is the only text in the note.
+function semChunkText(content) {
+  const out = [];
+  const titleIdx = titleLine(content).idx;
+  let inFence = false, heading = '', para = [], stack = [], titleRaw = '';
+  const push = (raw, parent) => {
+    const text = plainText(semUrlWords(raw)).slice(0, SEM.MAX_CHUNK);
+    if (text.length < 8) return null;
+    const ctx = [heading, parent].filter(Boolean).join(' › ');
+    const c = { text, embed: ctx ? ctx + ': ' + text : text };
+    out.push(c);
+    return c;
+  };
+  const flush = () => { if (para.length) { push(para.join(' '), ''); para = []; } };
+  (content || '').split('\n').forEach((raw, i) => {
+    if (/^\s*(```|~~~)/.test(raw)) { flush(); inFence = !inFence; return; }
+    if (inFence) return;
+    if (!raw.trim()) { flush(); return; }
+    const h = /^\s{0,3}#{1,6}\s+(.*)$/.exec(raw);
+    if (h) { flush(); stack = []; if (i !== titleIdx) heading = plainText(h[1]); return; }
+    if (i === titleIdx) { titleRaw = raw; return; }
+    const b = /^(\s*)(?:[-*+]|\d+[.)])\s+(.*)$/.exec(raw);
+    if (b) {
+      flush();
+      const indent = b[1].replace(/\t/g, '    ').length;
+      while (stack.length && stack[stack.length - 1].indent >= indent) stack.pop();
+      const top = stack.length ? stack[stack.length - 1] : null;
+      if (top && top.chunk) top.chunk.hasChild = true;
+      const item = b[2].replace(/^\[[ xX]\]\s+/, '');
+      stack.push({ indent, text: plainText(semUrlWords(item)).slice(0, 120), chunk: null });
+      stack[stack.length - 1].chunk = push(item, top ? top.text : '');
+      return;
+    }
+    stack = [];
+    para.push(raw.trim().replace(/^>\s?/, ''));
+  });
+  flush();
+  if (!out.length && titleRaw) push(titleRaw.replace(/^\s*(?:[-*+]|\d+[.)])\s+/, ''), ''); // a one-line note is its own chunk
+  // a short list item that only introduces sub-items ("Add figure for") is context, not a chunk of its own
+  return out.filter(c => !(c.hasChild && c.text.length < 25)).slice(0, SEM.MAX_CHUNKS);
+}
+
+// Chunks of a note ({ id, content }), cached until its content changes
+function semChunks(n) {
+  const hit = SEM.chunkCache.get(n.id);
+  if (hit && hit.content === n.content) return hit.chunks;
+  const chunks = semChunkText(n.content || '');
+  chunks.forEach(c => { c.key = semKey(c.embed); });
+  SEM.chunkCache.set(n.id, { content: n.content, chunks });
+  return chunks;
+}
+
+// All notes, with the open note's unsaved edits applied
+function semLiveNotes() {
+  return notes.map(n => (n.id === activeNoteId && activeNote) ? { ...n, content: activeNote.content, tags: activeNote.tags } : n);
+}
+
+function semDot(a, b) {
+  if (a.length !== b.length) return 0;
+  let s = 0;
+  for (let i = 0; i < a.length; i++) s += a[i] * b[i];
+  return s;
+}
+
+// Notes similar to `me`: best chunk-pair cosine, a small bonus for extra independent matches and shared tags
+function semSimilar(me, others, exclude, min = SEM.MIN) {
+  const mine = semChunks(me).filter(c => SEM.vecs.has(c.key));
+  if (!mine.length) return [];
+  const myVecs = mine.map(c => SEM.vecs.get(c.key));
+  const myTags = new Set(effectiveTags(me).map(t => t.toLowerCase()));
+  const out = [];
+  for (const n of others) {
+    if (exclude && exclude.has(n.id)) continue;
+    const theirs = semChunks(n).filter(c => SEM.vecs.has(c.key));
+    if (!theirs.length) continue;
+    const theirVecs = theirs.map(c => SEM.vecs.get(c.key));
+    let best = null, strong = 0;
+    for (let i = 0; i < mine.length; i++) {
+      let bs = -1, bj = 0;
+      for (let j = 0; j < theirs.length; j++) {
+        const s = semDot(myVecs[i], theirVecs[j]);
+        if (s > bs) { bs = s; bj = j; }
+      }
+      if (bs >= min) strong++;
+      if (!best || bs > best.s) best = { s: bs, a: mine[i], b: theirs[bj] };
+    }
+    if (!best || best.s < min) continue;
+    const tags = effectiveTags(n).filter(t => myTags.has(t.toLowerCase()));
+    const score = best.s + 0.02 * Math.min(strong - 1, 3) + 0.03 * Math.min(tags.length, 2);
+    out.push({ note: n, score, best, tags });
+  }
+  out.sort((x, y) => y.score - x.score);
+  return out;
+}
+
+/* vector cache (IndexedDB) */
+const SemStore = {
+  p: null,
+  open() {
+    if (!this.p) this.p = new Promise(res => {
+      try {
+        const r = indexedDB.open('notes-semantic', 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('vec');
+        r.onsuccess = () => res(r.result);
+        r.onerror = r.onblocked = () => res(null);
+      } catch (e) { res(null); }
+    });
+    return this.p;
+  },
+  async getMany(keys) {
+    const out = new Map();
+    const db = await this.open();
+    if (!db || !keys.length) return out;
+    return new Promise(res => {
+      try {
+        const tx = db.transaction('vec', 'readonly'), st = tx.objectStore('vec');
+        keys.forEach(k => { const rq = st.get(k); rq.onsuccess = () => { if (rq.result instanceof Float32Array) out.set(k, rq.result); }; });
+        tx.oncomplete = tx.onerror = tx.onabort = () => res(out);
+      } catch (e) { res(out); }
+    });
+  },
+  async putMany(map) {
+    const db = await this.open();
+    if (!db) return;
+    try { const tx = db.transaction('vec', 'readwrite'), st = tx.objectStore('vec'); map.forEach((v, k) => st.put(v, k)); } catch (e) {}
+  },
+  async prune(live) { // drop vectors of text that no longer exists in any note
+    const db = await this.open();
+    if (!db) return;
+    try {
+      const tx = db.transaction('vec', 'readwrite'), st = tx.objectStore('vec');
+      const rq = st.getAllKeys();
+      rq.onsuccess = () => rq.result.forEach(k => { if (!live.has(k)) st.delete(k); });
+    } catch (e) {}
+  },
+  async clear() {
+    const db = await this.open();
+    if (!db) return;
+    try { db.transaction('vec', 'readwrite').objectStore('vec').clear(); } catch (e) {}
+  },
+};
+
+/* embedding worker */
+const SEM_WORKER_SRC = `
+import { pipeline, env } from '${SEM.LIB}';
+env.allowLocalModels = false;
+let extractor = null;
+self.onmessage = async (e) => {
+  const m = e.data;
+  try {
+    if (m.type === 'init') {
+      extractor = await pipeline('feature-extraction', m.model, {
+        dtype: 'q8',
+        progress_callback: p => { if (p && p.status === 'progress' && /\\.onnx$/.test(p.file || '')) self.postMessage({ type: 'progress', progress: p.progress }); },
+      });
+      self.postMessage({ type: 'ready' });
+    } else if (m.type === 'embed') {
+      const t = await extractor(m.texts, { pooling: 'mean', normalize: true });
+      const data = new Float32Array(t.data);
+      self.postMessage({ type: 'vecs', id: m.id, dim: t.dims[1], data }, [data.buffer]);
+    }
+  } catch (err) {
+    self.postMessage({ type: 'error', id: m.id, message: String((err && err.message) || err) });
+  }
+};`;
+
+function semStop(reason) { // terminate the worker and release anything waiting on it
+  if (SEM.worker) { SEM.worker.terminate(); SEM.worker = null; }
+  const err = new Error(reason || 'stopped');
+  SEM.reqs.forEach(r => r.rej(err));
+  SEM.reqs.clear();
+  if (SEM.readyCtl) { SEM.readyCtl.rej(err); SEM.readyCtl = null; }
+  SEM.ready = null;
+}
+
+function semFail(msg) {
+  console.warn('Semantic similarity unavailable:', msg);
+  semStop(msg);
+  SEM.state = 'error';
+  SEM.error = String(msg || 'unknown error').slice(0, 120);
+  semUi();
+  if (activeNote) renderRelated(); // falls back to keyword matching
+}
+
+function semStart() {
+  if (!SEM.enabled || SEM.worker || SEM.state === 'error') return;
+  if (typeof Worker === 'undefined' || !window.indexedDB) { semFail('this browser lacks Web Workers or IndexedDB'); return; }
+  SEM.state = 'loading'; SEM.progress = 0;
+  SEM.ready = new Promise((res, rej) => { SEM.readyCtl = { res, rej }; });
+  SEM.ready.catch(() => {}); // rejections are handled by whoever awaits it
+  try {
+    const url = URL.createObjectURL(new Blob([SEM_WORKER_SRC], { type: 'text/javascript' }));
+    SEM.worker = new Worker(url, { type: 'module' });
+  } catch (e) { semFail(e.message || e); return; }
+  SEM.worker.onmessage = ev => {
+    const m = ev.data;
+    if (m.type === 'progress') { SEM.progress = Math.round(m.progress || 0); semUi(); }
+    else if (m.type === 'ready') { SEM.state = 'ready'; if (SEM.readyCtl) SEM.readyCtl.res(); SEM.readyCtl = null; semUi(); }
+    else if (m.type === 'vecs') { const r = SEM.reqs.get(m.id); SEM.reqs.delete(m.id); if (r) r.res(m); }
+    else if (m.type === 'error') {
+      const r = SEM.reqs.get(m.id);
+      if (r) { SEM.reqs.delete(m.id); r.rej(new Error(m.message)); } else semFail(m.message);
+    }
+  };
+  SEM.worker.onerror = ev => semFail(ev.message || 'worker failed to load (offline, or CDN blocked?)');
+  SEM.worker.postMessage({ type: 'init', model: SEM.MODEL });
+  semUi();
+}
+
+function semEmbed(texts) {
+  return new Promise((res, rej) => {
+    if (!SEM.worker) { rej(new Error('worker not running')); return; }
+    const id = ++SEM.reqId;
+    SEM.reqs.set(id, { res, rej });
+    SEM.worker.postMessage({ type: 'embed', id, texts });
+  });
+}
+
+// chunk key -> text, for every chunk of every note that has no vector yet (open note first)
+function semMissing() {
+  const want = new Map();
+  const live = semLiveNotes();
+  live.sort((a, b) => (b.id === activeNoteId) - (a.id === activeNoteId));
+  live.forEach(n => semChunks(n).forEach(c => { if (!SEM.vecs.has(c.key)) want.set(c.key, c.embed); }));
+  return want;
+}
+
+async function semIndex() {
+  if (!SEM.enabled || SEM.state === 'error') return;
+  semStart();
+  if (SEM.indexing) { SEM.again = true; return SEM.indexing; }
+  SEM.indexing = (async () => {
+    let worked = false;
+    try {
+      await SEM.ready;
+      do {
+        SEM.again = false;
+        let want = semMissing();
+        if (!want.size) continue;
+        worked = true;
+        SEM.total = want.size; SEM.done = 0; semUi();
+        const cached = await SemStore.getMany([...want.keys()]);
+        cached.forEach((v, k) => { SEM.vecs.set(k, v); want.delete(k); });
+        const todo = [...want];
+        SEM.total = todo.length; SEM.done = 0; semUi();
+        for (let i = 0; i < todo.length; i += SEM.BATCH) {
+          const batch = todo.slice(i, i + SEM.BATCH);
+          const { dim, data } = await semEmbed(batch.map(e => e[1]));
+          const fresh = new Map();
+          batch.forEach((e, j) => { const v = data.slice(j * dim, (j + 1) * dim); SEM.vecs.set(e[0], v); fresh.set(e[0], v); });
+          SemStore.putMany(fresh);
+          SEM.done += batch.length; semUi();
+        }
+      } while (SEM.again);
+      if (!SEM.pruned && notes.length) { // once per session: forget vectors for text that no longer exists
+        SEM.pruned = true;
+        const liveKeys = new Set(), liveIds = new Set();
+        semLiveNotes().forEach(n => { liveIds.add(n.id); semChunks(n).forEach(c => liveKeys.add(c.key)); });
+        SemStore.prune(liveKeys);
+        SEM.vecs.forEach((v, k) => { if (!liveKeys.has(k)) SEM.vecs.delete(k); });
+        SEM.chunkCache.forEach((v, id) => { if (!liveIds.has(id)) SEM.chunkCache.delete(id); });
+      }
+    } catch (e) {
+      if (SEM.enabled && SEM.state !== 'error') semFail(e.message || e);
+      worked = false;
+    } finally {
+      SEM.indexing = null;
+      SEM.done = SEM.total = 0;
+      semUi();
+      if (worked && activeNote) renderRelated();
+    }
+  })();
+  return SEM.indexing;
+}
+
+// Debounced: index whatever has no vector yet (new notes, edited bullets)
+function semSchedule() {
+  if (!SEM.enabled || SEM.state === 'error' || !notes.length) return;
+  clearTimeout(SEM.timer);
+  SEM.timer = setTimeout(() => { if (SEM.state === 'idle' || SEM.indexing || semMissing().size) semIndex(); }, 400);
+}
+
+function semReset() { // on sign-out: drop every vector derived from the previous user's notes
+  SEM.vecs.clear(); SEM.chunkCache.clear(); SEM.pruned = false;
+  SemStore.clear();
+}
+
+function toggleSemantic() {
+  SEM.enabled = !SEM.enabled;
+  lsSet('notes-semantic', SEM.enabled ? '1' : '0');
+  if (SEM.enabled) { if (SEM.state === 'error') SEM.state = 'idle'; semSchedule(); }
+  else { semStop('turned off'); SEM.state = 'idle'; }
+  semUi();
+  if (activeNote) renderRelated();
+}
+
+function semUi() {
+  const item = document.getElementById('sem-item');
+  if (item) {
+    item.setAttribute('aria-checked', String(SEM.enabled));
+    const sub = !SEM.enabled ? 'Keyword matching only' : SEM.state === 'error' ? 'Unavailable — using keywords'
+      : SEM.state === 'loading' ? 'Loading model' + (SEM.progress ? ` · ${SEM.progress}%` : '…')
+      : SEM.indexing && SEM.total ? `Indexing ${SEM.done}/${SEM.total}` : 'Matches by meaning, on this device';
+    document.getElementById('sem-sub').textContent = sub;
+  }
+  const el = document.getElementById('rel-sem');
+  if (!el) return;
+  let t = '';
+  if (!SEM.enabled) t = 'Similar notes use keyword matching. Turn on semantic matching in Settings.';
+  else if (SEM.state === 'error') t = `Semantic matching unavailable (${SEM.error}). Using keyword matching.`;
+  else if (SEM.state === 'loading') t = 'Loading semantic model' + (SEM.progress ? ` · ${SEM.progress}%` : '…') + ' Using keyword matching meanwhile.';
+  else if (SEM.indexing && SEM.total) t = `Indexing notes · ${SEM.done}/${SEM.total}`;
+  else if (SEM.state === 'ready') t = 'Similar notes are matched by meaning, on this device.';
+  el.textContent = t;
+}
+
+// Console helper for tuning SEM.MIN: every note scored against the open one, with the chunk pair behind the score
+window.relatedDebug = function () {
+  const me = { id: activeNoteId, ...activeNote };
+  const rows = semSimilar(me, notes.filter(n => n.id !== activeNoteId), null, -1).map(r => ({
+    note: displayTitle(r.note), cosine: +r.best.s.toFixed(3), score: +r.score.toFixed(3),
+    mine: r.best.a.text.slice(0, 60), theirs: r.best.b.text.slice(0, 60), shown: r.best.s >= SEM.MIN,
+  }));
+  console.log(`SEM.MIN = ${SEM.MIN} (set SEM.MIN = 0.45 etc. to change)`);
+  console.table(rows);
+  return rows;
+};
+semUi();
+document.getElementById('new-note-caret').innerHTML = ICONS.caret;
+document.getElementById('settings-btn').innerHTML = ICONS.gear;
+document.getElementById('tagcolors-item').innerHTML = ICONS.tag + 'Tag colors…';
+document.getElementById('sem-item').insertAdjacentHTML('afterbegin', ICONS.spark);
+
+function computeRelated() {
+  const me = { id: activeNoteId, ...activeNote };
+  const others = notes.filter(n => n.id !== activeNoteId);
+  const uniq = a => [...new Set(a.filter(Boolean).map(s => s.trim()).filter(Boolean))];
+
+  // 1. backlinks: other notes containing [[this note]] under any name it has gone by
+  const mine = titleLine(me.content);
+  const linkNames = uniq([mine.text, mine.full, me.title]);
+  const backlinks = [];
+  if (linkNames.length) {
+    const re = new RegExp('\\[\\[\\s*(?:' + linkNames.map(escapeRegex).join('|') + ')\\s*\\]\\]', 'i');
+    others.forEach(n => {
+      const m = re.exec(n.content || '');
+      if (m) backlinks.push({ note: n, html: contextSnippet(n.content, m.index, m[0].length) });
+    });
+  }
+  const linked = new Set(backlinks.map(b => b.note.id));
+
+  // 2. unlinked mentions: the title appears as plain text, outside any [[ ]]
+  const mentionNames = uniq([mine.text]).filter(s => s.length >= 3 && s.length <= 60);
+  const mentions = [];
+  if (mentionNames.length) {
+    const re = new RegExp('(?<![\\p{L}\\p{N}])(?:' + mentionNames.map(escapeRegex).join('|') + ')(?![\\p{L}\\p{N}])', 'iu');
+    others.forEach(n => {
+      if (linked.has(n.id)) return;
+      const text = (n.content || '').replace(/\[\[[^\]]*\]\]/g, m => ' '.repeat(m.length)); // same length so indexes still line up
+      const m = re.exec(text);
+      if (m) mentions.push({ note: n, html: contextSnippet(n.content, m.index, m[0].length) });
+    });
+  }
+  const mentioned = new Set(mentions.map(m => m.note.id));
+
+  // 3. similar: by meaning (best matching chunk) once the embedding model is ready,
+  //    otherwise shared tags (weighted) + shared keywords
+  if (SEM.enabled && SEM.state === 'ready') {
+    const similar = semSimilar(me, others, new Set([...linked, ...mentioned]));
+    return { backlinks, mentions, similar: similar.slice(0, 6), semantic: true };
+  }
+  const myWords = keywordSet(me);
+  const myTags = new Set(effectiveTags(me).map(t => t.toLowerCase()));
+  const similar = [];
+  others.forEach(n => {
+    if (linked.has(n.id) || mentioned.has(n.id)) return;
+    const tags = effectiveTags(n).filter(t => myTags.has(t.toLowerCase()));
+    const words = [...keywordSet(n)].filter(w => myWords.has(w));
+    const score = tags.length * 3 + words.length;
+    if (score >= 3) similar.push({ note: n, score, tags, words });
+  });
+  similar.sort((a, b) => b.score - a.score);
+  return { backlinks, mentions, similar: similar.slice(0, 6), semantic: false };
+}
+
+function renderRelated() {
+  if (!activeNote) { setRelatedState(false, 0); return; }
+  let rel;
+  try { rel = computeRelated(); } catch (err) {
+    console.error('computeRelated failed:', err);
+    rel = { backlinks: [], mentions: [], similar: [], semantic: false, failed: true };
+  }
+  const { backlinks, mentions, similar, semantic } = rel;
+  try { semSchedule(); } catch (err) { console.error('semSchedule failed:', err); } // embed any new / edited chunks, then this panel re-renders
+  const body = document.getElementById('related-body');
+  const openState = {};
+  body.querySelectorAll('details[data-k]').forEach(d => { openState[d.dataset.k] = d.open; }); // keep user's collapsed sections
+  body.innerHTML = '';
+  const section = (key, label, entries) => {
+    if (!entries.length) return;
+    const d = document.createElement('details');
+    d.className = 'rel-section';
+    d.dataset.k = key;
+    d.open = openState[key] !== false;
+    d.innerHTML = `<summary>${label} <span class="n">${entries.length}</span></summary>`;
+    entries.forEach(e => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'rel-item';
+      b.innerHTML = `<span class="t">${escapeHtml(displayTitle(e.note))}</span><span class="s">${e.html}</span>` + (e.meta ? `<span class="m">${escapeHtml(e.meta)}</span>` : '');
+      b.onclick = () => openNote(e.note.id);
+      d.appendChild(b);
+    });
+    body.appendChild(d);
+  };
+  section('back', 'Backlinks', backlinks);
+  section('unlinked', 'Unlinked mentions', mentions);
+  const clip = (s, n) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+  section('similar', 'Similar notes', similar.map(s => semantic ? ({
+    note: s.note,
+    html: escapeHtml(clip(s.best.b.text, 130)),   // the chunk that matched
+    meta: `↔ “${clip(s.best.a.text, 60)}” · ${Math.round(s.best.s * 100)}%` + (s.tags.length ? ' · ' + s.tags.map(t => '#' + t).join(' ') : ''),
+  }) : ({
+    note: s.note,
+    html: escapeHtml(bodySnippet(s.note, 110)) || '<i>No body text</i>',
+    meta: 'Shared: ' + [...s.tags.map(t => '#' + t), ...s.words.slice(0, 4)].join(', '),
+  })));
+  const total = backlinks.length + mentions.length + similar.length;
+  if (!total) body.innerHTML = rel.failed
+    ? '<div class="rel-empty">Couldn\'t work out related notes for this note (details in the browser console).</div>'
+    : '<div class="rel-empty">Nothing related yet. Backlinks, unlinked mentions and similar notes show up here as you write.</div>';
+  setRelatedState(true, total);
+}
+
+function setRelatedState(show, count) { // show: a note is open (the panel is shown even when it has nothing to list)
+  relatedAvailable = show;
+  const pane = document.getElementById('related-pane');
+  pane.hidden = !show;
+  if (!show) pane.classList.remove('open');
+  document.getElementById('layout').classList.toggle('no-related', !show || relatedCollapsed);
+  const btn = document.getElementById('related-toggle');
+  btn.hidden = !show;
+  document.getElementById('related-count').textContent = count || '';
+  btn.setAttribute('aria-expanded', String(isMobile() ? pane.classList.contains('open') : !relatedCollapsed));
+}
+
+function toggleRelated() {
+  if (isMobile()) {
+    document.getElementById('related-pane').classList.toggle('open');
+  } else {
+    relatedCollapsed = !relatedCollapsed;
+    lsSet('notes-related-collapsed', relatedCollapsed ? '1' : '0');
+  }
+  setRelatedState(relatedAvailable, +document.getElementById('related-count').textContent || 0);
+}
+
+/* ---------- images & editor keys ---------- */
+
+function onImageFileChosen(e) {
+  const file = e.target.files[0];
+  if (file) uploadImage(file);
+  e.target.value = '';
+}
+function editorChanged(ta) {
+  activeNote.content = ta.value;
+  renderPreview();
+  scheduleSave();
+  updateLinkPicker();
+}
+
+// Tab / Shift+Tab indent and outdent (2 spaces); Enter continues bullet, numbered and task lists
+function onEditorKeydown(e) {
+  if (picker) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const n = picker.items.length;
+      picker.hi = (picker.hi + (e.key === 'ArrowDown' ? 1 : n - 1)) % n;
+      renderLinkPicker(e.target, e.target.selectionStart);
+      return;
+    }
+    if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); pickLink(picker.items[picker.hi]); return; }
+    if (e.key === 'Escape') { e.preventDefault(); closeLinkPicker(); return; }
+  }
+  const ta = e.target;
+  const v = ta.value;
+  const ss = ta.selectionStart, se = ta.selectionEnd;
+  const lineStart = v.lastIndexOf('\n', ss - 1) + 1;
+
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    let blockEnd = v.indexOf('\n', se);
+    if (blockEnd === -1) blockEnd = v.length;
+    if (ss === se && !e.shiftKey) { ta.setRangeText('  ', ss, se, 'end'); return editorChanged(ta); }
+    const block = v.slice(lineStart, blockEnd);
+    const out = block.split('\n').map(l => e.shiftKey ? l.replace(/^( {1,2}|\t)/, '') : '  ' + l).join('\n');
+    ta.setRangeText(out, lineStart, blockEnd, 'select');
+    return editorChanged(ta);
+  }
+
+  if (e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey && ss === se) {
+    const line = v.slice(lineStart, ss);
+    const m = line.match(/^(\s*)([-*+]|\d+[.)])(\s+)(\[[ xX]\]\s+)?(.*)$/);
+    if (!m) return;
+    e.preventDefault();
+    const [, indent, marker, gap, task, text] = m;
+    if (!text.trim()) { // empty item: end the list
+      ta.setRangeText('', lineStart, ss, 'end');
+      return editorChanged(ta);
+    }
+    const next = /\d/.test(marker) ? (parseInt(marker, 10) + 1) + marker.slice(-1) : marker;
+    ta.setRangeText('\n' + indent + next + gap + (task ? '[ ] ' : ''), ss, se, 'end');
+    editorChanged(ta);
+  }
+}
+
+function onEditorPaste(e) {
+  const item = [...(e.clipboardData.items || [])].find(i => i.type.startsWith('image/'));
+  if (item) { e.preventDefault(); uploadImage(item.getAsFile()); return; }
+  const html = e.clipboardData.getData('text/html');
+  if (!html || typeof TurndownService === 'undefined') return;
+  const md = htmlToMarkdown(html);
+  if (md === null) return; // no rich formatting: let the browser paste plain text
+  e.preventDefault();
+  const ta = e.target;
+  const [s, end] = [ta.selectionStart, ta.selectionEnd];
+  ta.setRangeText(md, s, end, 'end');
+  activeNote.content = ta.value;
+  renderPreview();
+  scheduleSave();
+}
+let turndown;
+function htmlToMarkdown(html) {
+  if (!/<(h[1-6]|strong|b|em|i|ul|ol|li|a|blockquote|pre|code|table|img)\b/i.test(html)) return null;
+  if (!turndown) {
+    turndown = new TurndownService({ headingStyle: 'atx', bulletListMarker: '-', codeBlockStyle: 'fenced', emDelimiter: '*' });
+    turndown.remove(['style', 'script', 'meta']);
+    if (typeof turndownPluginGfm !== 'undefined') turndown.use(turndownPluginGfm.gfm);
+  }
+  const doc = new DOMParser().parseFromString(DOMPurify.sanitize(html), 'text/html');
+  // Word/Google Docs wrap content in <b style="font-weight:normal"> — don't treat as bold
+  doc.querySelectorAll('b[style*="font-weight:normal"], b[id^="docs-internal-guid"]').forEach(b => b.replaceWith(...b.childNodes));
+  // Sheets/Excel/Word tables often lack a header row, which GFM tables require: promote the first row
+  doc.querySelectorAll('table').forEach(t => {
+    if (t.querySelector('th')) return;
+    const row = t.querySelector('tr');
+    if (!row) return;
+    [...row.children].forEach(td => {
+      const th = doc.createElement('th');
+      th.append(...td.childNodes);
+      td.replaceWith(th);
+    });
+  });
+  return turndown.turndown(doc.body).trim();
+}
+async function uploadImage(file) {
+  if (!activeNoteId || !currentUser) return;
+  toast('Uploading image...');
+  const path = `users/${currentUser.uid}/notes/${activeNoteId}/${Date.now()}_${file.name}`;
+  const ref = storage.ref(path);
+  await ref.put(file);
+  const url = await ref.getDownloadURL();
+  const ta = document.getElementById('md-input');
+  const pos = ta.selectionStart;
+  const insert = `\n![](${url})\n`;
+  ta.value = ta.value.slice(0, pos) + insert + ta.value.slice(pos);
+  activeNote.content = ta.value;
+  renderPreview();
+  scheduleSave();
+  toast('Image added');
+}
+
+/* ---------- visibility & share (read-only links) ---------- */
+
+function shareUrl() { return `${location.origin}${location.pathname}?u=${currentUser.uid}&n=${activeNoteId}`; }
+
+function renderShareStatus() {
+  const b = document.getElementById('vis-btn');
+  if (!b) return;
+  const pub = activeNote.public;
+  b.classList.toggle('on', pub);
+  b.setAttribute('aria-pressed', String(pub));
+  b.setAttribute('aria-label', pub ? 'Visibility: shared. Activate to make private' : 'Visibility: private. Activate to share');
+  b.title = pub ? 'Anyone with the link can view. Click to make private.' : 'Only you can see this note. Click to share a view-only link.';
+  b.innerHTML = (pub ? ICONS.globe : ICONS.lock) + `<span>${pub ? 'Shared' : 'Private'}</span>`;
+  refreshMenuState();
+}
+
+function refreshMenuState() {
+  const pin = document.getElementById('menu-pin');
+  if (pin) pin.innerHTML = ICONS.pin + (activeNote.pinned ? 'Unpin note' : 'Pin note');
+  const copy = document.getElementById('menu-copy');
+  if (copy) copy.hidden = !activeNote.public;
+}
+
+function setPublic(v) {
+  activeNote.public = v;
+  renderShareStatus();
+  return saveActiveNote();
+}
+async function toggleVisibility() {
+  if (!activeNoteId) return;
+  if (activeNote.public) {
+    await setPublic(false);
+    toast('Sharing stopped — the link no longer works', { action: 'Undo', ms: 6000, onAction: () => setPublic(true) });
+  } else {
+    await setPublic(true);
+    copyShareLink();
+  }
+}
+// Share ↗ always ends with a working link on the clipboard
+async function shareNote() {
+  if (!activeNoteId) return;
+  if (!activeNote.public) await setPublic(true);
+  copyShareLink();
+}
+function copyShareLink() {
+  navigator.clipboard.writeText(shareUrl()).then(() => toast('View-only link copied to clipboard'), () => toast(shareUrl(), { ms: 6000 }));
+}
+
+/* ---------- read-only shared view ---------- */
+
+async function initReadOnlyView(uid, noteId) {
+  document.getElementById('readonly-view').hidden = false;
+  const doc = await db.collection('users').doc(uid).collection('notes').doc(noteId).get();
+  if (!doc.exists || !doc.data().public) {
+    document.getElementById('ro-title').textContent = 'Note not available';
+    document.getElementById('ro-content').textContent = 'This note is private or no longer shared.';
+    return;
+  }
+  const data = doc.data();
+  document.getElementById('ro-title').textContent = derivedTitle(data.content) || data.title || '(untitled)';
+  const created = toDate(data.createdAt);
+  document.getElementById('ro-meta').textContent = [
+    data.authorName ? `By ${data.authorName}` : '',
+    created ? `Created ${created.toLocaleDateString([], { dateStyle: 'medium' })}` : '',
+  ].filter(Boolean).join(' · ');
+  const plain = (data.content || '').replace(/\[\[([^\]]+)\]\]/g, '$1'); // links shown as plain text, not resolved
+  const ro = document.getElementById('ro-content');
+  ro.innerHTML = renderMarkdown(plain);
+  openLinksInNewTab(ro);
+}
+
+/* ---------- resizable sidebar ---------- */
+
+(function initSidebarResizer() {
+  const h = document.getElementById('sidebar-resizer');
+  const MIN = 200, MAX = 480, DEF = 260;
+  const setW = (w, persist) => {
+    w = Math.max(MIN, Math.min(MAX, Math.round(w)));
+    document.documentElement.style.setProperty('--sidebar-w', w + 'px');
+    h.setAttribute('aria-valuenow', w);
+    if (persist) lsSet('notes-sidebar-w', String(w));
+    return w;
+  };
+  let w = parseInt(lsGet('notes-sidebar-w'), 10);
+  w = setW(w || DEF, false);
+  let dragging = false;
+  h.addEventListener('pointerdown', e => { dragging = true; h.setPointerCapture(e.pointerId); document.body.classList.add('resizing'); });
+  h.addEventListener('pointermove', e => { if (dragging) w = setW(e.clientX, false); });
+  const end = () => { if (!dragging) return; dragging = false; document.body.classList.remove('resizing'); setW(w, true); };
+  h.addEventListener('pointerup', end);
+  h.addEventListener('pointercancel', end);
+  h.addEventListener('dblclick', () => { w = setW(DEF, true); });
+  h.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); w = setW(w - 16, true); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); w = setW(w + 16, true); }
+  });
+})();
+
+/* ---------- boot ---------- */
+
+(function boot() {
+  document.getElementById('search').value = '';
+  const params = new URLSearchParams(location.search);
+  const u = params.get('u'), n = params.get('n');
+  if (u && n) {
+    initReadOnlyView(u, n);
+  } else {
+    document.getElementById('app').hidden = false;
+    renderAccount(null);
+    applyTheme(document.documentElement.getAttribute('data-theme'));
+  }
+})();
+</script>
+</body>
+</html>

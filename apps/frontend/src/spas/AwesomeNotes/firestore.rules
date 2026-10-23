@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/canvases/{canvasId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/folders/{folderId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/settings/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/notes/{noteId} {
+      allow read: if (request.auth != null && request.auth.uid == userId)
+                     || resource.data.public == true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
