@@ -182,7 +182,11 @@
   #layout.no-related { grid-template-columns: var(--sidebar-w) minmax(0, 1fr); }
 
   #sidebar, #related-pane { background: var(--bg-surface); overflow-y: auto; }
-  #sidebar { border-right: 1px solid var(--line); padding: 12px; }
+  /* only the groups/notes list scrolls; the buttons and tag chips stay put */
+  #sidebar { border-right: 1px solid var(--line); padding: 12px 12px 0; display: flex; flex-direction: column; overflow: hidden; }
+  #sidebar > * { flex: none; }
+  #sidebar > #note-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin: 0 -12px; padding: 0 12px 12px; }
+  #tag-chips { max-height: 112px; overflow-y: auto; }
   #related-pane { border-left: 1px solid var(--line); padding: 12px; }
 
   #sidebar-resizer {
@@ -491,7 +495,8 @@
   @media (max-width: 760px) {
     #layout, #layout.no-related { grid-template-columns: minmax(0, 1fr); }
     #sidebar, #related-pane { display: none; position: fixed; inset: 52px 0 0 0; z-index: 30; border: none; }
-    #sidebar.open, #related-pane.open { display: block; }
+    #sidebar.open { display: flex; }
+    #related-pane.open { display: block; }
     #sidebar-resizer { display: none; }
     #sidebar-toggle { display: inline-flex; }
     #edit-area[data-mode="split"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
